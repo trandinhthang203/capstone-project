@@ -10,6 +10,8 @@ import time
 from scripts.utils.common import read_yaml
 import json
 
+DOWNLOAD_DIR = os.path.abspath("forms")
+
 class Crawl_DVC:
     def __init__(self):
         self.config = read_yaml()
@@ -23,12 +25,12 @@ class Crawl_DVC:
         options.add_argument("--blink-settings=imagesEnabled=false")
 
         prefs = {
-            "download.default_directory": self.config.crawl_dvc.download_dir,
+            "download.default_directory": DOWNLOAD_DIR,
             "download.prompt_for_download": False,
             "plugins.always_open_pdf_externally": True 
         }
         options.add_experimental_option("prefs", prefs)
-        os.makedirs(self.config.crawl_dvc.download_dir, exist_ok=True)
+        os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
         s = Service(self.config.crawl_dvc.driver_path)
         return webdriver.Chrome(service=s, options=options)
@@ -149,13 +151,13 @@ class Crawl_DVC:
                                     continue
 
                                 try:
-                                    old_path = os.path.join(self.config.crawl_dvc.download_dir, file_name)
+                                    old_path = os.path.join(DOWNLOAD_DIR, file_name)
                                     if os.path.exists(old_path):
                                         os.remove(old_path)
 
                                     driver.execute_script("arguments[0].click();", span)
 
-                                    downloaded_path = self.wait_for_download(self.config.crawl_dvc.download_dir, file_name)
+                                    downloaded_path = self.wait_for_download(DOWNLOAD_DIR, file_name)
                                     file_paths.append(downloaded_path or file_name)
 
                                 except Exception as e:
