@@ -48,6 +48,7 @@ class ProcessForms:
                     component["Mẫu đơn, tờ khai"] = ", ".join(urls)
 
             output_path = os.path.join(self.config.process_forms.proceduces_processed, json_file)
+            print(output_path)
             with open(output_path, "w", encoding="utf-8") as file:
                 json.dump(procedure, file, indent=4, ensure_ascii=False)
     
