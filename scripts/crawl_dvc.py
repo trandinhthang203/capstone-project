@@ -36,7 +36,6 @@ class Crawl_DVC:
         return webdriver.Chrome(service=s, options=options)
     
     def get_links(self, base_url: str, file_name: str):
-        """ Lấy danh sách các liên kết thủ tục"""
         driver = self.make_driver()
         wait = WebDriverWait(driver, 15)
 
@@ -198,16 +197,19 @@ class Crawl_DVC:
 
         for link in links:
             driver.get(link)
+            procedure = {}
 
             a_tag = driver.find_element(By.CLASS_NAME, "url")
-            driver.get(a_tag.get_attribute("href"))
+            reference = a_tag.get_attribute("href")
+            driver.get(reference)
+            procedure["reference"] = reference
             
             wait = WebDriverWait(driver, 10)
 
             attributes = wait.until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".info-row"))
             )
-            procedure = {}
+
             for attribute in attributes:
                 try:
                     key = attribute.find_element(By.CSS_SELECTOR, ".col-sm-3.col-xs-12.key").get_attribute("textContent").strip()
