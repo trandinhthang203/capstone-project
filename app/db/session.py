@@ -8,9 +8,9 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(
-    bind=engine,
     autoflush=False,
-    autocommit=False
+    autocommit=False,
+    bind=engine
 )
 
 def get_db():
