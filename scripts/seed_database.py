@@ -83,7 +83,6 @@ class Seed_Database:
             print(filename)
             procedure = read_json(base_dir, filename)
             ma = procedure["Mã thủ tục:"]
-            print(ma)
 
             try:
                 self.db.add(self._build_procedures(procedure))
