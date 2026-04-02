@@ -1,8 +1,11 @@
 import os
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+import yaml
+from pathlib import Path
 
 load_dotenv()
+BASE_DIR = 'D:/capstone-project/prompts'
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'CAPSTONE-PROJECTD')
@@ -15,3 +18,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# with open(BASE_DIR / 'system_prompts.yaml', 'r', encoding='utf-8') as file:
+#     system_prompt = yaml.safe_load(file)
+
+with open(os.path.join(BASE_DIR, 'example.yaml'), 'r', encoding='utf-8') as file:
+    example_prompt = yaml.safe_load(file)
+
+__all__ = ['settings', 'example_prompt']
