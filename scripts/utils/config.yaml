@@ -1,0 +1,9 @@
+crawl_dvc:
+  driver_path: D:/chromedriver/chromedriver-win64/chromedriver.exe
+  base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-thu-tuc-theo-nhom-su-kien.html?objectId=1&groupEventId=753#mainTitle
+  file_name: data/proceduces_links.csv
+  proceduces_raw: D:/capstone-project/data/raw
+
+process_forms:
+  proceduces_raw: D:/capstone-project/data/raw
+  proceduces_processed: D:/capstone-project/data/processed
