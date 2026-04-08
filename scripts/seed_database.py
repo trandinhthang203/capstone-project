@@ -5,7 +5,7 @@ from scripts.models.component import Thanh_Phan_Ho_So
 from scripts.models.basis import Can_Cu_Phap_Ly
 from scripts.models.method import Cach_Thuc_Thuc_Hien
 import os
-from scripts.utils.common import read_yaml, read_json
+from app.helpers.utils.common import read_yaml, read_json
 
 
 class Seed_Database:
