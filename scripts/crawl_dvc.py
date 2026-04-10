@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import os
 import time
-from scripts.utils.common import read_yaml
+from app.helpers.utils.common import read_yaml
 import json
 
 DOWNLOAD_DIR = os.path.abspath("forms")
