@@ -22,7 +22,7 @@ settings = Settings()
 # with open(BASE_DIR / 'system_prompts.yaml', 'r', encoding='utf-8') as file:
 #     system_prompt = yaml.safe_load(file)
 
-with open(os.path.join(BASE_DIR, 'example.yaml'), 'r', encoding='utf-8') as file:
-    example_prompt = yaml.safe_load(file)
+with open(os.path.join(BASE_DIR, 'supervisor_agent.yaml'), 'r', encoding='utf-8') as file:
+    supervisor_prompt = yaml.safe_load(file)
 
-__all__ = ['settings', 'example_prompt']
+__all__ = ['settings', 'supervisor_prompt']
