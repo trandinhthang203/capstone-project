@@ -1,7 +1,7 @@
 import boto3
 import os
 import json
-from scripts.utils.common import read_yaml, read_json
+from app.helpers.utils.common import read_yaml, read_json
 from dotenv import load_dotenv
 load_dotenv()
 
