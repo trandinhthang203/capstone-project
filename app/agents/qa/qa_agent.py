@@ -14,13 +14,14 @@ def qa_node(state: AgentState) -> dict:
     user_input = state["user_input"]
     procedures = state["procedures"]
 
-    sql_prompt = supervisor_prompt["SQL_GENERATION"].format(
-        procedure_names=procedures,
-        query=user_input
-    )
+    # sql_prompt = supervisor_prompt["SQL_GENERATION"].format(
+    #     procedure_names=procedures,
+    #     query=user_input
+    # )
     try:
-        raw_sql = get_response_llm(sql_prompt, user_input)
-        sql_query = validate_sql(raw_sql)
+        # raw_sql = get_response_llm(sql_prompt, user_input)
+        # sql_query = validate_sql(raw_sql)
+        sql_query = f"SELECT * FROM rag.thu_tuc t WHERE t.ten_thu_tuc ILIKE '%{procedures[0]}%'"
         logging.info(f"[qa_node] Generated SQL: {sql_query}")
     except CustomException as e:
         logging.warning(f"[qa_node] Invalid SQL: {e}")

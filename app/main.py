@@ -38,7 +38,7 @@ from app.agents.base.graph import app
 # main.py
 
 result = app.invoke({
-    "user_input": "Làm đăng ký tạm trú ở đâu vậy?",
+    "user_input": "Tôi muốn biết chi tiết tất cả các thông tin của thủ tục đăng ký tạm trú?",
     "messages": [],
     "session_id": "test-001",
     "procedures": [],
