@@ -39,22 +39,3 @@ def read_json(base_url, file_name):
         data = json.load(file)
         return data
 
-load_dotenv()
-
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-def get_response_llm(prompt: str, user_query: str):
-    llm = ChatGoogleGenerativeAI(
-        api_key = GEMINI_API_KEY,
-        model="gemini-2.5-flash",
-        temperature=0,
-        max_tokens=None,
-        timeout=None,
-        max_retries=2,
-    )
-    messages = [
-        SystemMessage(content = prompt),
-        HumanMessage(content = user_query)
-    ]
-    response = llm.invoke(messages)
-    return response.content

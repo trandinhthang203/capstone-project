@@ -38,7 +38,7 @@ from app.agents.base.graph import app
 # main.py
 
 result = app.invoke({
-    "user_input": "tôi mất cccd thì làm lại ở đâu và cách làm thế nào?",
+    "user_input": "Làm đăng ký tạm trú ở đâu vậy?",
     "messages": [],
     "session_id": "test-001",
     "procedures": [],
