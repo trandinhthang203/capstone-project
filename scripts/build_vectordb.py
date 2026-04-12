@@ -1,13 +1,16 @@
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from sqlalchemy import select
-from app.db.session import SessionLocal
+from app.db.session import get_db
 from scripts.models.procedure import Thu_Tuc
+from scripts.models.component import Thanh_Phan_Ho_So
+from scripts.models.basis import Can_Cu_Phap_Ly
+from scripts.models.method import Cach_Thuc_Thuc_Hien
 from scripts.models.procedure_search_index import ProcedureSearchIndex
 import os
+from langchain_huggingface import HuggingFaceEmbeddings
+from dotenv import load_dotenv
 
-
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "models/text-embedding-004")
-
+load_dotenv()
 
 def build_search_text(proc: Thu_Tuc) -> str:
     parts = [
@@ -24,16 +27,17 @@ def build_search_text(proc: Thu_Tuc) -> str:
 
 
 def main():
-    db = SessionLocal()
+    db = next(get_db())
     try:
-        embedder = GoogleGenerativeAIEmbeddings(
-            model=EMBEDDING_MODEL,
-            google_api_key=os.getenv("GEMINI_API_KEY"),
+        embedder = HuggingFaceEmbeddings(
+            model_name=os.getenv("EMBEDDING_MODEL"),
+            model_kwargs={"trust_remote_code": True},
+            encode_kwargs={"normalize_embeddings": True},
         )
 
         procedures = db.execute(select(Thu_Tuc)).scalars().all()
         texts = [build_search_text(p) for p in procedures]
-        vectors = embedder.embed_documents(texts)  # batch => nhanh hơn loop từng item
+        vectors = embedder.embed_documents(texts)
 
         for proc, text, vector in zip(procedures, texts, vectors):
             db.merge(
