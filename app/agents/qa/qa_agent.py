@@ -1,4 +1,4 @@
-from app.agents.base.state import AgentState, FormsOutput, LocationOutput, QAOutput
+from app.agents.base.state import AgentState, FormsOutput, LocationOutput, QAOutput, SupervisorOutput
 from langgraph.types import Command
 from typing import Literal
 from app.agents.base.utils import get_next_agent, format_context, validate_sql
@@ -9,15 +9,16 @@ from app.db.session import get_db
 from sqlalchemy import text
 from app.helpers.utils.logger import logging
 from app.helpers.utils.exception import CustomException
+from app.agents.qa.qa_tools import build_query_plan, format_plan
 
 def qa_node(state: AgentState) -> dict:
     user_input = state["user_input"]
     # procedures = state["procedures"]
     resolved = state.get("resolved_procedures", [])
 
-    procedure_ids = [p["ma_thu_tuc"] for p in resolved]
-    logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
-    # procedure_names = [p["ten_thu_tuc"] for p in resolved]
+    # procedure_ids = [p["ma_thu_tuc"] for p in resolved]
+    # logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
+    procedure_names = [p["ten_thu_tuc"] for p in resolved]
 
     # sql_prompt = supervisor_prompt["SQL_GENERATION"].format(
     #     procedure_ids=procedure_ids,
@@ -31,8 +32,15 @@ def qa_node(state: AgentState) -> dict:
     try:
         # raw_sql = get_response_llm(sql_prompt, user_input)
         # sql_query = validate_sql(raw_sql)
-        sql_query = f"SELECT * FROM rag.thu_tuc t WHERE t.ma_thu_tuc = ANY(ARRAY[{procedure_ids}])"
-        # logging.info(f"[qa_node] Generated SQL: {sql_query}")
+        # sql_query = f"SELECT * FROM rag.thu_tuc t WHERE t.ma_thu_tuc = ANY(ARRAY[{procedure_ids}])"
+        _instance = SupervisorOutput(
+            procedures = procedure_names,
+            fields = state.get("fields", []),
+            pipeline = state.get("pipeline", [])
+        )
+
+        sql_query = build_query_plan(_instance).main_sql
+        logging.info(f"[qa_node] Generated SQL: {sql_query}")
     except CustomException as e:
         logging.warning(f"[qa_node] Invalid SQL: {e}")
 

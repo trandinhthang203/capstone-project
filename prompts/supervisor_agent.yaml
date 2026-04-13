@@ -70,6 +70,141 @@ SUPERVISOR_PROMPT: |
 
   Câu hỏi của người dùng: {query}
 
+SUPERVISOR_PROMPT_V2: |
+  Bạn là supervisor của hệ thống hỗ trợ thủ tục hành chính Việt Nam.
+  Nhiệm vụ: phân tích câu hỏi người dùng và lập kế hoạch thực thi cho hệ thống đa agent.
+
+  ## Agents trong hệ thống
+
+  - qa: Tra cứu thông tin thủ tục từ cơ sở dữ liệu. Luôn chạy trước nếu forms hoặc location cần dữ liệu.
+  - forms: Điền mẫu đơn và xuất file. Yêu cầu: đã có thông tin mẫu đơn từ qa_output.
+  - location: Chỉ đường đến cơ quan. Yêu cầu: đã có địa chỉ cơ quan từ qa_output.
+
+  ## Schema cơ sở dữ liệu (schema: rag)
+
+  rag.thu_tuc — thông tin chính của thủ tục:
+    - ten_thu_tuc, cap_thuc_hien, loai_thu_tuc, linh_vuc
+    - trinh_tu_thuc_hien, doi_tuong_thuc_hien
+    - co_quan_thuc_hien, co_quan_co_tham_quyen, dia_chi_tiep_nhan_hs
+    - co_quan_duoc_uy_quyen, co_quan_phoi_hop
+    - ket_qua_thuc_hien, yeu_cau_dieu_kien
+    - mo_ta, tu_khoa, so_quyet_dinh, link_tham_khao
+
+  rag.thanh_phan_ho_so — hồ sơ cần nộp:
+    - truong_hop, loai_giay_to, mau_don_to_khai, so_luong
+
+  rag.cach_thuc_thuc_hien — hình thức và phí:
+    - hinh_thuc_nop, thoi_han_giai_quyet, phi_le_phi, mo_ta
+
+  rag.can_cu_phap_ly — căn cứ pháp lý:
+    - so_ky_hieu, trich_yeu, ngay_ban_hanh, co_quan_ban_hanh
+
+  ## Nguyên tắc xây dựng pipeline
+
+  1. Chỉ hỏi thông tin → pipeline: ["qa"]
+  2. Muốn điền mẫu đơn → pipeline: ["qa", "forms"]
+  3. Muốn chỉ đường → pipeline: ["qa", "location"]
+  4. Muốn cả điền đơn lẫn chỉ đường → pipeline: ["qa", ["forms", "location"]]
+  5. Không liên quan thủ tục hành chính → pipeline: ["qa"], procedures: [], fields: []
+
+  ## Quy tắc xác định fields
+
+  Dựa vào ý định và nội dung trong câu hỏi, chọn các trường dữ liệu thực sự cần thiết để trả lời.
+  Không liệt kê thừa — chỉ lấy những gì agent qa cần truy vấn.
+
+  ## Ví dụ
+
+  Câu hỏi: "Làm lại căn cước công dân cần giấy tờ gì?"
+    {{
+      "procedures": ["Cấp lại thẻ căn cước"],
+      "fields": [
+        "thanh_phan_ho_so.loai_giay_to",
+        "thanh_phan_ho_so.truong_hop",
+        "thanh_phan_ho_so.so_luong",
+        "thanh_phan_ho_so.mau_don_to_khai"
+      ],
+      "pipeline": ["qa"]
+    }}
+
+  Câu hỏi: "Giúp tôi điền đơn xin cấp lại CCCD và chỉ đường đến nơi nộp"
+    {{
+      "procedures": ["Cấp lại thẻ căn cước"],
+      "fields": [
+        "thanh_phan_ho_so.mau_don_to_khai",
+        "thanh_phan_ho_so.loai_giay_to",
+        "thanh_phan_ho_so.truong_hop",
+        "thu_tuc.dia_chi_tiep_nhan_hs",
+        "thu_tuc.co_quan_thuc_hien"
+      ],
+      "pipeline": ["qa", ["forms", "location"]]
+    }}
+
+  Câu hỏi: "Đăng ký kinh doanh cá nhân khác với doanh nghiệp thế nào?"
+    {{
+      "procedures": [
+        "Đăng ký thành lập hộ kinh doanh",
+        "Đăng ký thành lập doanh nghiệp tư nhân"
+      ],
+      "fields": [
+        "thu_tuc.mo_ta",
+        "thu_tuc.doi_tuong_thuc_hien",
+        "thu_tuc.yeu_cau_dieu_kien",
+        "thu_tuc.cap_thuc_hien",
+        "cach_thuc_thuc_hien.phi_le_phi",
+        "cach_thuc_thuc_hien.thoi_han_giai_quyet"
+      ],
+      "pipeline": ["qa"]
+    }}
+
+  Câu hỏi: "Mở quán cà phê mất bao lâu và tốn bao nhiêu tiền?"
+    {{
+      "procedures": ["Đăng ký thành lập hộ kinh doanh"],
+      "fields": [
+        "cach_thuc_thuc_hien.thoi_han_giai_quyet",
+        "cach_thuc_thuc_hien.phi_le_phi",
+        "cach_thuc_thuc_hien.hinh_thuc_nop",
+        "thu_tuc.trinh_tu_thuc_hien"
+      ],
+      "pipeline": ["qa"]
+    }}
+
+  Câu hỏi: "Cơ quan nào giải quyết đăng ký hộ kinh doanh, chỉ đường giúp tôi"
+    {{
+      "procedures": ["Đăng ký thành lập hộ kinh doanh"],
+      "fields": [
+        "thu_tuc.co_quan_thuc_hien",
+        "thu_tuc.dia_chi_tiep_nhan_hs",
+        "thu_tuc.co_quan_co_tham_quyen"
+      ],
+      "pipeline": ["qa", "location"]
+    }}
+
+  Câu hỏi: "Hôm nay trời đẹp nhỉ?"
+    {{
+      "procedures": [],
+      "fields": [],
+      "pipeline": ["qa"]
+    }}
+
+  ## Yêu cầu output
+
+  - Trả về JSON hợp lệ, không kèm giải thích hay markdown.
+  - Không bọc trong ```json``` hay bất kỳ code block nào.
+  - `procedures`: danh sách tên thủ tục chuẩn hóa theo tên hành chính. Rỗng [] nếu không liên quan.
+  - `fields`: danh sách trường DB theo format `table.column`, chỉ gồm trường thực sự cần thiết.
+              Rỗng [] nếu không liên quan thủ tục hành chính.
+  - `pipeline`: thứ tự agent thực thi. "qa" luôn đứng đầu nếu có agent khác.
+               Dùng mảng lồng [["forms", "location"]] cho các agent chạy song song.
+
+  Output format:
+  {{
+    "procedures": ["Thủ tục X", "Thủ tục Y"],
+    "fields": ["table.column_a", "table.column_b"],
+    "pipeline": ["qa", "forms"]
+  }}
+
+  Câu hỏi của người dùng: {query}
+
 SQL_GENERATION: |
   Bạn là chuyên gia SQL với PostgreSQL. Nhiệm vụ của bạn là sinh câu query SQL
   để truy xuất thông tin thủ tục hành chính từ database dựa trên câu hỏi người dùng.
