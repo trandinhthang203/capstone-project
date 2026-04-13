@@ -1,11 +1,12 @@
 from typing import TypedDict, Annotated, Optional
 from langgraph.graph.message import add_messages
-
+from dataclasses import dataclass
+from typing import List, Union
 
 class QAOutput(TypedDict):
     answer_text: str
-    form_id: Optional[str]        # Forms Agent sẽ đọc field này
-    office_id: Optional[str]      # Location Agent sẽ đọc field này
+    form_id: Optional[str]       
+    office_id: Optional[str]      
     requirements: list[str]
     confidence: float
 
@@ -27,22 +28,27 @@ class ProcedureMatch(TypedDict):
     score: float
 
 
+@dataclass
+class SupervisorOutput:
+    procedures: list[str]
+    fields: list[str]          
+    pipeline: list     
+
 class AgentState(TypedDict):
     user_input: str
     messages: Annotated[list, add_messages]
     session_id: str
 
     procedures: list[str]  
-    resolved_procedures: list[ProcedureMatch]            # ["cấp lại CCCD", "đăng ký kinh doanh"]
-    pipeline: list[str]           # ["qa", "forms", "location"]
-    current_agent: str            # "supervisor"
-    next_agent: str               # "qa"
+    resolved_procedures: list[ProcedureMatch]           
+    pipeline: list[str]    
+    fields: list[str]      
+    current_agent: str          
+    next_agent: str             
 
-    # Mỗi agent điền vào field của mình
     qa_output: Optional[QAOutput]
     forms_output: Optional[FormsOutput]
     location_output: Optional[LocationOutput]
 
-    # Control flow
     error: Optional[str]
     final_response: Optional[str]

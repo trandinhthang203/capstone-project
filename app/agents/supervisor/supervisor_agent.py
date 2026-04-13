@@ -11,7 +11,7 @@ from app.helpers.utils.logger import logging
 
 def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     user_input = state['user_input']
-    prompt = supervisor_prompt["SUPERVISOR_PROMPT"].format(
+    prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query = user_input
     )
     response = get_response_llm(prompt, user_input)
@@ -43,6 +43,7 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
             "procedures": data.get("procedures", []),
             "resolved_procedures": resolved,
             "pipeline": data.get("pipeline", ["qa"]),
+            "fields": data.get("fields", [])
         },
     )
 
