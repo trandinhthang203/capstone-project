@@ -21,12 +21,19 @@ class LocationOutput(TypedDict):
     maps_url: str
     working_hours: str
 
+class ProcedureMatch(TypedDict):
+    ma_thu_tuc: str
+    ten_thu_tuc: str
+    score: float
+
+
 class AgentState(TypedDict):
     user_input: str
     messages: Annotated[list, add_messages]
     session_id: str
 
-    procedures: list[str]              # ["cấp lại CCCD", "đăng ký kinh doanh"]
+    procedures: list[str]  
+    resolved_procedures: list[ProcedureMatch]            # ["cấp lại CCCD", "đăng ký kinh doanh"]
     pipeline: list[str]           # ["qa", "forms", "location"]
     current_agent: str            # "supervisor"
     next_agent: str               # "qa"

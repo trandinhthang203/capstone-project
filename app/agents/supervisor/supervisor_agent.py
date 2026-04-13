@@ -5,6 +5,9 @@ from app.agents.base.utils import get_next_agent
 from app.helpers.utils.common import get_response_llm
 from app.core.config import *
 import json
+from app.db.session import get_db
+from app.agents.supervisor.supervisor_tools import resolve_procedures_hybrid
+from app.helpers.utils.logger import logging
 
 def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     user_input = state['user_input']
@@ -12,41 +15,36 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
         query = user_input
     )
     response = get_response_llm(prompt, user_input)
-    print(response)
     data = json.loads(response)
-    print(data)
+
+    resolved = []
+    procedures = data.get("procedures", [])
+    logging.info(f"[supervisor_node] procedures original: {procedures}")
+
+    if procedures:
+        db = next(get_db())
+        try:
+            resolved = resolve_procedures_hybrid(
+                db=db,
+                user_query=user_input,
+                supervisor_candidates=procedures,
+            )
+        finally:
+            db.close()
+
+        if resolved:
+            data["procedures"] = [item["ten_thu_tuc"] for item in resolved]
+
+    logging.info(f"[supervisor_node]: {resolved}")
 
     return Command(
-        goto = data["pipeline"][0],
+        goto=data["pipeline"][0],
         update={
-            "procedures" : data["procedures"],
-            "pipeline" : data["pipeline"]
-        }
+            "procedures": data.get("procedures", []),
+            "resolved_procedures": resolved,
+            "pipeline": data.get("pipeline", ["qa"]),
+        },
     )
-
-# def test_supervisor():
-#     # Tạo state giả
-#     state = AgentState(
-#         user_input="Điền giúp tôi mẫu đơn này",
-#         messages=[],
-#         session_id="test-001",
-#         procedures=[],
-#         pipeline=[],
-#         current_agent="",
-#         next_agent="",
-#         qa_output=None,
-#         forms_output=None,
-#         location_output=None,
-#         error=None,
-#         final_response=None,
-#     )
-
-#     result = supervisor_node(state)
-#     print("goto     :", result.goto)
-#     print("pipeline :", result.update["pipeline"])
-#     print("procedures:", result.update["procedures"])
-
-# test_supervisor()
 
 
 

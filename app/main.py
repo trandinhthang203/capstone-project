@@ -38,7 +38,7 @@ from app.agents.base.graph import app
 # main.py
 
 result = app.invoke({
-    "user_input": "Tôi muốn biết chi tiết tất cả các thông tin của thủ tục đăng ký tạm trú?",
+    "user_input": "Cấp đổi thẻ CCCD tại cấp tỉnh khác cấp trung ương thế nào?",
     "messages": [],
     "session_id": "test-001",
     "procedures": [],

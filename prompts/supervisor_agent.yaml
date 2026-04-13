@@ -22,14 +22,14 @@ SUPERVISOR_PROMPT: |
   Câu hỏi: "Làm lại căn cước công dân cần giấy tờ gì?"
   Output:
   {{
-    "procedures": ["Cấp lại thẻ căn cước (thực hiện tại cấp tỉnh)"],
+    "procedures": ["Cấp lại thẻ căn cước"],
     "pipeline": ["qa"]
   }}
 
   Câu hỏi: "Giúp tôi điền đơn xin cấp lại CCCD và chỉ đường đến nơi nộp"
   Output:
   {{
-    "procedures": ["Cấp lại thẻ căn cước (thực hiện tại cấp tỉnh)"],
+    "procedures": ["Cấp lại thẻ căn cước"],
     "pipeline": ["qa", "forms", "location"]
   }}
 
@@ -125,12 +125,16 @@ SQL_GENERATION: |
     )
   ```
 
-  Thủ tục đã xác định: {procedure_names}
+  Mã thủ tục đã xác định: {procedure_ids}
+  Tên thủ tục đã xác định: {procedure_names}
   Câu hỏi gốc của người dùng: {query}
 
   Quy tắc sinh SQL:
-  - Luôn dùng ILIKE thay vì = để tìm theo ten_thu_tuc (tránh lỗi chính tả nhỏ)
-  - Nếu nhiều thủ tục thì dùng: WHERE t.ten_thu_tuc ILIKE ANY(ARRAY['%X%', '%Y%'])
+  - Nếu `procedure_ids` không rỗng, BẮT BUỘC lọc bằng `ma_thu_tuc`
+  - Dùng mẫu:
+      WHERE t.ma_thu_tuc = ANY(ARRAY['1.001456', '1.001471'])
+  - KHÔNG dùng ILIKE theo `ten_thu_tuc` khi đã có `procedure_ids`
+  - Chỉ dùng ILIKE như fallback cuối cùng nếu `procedure_ids` rỗng
   - Chỉ JOIN bảng cần thiết dựa theo câu hỏi:
       + Hỏi giấy tờ/hồ sơ   -> JOIN rag.thanh_phan_ho_so
       + Hỏi phí/thời gian/hình thức nộp -> JOIN rag.cach_thuc_thuc_hien
