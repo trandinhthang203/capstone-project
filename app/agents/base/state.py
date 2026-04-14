@@ -32,7 +32,6 @@ class ProcedureMatch(TypedDict):
 class SupervisorOutput:
     procedures: list[str]
     fields: list[str]          
-    pipeline: list     
 
 class AgentState(TypedDict):
     user_input: str

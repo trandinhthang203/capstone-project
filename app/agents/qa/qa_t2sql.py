@@ -13,14 +13,13 @@ load_dotenv()
 # os.environ["OPENAI_API_KEY"] = "sk-..."
 
 # # Kết nối PostgreSQL
-# DB_URL = "postgresql+psycopg2://postgres:password@localhost:5432/shop_db"
-db = SQLDatabase.from_uri(os.getenv("SQL_DATABASE_URL"))
+DB_URL = "postgresql+psycopg2://postgres:123456@localhost:5432/procedures"
+db = SQLDatabase.from_uri(DB_URL, schema = "rag")
 
-# # Kiểm tra kết nối
-# print("Tables:", db.get_usable_table_names())
-# print("Schema:\n", db.get_table_info())
+# Kiểm tra kết nối
+print("Tables:", db.get_usable_table_names())
+print("Schema:\n", db.get_table_info())
 
-# LLM
 llm = ChatGoogleGenerativeAI(api_key=os.getenv("GEMINI_API_KEY"), model = "gemini-2.5-flash", temperature=0)
 
 # Tạo chain sinh SQL
