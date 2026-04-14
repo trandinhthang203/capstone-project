@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from app.db.session import get_db
+from app.agents.base.utils import format_context
 
 
 # ─────────────────────────────────────────────
@@ -130,7 +131,7 @@ def decide_join_strategy(parsed: ParsedFields) -> dict[str, str]:
     ]
 
     # Nếu có ≥ 2 bảng phụ → tách query riêng để tránh cartesian explosion
-    if len(child_tables_needed) >= 2:
+    if len(child_tables_needed) >= 4:
         strategy["__multi_child__"] = "separate"
     else:
         for t in child_tables_needed:
@@ -166,16 +167,12 @@ def build_select_clause(
 def build_where_clause(
     procedures: list[str],
     main_alias: str,
-) -> tuple[str, list[str]]:
-    """
-    Match chính xác theo ma_thu_tuc dùng = ANY($1).
-    Trả về (where_sql, params) với params là list 1 phần tử (array mã).
-    """
+) -> tuple[str, dict]:
     if not procedures:
-        return "", []
+        return "", {}
 
-    where_sql = f"WHERE {main_alias}.{PROCEDURE_MATCH_COLUMN} = ANY($1)"
-    params = [procedures]   # PostgreSQL nhận cả list làm 1 param array
+    where_sql = f"WHERE {main_alias}.{PROCEDURE_MATCH_COLUMN} = ANY(:procedures)"
+    params = {"procedures": procedures}
     return where_sql, params
 
 
@@ -209,21 +206,21 @@ def build_child_query(
     columns: set[str],
     alias_map: dict[str, str],
     procedures: list[str],
-    param_offset: int = 1,
-) -> tuple[str, list[str]]:
+    param_offset: int = 1,   # giữ signature, không còn dùng
+) -> tuple[str, dict]:
     alias = alias_map[table]
 
     cols_to_select = sorted(columns | {"ma_thu_tuc"})
     select_parts = [f"    {alias}.{c}" for c in cols_to_select]
     select_sql = "SELECT\n" + ",\n".join(select_parts)
 
-    from_sql  = f"FROM rag.{table} {alias}"
+    from_sql = f"FROM rag.{table} {alias}"
     where_sql = ""
-    params: list = []
+    params: dict = {}
 
     if procedures:
-        where_sql = f"WHERE {alias}.ma_thu_tuc = ANY(${param_offset})"
-        params = [procedures]
+        where_sql = f"WHERE {alias}.ma_thu_tuc = ANY(:procedures)"
+        params = {"procedures": procedures}
 
     sql = "\n".join(filter(None, [select_sql, from_sql, where_sql])) + ";"
     return sql, params
@@ -306,8 +303,6 @@ def build_query_plan(supervisor_output: SupervisorOutput) -> QueryPlan:
         fields_used=fields_used,
         warnings=warnings,
     )
-
-
 # ─────────────────────────────────────────────
 # Helper — hiển thị kết quả
 # ─────────────────────────────────────────────
@@ -340,26 +335,44 @@ if __name__ == "__main__":
         procedures=["1.000466", "1.000757"],
         fields=[
             # bảng chính
+            "thu_tuc.ten_thu_tuc"
             "thu_tuc.linh_vuc",
             "thu_tuc.cap_thuc_hien",
             "thu_tuc.co_quan_thuc_hien",
             # bảng phụ — sẽ trigger separate queries
             "thanh_phan_ho_so.loai_giay_to",
             "thanh_phan_ho_so.so_luong",
+            "thanh_phan_ho_so.mau_don_to_khai",
             "cach_thuc_thuc_hien.hinh_thuc_nop",
             "cach_thuc_thuc_hien.thoi_han_giai_quyet",
-            "can_cu_phap_ly.so_ky_hieu",
-            "can_cu_phap_ly.trich_yeu",
+            # "can_cu_phap_ly.so_ky_hieu",
+            # "can_cu_phap_ly.trich_yeu",
             # field không hợp lệ — để test warning
-            "thu_tuc.cot_khong_ton_tai",
-            "bang_la.cot_gi_do",
+            # "thu_tuc.cot_khong_ton_tai",
+            # "bang_la.cot_gi_do",
         ],
     )
-    from sqlalchemy import text
-    plan = build_query_plan(case).main_sql
-    # print(format_plan(plan))
-    print(plan)
-    with next(get_db()) as db:
-        results = db.execute(text(plan))
 
-    print(results)
+    from sqlalchemy import text
+    
+    plan = build_query_plan(case)
+    # Lấy params riêng
+    _, main_params = build_where_clause(case.procedures, TABLE_ALIASES["thu_tuc"])
+    
+    print(plan.main_sql)
+    
+    with next(get_db()) as db:
+        # ── MAIN QUERY ──
+        result = db.execute(text(plan.main_sql), main_params)
+        columns = list(result.keys())   # ← lấy tên cột từ đây
+        rows = result.fetchall()
+        print(format_context(rows, columns))
+
+        # # ── CHILD QUERIES ──
+        # for tbl, sql in plan.child_sqls.items():
+        #     _, child_params = build_where_clause(case.procedures, TABLE_ALIASES[tbl])
+        #     child_result = db.execute(text(sql), child_params)
+        #     child_columns = list(child_result.keys())
+        #     child_rows = child_result.fetchall()
+        #     print(f"\n{tbl}:")
+        #     print(format_context(child_rows, child_columns))

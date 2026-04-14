@@ -76,7 +76,7 @@ def resolve_procedures_hybrid(
     db: Session,
     user_query: str,
     supervisor_candidates: list[str],
-    top_k: int = 1,
+    top_k: int = 2,
     candidate_pool: int = 20,
     rrf_k: int = 60,
 ):
@@ -96,11 +96,8 @@ def resolve_procedures_hybrid(
                 "top_k": top_k,
                 "rrf_k": rrf_k,
             },
-        ).mappings().first()
-
-        if row:
-            logging.info(f"[supervisor_tool] row: {dict(row)}")
-            results.append(dict(row))
+        ).mappings().all()
+        results.extend(row)
 
     if not results:
         query_embedding = _embed_query_cached(user_query.strip())
@@ -113,10 +110,13 @@ def resolve_procedures_hybrid(
                 "top_k": top_k,
                 "rrf_k": rrf_k,
             },
-        ).mappings().first()
+        ).mappings().all()
 
-        if row:
-            results.append(dict(row))
+    dedup = {}
+    for row in results:
+        key = row["ma_thu_tuc"]
+        if key not in dedup or row["score"] > dedup[key]["score"]:
+            dedup[key] = dict(row)
 
-    return results
+    return sorted(dedup.values(), key=lambda x: x["score"], reverse=True)[:top_k]
 
