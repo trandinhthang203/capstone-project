@@ -1,20 +1,6 @@
-"""
-query_builder.py
-────────────────
-Nhận supervisor output (procedures + fields) và sinh câu SQL
-tối ưu để truy vấn dữ liệu thủ tục hành chính.
-
-Schema (rag):
-  thu_tuc            — bảng chính
-  thanh_phan_ho_so   — FK: ma_thu_tuc  (1-N)
-  cach_thuc_thuc_hien— FK: ma_thu_tuc  (1-N)
-  can_cu_phap_ly     — FK: ma_thu_tuc  (1-N)
-"""
-
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
-import re
+from app.db.session import get_db
 
 
 # ─────────────────────────────────────────────
@@ -56,7 +42,7 @@ TABLE_COLUMNS: dict[str, set[str]] = {
 CHILD_TABLES = {"thanh_phan_ho_so", "cach_thuc_thuc_hien", "can_cu_phap_ly"}
 
 # Trường dùng để match tên thủ tục
-PROCEDURE_MATCH_COLUMN = "ten_thu_tuc"
+PROCEDURE_MATCH_COLUMN = "ma_thu_tuc"
 
 # Luôn SELECT ma_thu_tuc để có thể liên kết kết quả
 ALWAYS_SELECT = {"thu_tuc": {"ma_thu_tuc", "ten_thu_tuc"}}
@@ -69,9 +55,7 @@ ALWAYS_SELECT = {"thu_tuc": {"ma_thu_tuc", "ten_thu_tuc"}}
 @dataclass
 class SupervisorOutput:
     procedures: list[str]
-    fields: list[str]           # format: "table.column"
-    pipeline: list              # ["qa"] / ["qa","forms"] / ...
-
+    fields: list[str]         
 
 @dataclass
 class ParsedFields:
@@ -184,25 +168,14 @@ def build_where_clause(
     main_alias: str,
 ) -> tuple[str, list[str]]:
     """
-    Trả về (where_sql, params).
-    Dùng parameterized query để tránh SQL injection.
-    Hỗ trợ tìm kiếm tương đối (ILIKE) và khớp chính xác (=).
+    Match chính xác theo ma_thu_tuc dùng = ANY($1).
+    Trả về (where_sql, params) với params là list 1 phần tử (array mã).
     """
     if not procedures:
         return "", []
 
-    conditions = []
-    params = []
-
-    for i, proc in enumerate(procedures):
-        proc = proc.strip()
-        # Fuzzy match — dùng ILIKE với % để tìm gần đúng
-        conditions.append(
-            f"    {main_alias}.{PROCEDURE_MATCH_COLUMN} ILIKE ${len(params) + 1}"
-        )
-        params.append(f"%{proc}%")
-
-    where_sql = "WHERE (\n" + "\n    OR\n".join(conditions) + "\n)"
+    where_sql = f"WHERE {main_alias}.{PROCEDURE_MATCH_COLUMN} = ANY($1)"
+    params = [procedures]   # PostgreSQL nhận cả list làm 1 param array
     return where_sql, params
 
 
@@ -238,37 +211,21 @@ def build_child_query(
     procedures: list[str],
     param_offset: int = 1,
 ) -> tuple[str, list[str]]:
-    """
-    Query riêng: JOIN với thu_tuc để lọc theo tên thủ tục.
-    param_offset: vị trí $N bắt đầu (để ghép chung params nếu cần).
-    """
     alias = alias_map[table]
-    tt_alias = alias_map["thu_tuc"]
 
-    # Luôn kéo về ma_thu_tuc để join phía client nếu cần
     cols_to_select = sorted(columns | {"ma_thu_tuc"})
     select_parts = [f"    {alias}.{c}" for c in cols_to_select]
     select_sql = "SELECT\n" + ",\n".join(select_parts)
 
-    from_sql = f"FROM rag.{table} {alias}"
-    join_sql = (
-        f"JOIN rag.thu_tuc {tt_alias}"
-        f" ON {tt_alias}.ma_thu_tuc = {alias}.ma_thu_tuc"
-    )
-
-    params: list[str] = []
-    conditions = []
-    for proc in procedures:
-        conditions.append(
-            f"    {tt_alias}.{PROCEDURE_MATCH_COLUMN} ILIKE ${param_offset + len(params)}"
-        )
-        params.append(f"%{proc.strip()}%")
-
+    from_sql  = f"FROM rag.{table} {alias}"
     where_sql = ""
-    if conditions:
-        where_sql = "WHERE (\n" + "\n    OR\n".join(conditions) + "\n)"
+    params: list = []
 
-    sql = "\n".join(filter(None, [select_sql, from_sql, join_sql, where_sql])) + ";"
+    if procedures:
+        where_sql = f"WHERE {alias}.ma_thu_tuc = ANY(${param_offset})"
+        params = [procedures]
+
+    sql = "\n".join(filter(None, [select_sql, from_sql, where_sql])) + ";"
     return sql, params
 
 
@@ -378,102 +335,31 @@ def format_plan(plan: QueryPlan) -> str:
     lines.append("═" * 60)
     return "\n".join(lines)
 
-
-# ─────────────────────────────────────────────
-# Test cases
-# ─────────────────────────────────────────────
-
 if __name__ == "__main__":
+    case = SupervisorOutput(
+        procedures=["1.000466", "1.000757"],
+        fields=[
+            # bảng chính
+            "thu_tuc.linh_vuc",
+            "thu_tuc.cap_thuc_hien",
+            "thu_tuc.co_quan_thuc_hien",
+            # bảng phụ — sẽ trigger separate queries
+            "thanh_phan_ho_so.loai_giay_to",
+            "thanh_phan_ho_so.so_luong",
+            "cach_thuc_thuc_hien.hinh_thuc_nop",
+            "cach_thuc_thuc_hien.thoi_han_giai_quyet",
+            "can_cu_phap_ly.so_ky_hieu",
+            "can_cu_phap_ly.trich_yeu",
+            # field không hợp lệ — để test warning
+            "thu_tuc.cot_khong_ton_tai",
+            "bang_la.cot_gi_do",
+        ],
+    )
+    from sqlalchemy import text
+    plan = build_query_plan(case).main_sql
+    # print(format_plan(plan))
+    print(plan)
+    with next(get_db()) as db:
+        results = db.execute(text(plan))
 
-    test_cases = [
-        # 1. Chỉ hỏi hồ sơ
-        SupervisorOutput(
-            procedures=["Cấp lại thẻ căn cước"],
-            fields=[
-                "thanh_phan_ho_so.loai_giay_to",
-                "thanh_phan_ho_so.truong_hop",
-                "thanh_phan_ho_so.so_luong",
-                "thanh_phan_ho_so.mau_don_to_khai",
-            ],
-            pipeline=["qa"],
-        ),
-
-        # 2. Hỏi phí + thời gian
-        SupervisorOutput(
-            procedures=["Đăng ký thành lập hộ kinh doanh"],
-            fields=[
-                "cach_thuc_thuc_hien.phi_le_phi",
-                "cach_thuc_thuc_hien.thoi_han_giai_quyet",
-                "cach_thuc_thuc_hien.hinh_thuc_nop",
-                "thu_tuc.trinh_tu_thuc_hien",
-            ],
-            pipeline=["qa"],
-        ),
-
-        # 3. Nhiều bảng phụ — tách query riêng
-        SupervisorOutput(
-            procedures=["Đăng ký thành lập hộ kinh doanh"],
-            fields=[
-                "thu_tuc.mo_ta",
-                "thu_tuc.doi_tuong_thuc_hien",
-                "thu_tuc.yeu_cau_dieu_kien",
-                "thanh_phan_ho_so.loai_giay_to",
-                "thanh_phan_ho_so.truong_hop",
-                "cach_thuc_thuc_hien.phi_le_phi",
-                "cach_thuc_thuc_hien.thoi_han_giai_quyet",
-                "can_cu_phap_ly.so_ky_hieu",
-                "can_cu_phap_ly.trich_yeu",
-            ],
-            pipeline=["qa"],
-        ),
-
-        # 4. So sánh 2 thủ tục
-        SupervisorOutput(
-            procedures=[
-                "Đăng ký thành lập hộ kinh doanh",
-                "Đăng ký thành lập doanh nghiệp tư nhân",
-            ],
-            fields=[
-                "thu_tuc.mo_ta",
-                "thu_tuc.doi_tuong_thuc_hien",
-                "thu_tuc.yeu_cau_dieu_kien",
-                "cach_thuc_thuc_hien.phi_le_phi",
-                "cach_thuc_thuc_hien.thoi_han_giai_quyet",
-            ],
-            pipeline=["qa"],
-        ),
-
-        # 5. Chỉ đường
-        SupervisorOutput(
-            procedures=["Đăng ký thành lập hộ kinh doanh"],
-            fields=[
-                "thu_tuc.co_quan_thuc_hien",
-                "thu_tuc.dia_chi_tiep_nhan_hs",
-                "thu_tuc.co_quan_co_tham_quyen",
-            ],
-            pipeline=["qa", "location"],
-        ),
-
-        # 6. Không liên quan — procedures rỗng
-        SupervisorOutput(
-            procedures=[],
-            fields=[],
-            pipeline=["qa"],
-        ),
-    ]
-
-    labels = [
-        "1. Hỏi hồ sơ cần nộp",
-        "2. Hỏi phí + thời gian xử lý",
-        "3. Đầy đủ 3 bảng phụ (tách riêng)",
-        "4. So sánh 2 thủ tục",
-        "5. Chỉ đường",
-        "6. Câu hỏi không liên quan",
-    ]
-
-    for label, case in zip(labels, test_cases):
-        print(f"\n{'━'*60}")
-        print(f"TEST CASE: {label}")
-        print(f"{'━'*60}")
-        plan = build_query_plan(case)
-        print(format_plan(plan))
+    print(results)
