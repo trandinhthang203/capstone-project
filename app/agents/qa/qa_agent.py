@@ -36,7 +36,6 @@ def qa_node(state: AgentState) -> dict:
         _instance = SupervisorOutput(
             procedures = procedure_names,
             fields = state.get("fields", []),
-            pipeline = state.get("pipeline", [])
         )
 
         sql_query = build_query_plan(_instance).main_sql
