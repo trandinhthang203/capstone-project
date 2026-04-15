@@ -6,7 +6,7 @@ from app.helpers.utils.common import get_response_llm
 from app.core.config import *
 import json
 from app.db.session import get_db
-from app.agents.supervisor.supervisor_tools import resolve_procedures_hybrid
+from app.agents.supervisor.supervisor_tools import resolve_procedures_fts
 from app.helpers.utils.logger import logging
 
 def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
@@ -24,7 +24,7 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     if procedures:
         db = next(get_db())
         try:
-            resolved = resolve_procedures_hybrid(
+            resolved = resolve_procedures_fts(
                 db=db,
                 user_query=user_input,
                 supervisor_candidates=procedures,

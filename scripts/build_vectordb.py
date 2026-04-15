@@ -14,7 +14,7 @@ load_dotenv()
 
 def build_search_text(proc: Thu_Tuc) -> str:
     parts = [
-        proc.ten_thu_tuc,
+        proc.cap_thuc_hien,
         proc.tu_khoa,
         proc.linh_vuc,
         proc.loai_thu_tuc,
@@ -29,23 +29,23 @@ def build_search_text(proc: Thu_Tuc) -> str:
 def main():
     db = next(get_db())
     try:
-        embedder = HuggingFaceEmbeddings(
-            model_name=os.getenv("EMBEDDING_MODEL"),
-            model_kwargs={"trust_remote_code": True},
-            encode_kwargs={"normalize_embeddings": True},
-        )
+        # embedder = HuggingFaceEmbeddings(
+        #     model_name=os.getenv("EMBEDDING_MODEL"),
+        #     model_kwargs={"trust_remote_code": True},
+        #     encode_kwargs={"normalize_embeddings": True},
+        # )
 
         procedures = db.execute(select(Thu_Tuc)).scalars().all()
         texts = [build_search_text(p) for p in procedures]
-        vectors = embedder.embed_documents(texts)
+        # vectors = embedder.embed_documents(texts)
 
-        for proc, text, vector in zip(procedures, texts, vectors):
+        for proc, text in zip(procedures, texts):
             db.merge(
                 ProcedureSearchIndex(
                     ma_thu_tuc=proc.ma_thu_tuc,
                     ten_thu_tuc=proc.ten_thu_tuc,
                     search_text=text,
-                    embedding=vector,
+                    # embedding=vector,
                 )
             )
 
@@ -54,6 +54,22 @@ def main():
     finally:
         db.close()
 
+def test_build_search_text():
+    proc = Thu_Tuc(
+        ma_thu_tuc="TT001",
+        ten_thu_tuc="Cấp căn cước công dân",
+        tu_khoa="căn cước, CCCD, cấp mới",
+        linh_vuc="Hành chính",
+        loai_thu_tuc="Thủ tục cấp mới",
+        cap_thuc_hien="Cấp huyện",
+        doi_tuong_thuc_hien="Công dân Việt Nam",
+        co_quan_thuc_hien="Công an",
+        yeu_cau_dieu_kien="Đủ 14 tuổi trở lên",
+        mo_ta="Thủ tục cấp căn cước công dân lần đầu"
+    )
+
+    result = build_search_text(proc)
+    print(result)
 
 if __name__ == "__main__":
     main()
