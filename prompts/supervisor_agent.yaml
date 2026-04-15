@@ -116,7 +116,7 @@ SUPERVISOR_PROMPT_V2: |
 
   Câu hỏi: "Làm lại căn cước công dân cần giấy tờ gì?"
     {{
-      "procedures": ["Cấp lại thẻ căn cước"],
+      "procedures": ["Cấp lại thẻ căn cước (thực hiện tại cấp tỉnh)"],
       "fields": [
         "thanh_phan_ho_so.loai_giay_to",
         "thanh_phan_ho_so.truong_hop",
@@ -128,7 +128,7 @@ SUPERVISOR_PROMPT_V2: |
 
   Câu hỏi: "Giúp tôi điền đơn xin cấp lại CCCD và chỉ đường đến nơi nộp"
     {{
-      "procedures": ["Cấp lại thẻ căn cước"],
+      "procedures": ["Cấp lại thẻ căn cước (thực hiện tại cấp tỉnh)"],
       "fields": [
         "thanh_phan_ho_so.mau_don_to_khai",
         "thanh_phan_ho_so.loai_giay_to",

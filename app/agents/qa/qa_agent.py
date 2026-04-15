@@ -1,4 +1,4 @@
-from app.agents.base.state import AgentState, FormsOutput, LocationOutput, QAOutput, SupervisorOutput
+from app.agents.base.state import AgentState, SupervisorOutput
 from langgraph.types import Command
 from typing import Literal
 from app.agents.base.utils import get_next_agent, format_context, validate_sql
@@ -13,10 +13,10 @@ from app.agents.qa.qa_tools import build_query_plan, build_where_clause, TABLE_A
 
 def qa_node(state: AgentState) -> dict:
     user_input = state["user_input"]
-    # procedures = state["procedures"]
-    resolved = state.get("resolved_procedures", [])
+    procedure_ids = state["procedures"]
+    # resolved = state.get("resolved_procedures", [])
 
-    procedure_ids = [p["ma_thu_tuc"] for p in resolved]
+    # procedure_ids = [p["ma_thu_tuc"] for p in resolved]
     logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
     # procedure_names = [p["ten_thu_tuc"] for p in resolved]
 

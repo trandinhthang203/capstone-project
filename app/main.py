@@ -38,7 +38,7 @@ from app.agents.base.graph import app
 # main.py
 
 result = app.invoke({
-    "user_input": "thủ tục cấp lại CCCD ở tỉnh và trung ương khác nhau thế nào?",
+    "user_input": "lệ phí làm lại thẻ căn cước công dân là bao nhiêu?",
     "messages": [],
     "session_id": "test-001",
     "procedures": [],

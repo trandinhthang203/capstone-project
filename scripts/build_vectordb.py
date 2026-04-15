@@ -9,6 +9,7 @@ from scripts.models.procedure_search_index import ProcedureSearchIndex
 import os
 from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -71,5 +72,19 @@ def test_build_search_text():
     result = build_search_text(proc)
     print(result)
 
+def create_name_id_dict():
+    db = next(get_db())
+    try:
+        results = {}
+        procedures = db.execute(select(Thu_Tuc)).scalars().all()
+        for proc in procedures:
+            results[proc.ten_thu_tuc] = proc.ma_thu_tuc
+
+        print(f"Written {len(procedures)} procedures")
+        with open("name_id.json", "w", encoding="utf-8") as file:
+            json.dump(results, file, ensure_ascii=False, indent=2)
+    finally:
+        db.close()
+
 if __name__ == "__main__":
-    main()
+    create_name_id_dict()
