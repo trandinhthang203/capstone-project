@@ -6,12 +6,12 @@ from app.helpers.utils.common import get_response_llm
 from app.core.config import *
 import json
 from app.db.session import get_db
-from app.agents.supervisor.supervisor_tools import resolve_procedures_hybrid
+from app.agents.supervisor.supervisor_tools import resolve_procedures_fts
 from app.helpers.utils.logger import logging
 
 def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     user_input = state['user_input']
-    prompt = supervisor_prompt["SUPERVISOR_PROMPT"].format(
+    prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query = user_input
     )
     response = get_response_llm(prompt, user_input)
@@ -24,7 +24,7 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     if procedures:
         db = next(get_db())
         try:
-            resolved = resolve_procedures_hybrid(
+            resolved = resolve_procedures_fts(
                 db=db,
                 user_query=user_input,
                 supervisor_candidates=procedures,
@@ -43,6 +43,7 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
             "procedures": data.get("procedures", []),
             "resolved_procedures": resolved,
             "pipeline": data.get("pipeline", ["qa"]),
+            "fields": data.get("fields", [])
         },
     )
 

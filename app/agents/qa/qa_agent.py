@@ -1,4 +1,4 @@
-from app.agents.base.state import AgentState, FormsOutput, LocationOutput, QAOutput
+from app.agents.base.state import AgentState, FormsOutput, LocationOutput, QAOutput, SupervisorOutput
 from langgraph.types import Command
 from typing import Literal
 from app.agents.base.utils import get_next_agent, format_context, validate_sql
@@ -9,6 +9,7 @@ from app.db.session import get_db
 from sqlalchemy import text
 from app.helpers.utils.logger import logging
 from app.helpers.utils.exception import CustomException
+from app.agents.qa.qa_tools import build_query_plan, build_where_clause, TABLE_ALIASES
 
 def qa_node(state: AgentState) -> dict:
     user_input = state["user_input"]
@@ -31,14 +32,22 @@ def qa_node(state: AgentState) -> dict:
     try:
         # raw_sql = get_response_llm(sql_prompt, user_input)
         # sql_query = validate_sql(raw_sql)
-        sql_query = f"SELECT * FROM rag.thu_tuc t WHERE t.ma_thu_tuc = ANY(ARRAY[{procedure_ids}])"
-        # logging.info(f"[qa_node] Generated SQL: {sql_query}")
+        # sql_query = f"SELECT * FROM rag.thu_tuc t WHERE t.ma_thu_tuc = ANY(ARRAY[{procedure_ids}])"
+        case = SupervisorOutput(
+            procedures = procedure_ids,
+            fields = state.get("fields", []),
+        )
+
+        sql_query = build_query_plan(case).main_sql
+        _, main_params = build_where_clause(case.procedures, TABLE_ALIASES["thu_tuc"])
+        logging.info(f"[qa_node] Generated SQL: {sql_query}")
     except CustomException as e:
         logging.warning(f"[qa_node] Invalid SQL: {e}")
 
     try:
         with next(get_db()) as db:
-            results = db.execute(text(sql_query))
+            results = db.execute(text(sql_query), main_params)
+            # results = db.execute(text(sql_query))
             rows = results.fetchall()
             columns = list(results.keys())
         logging.info(f"[qa_node] Rows returned: {len(rows)}")
