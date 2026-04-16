@@ -1,0 +1,165 @@
+{
+    "reference": "https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=7603",
+    "Mã thủ tục:": "3.000001",
+    "Số quyết định:": "4221/EVN-KDMBD",
+    "Tên thủ tục:": "Cấp điện mới từ lưới điện hạ áp",
+    "Cấp thực hiện:": "Cấp Bộ, Cơ quan khác",
+    "Loại thủ tục:": "Loại khác",
+    "Lĩnh vực:": "Dịch vụ cung cấp điện mới",
+    "Trình tự thực hiện:": "Tiếp nhận yêu cầuKhảo sátLắp đặt nghiệm thu thiết bị đo đếm, ký HĐMBĐ",
+    "Cách thức thực hiện:": [
+        {
+            "Hình thức nộp": "Trực tiếp",
+            "Thời hạn giải quyết": "7 Ngày làm việc",
+            "Phí, lệ phí": "",
+            "Mô tả": ""
+        },
+        {
+            "Hình thức nộp": "Trực tuyến",
+            "Thời hạn giải quyết": "7 Ngày làm việc",
+            "Phí, lệ phí": "",
+            "Mô tả": ""
+        }
+    ],
+    "Thành phần hồ sơ:": {
+        "Khách hàng mua điện ngoài sinh hoạt (01 pha, 03 pha), có công suất lớn nhất < 40kW": [
+            {
+                "Tên giấy tờ": "Giấy đề nghị mua điện",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\Giay de nghi mua dien.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ tùy thân của cá nhân hoặc người đại diện hợp pháp của tổ chức; là một trong những loại giấy tờ sau: Giấy chứng minh nhân dân; Giấy chứng minh công an nhân dân; Giấy chứng minh sỹ quan quân đội nhân dân; Thẻ căn cước công dân; Hộ chiếu hoặc Giấy xác nhận nhân thân của công an phường, xã (có ảnh đóng dấu giáp lai).",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định chủ thể HĐMBĐ là một trong các loại giấy tờ có tên của Tổ chức/cá nhân tại địa điểm mua điện sau: Hộ khẩu thường trú; Sổ tạm trú; Giấy chứng nhận quyền sở hữu nhà; Quyết định phân nhà; Hợp đồng mua bán nhà; Hợp đồng thuê nhà có thời hạn từ 01 năm trở lên và đồng ý của chủ sở hữu; Giấy chứng nhận quyền sử dụng đất; Hợp đồng ủy quyền quản lý và sử dụng nhà/đất; Hợp đồng thuê địa điểm và đồng ý của chủ sở hữu; Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định mục đích sử dụng điện là một trong những loại giấy tờ sau: Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị; Biên bản khảo sát cấp điện của Điện lực/Công ty Điện lực; Thông tin của doanh nghiệp trên Cổng thông tin đăng ký doanh nghiệp quốc gia tại địa chỉ http://www.dangkykinhdoanh.gov.vn",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            }
+        ],
+        "Khách hàng mua điện ngoài sinh hoạt (01 pha, 03 pha), có công suất lớn nhất ≥ 40kW": [
+            {
+                "Tên giấy tờ": "Giấy đề nghị mua điện",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\Giay de nghi mua dien.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ tùy thân của cá nhân hoặc người đại diện hợp pháp của tổ chức; là một trong những loại giấy tờ sau: Giấy chứng minh nhân dân; Giấy chứng minh công an nhân dân; Giấy chứng minh sỹ quan quân đội nhân dân; Thẻ căn cước công dân; Hộ chiếu hoặc Giấy xác nhận nhân thân của công an phường, xã (có ảnh đóng dấu giáp lai).",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định chủ thể HĐMBĐ là một trong các loại giấy tờ có tên của Tổ chức/cá nhân tại địa điểm mua điện sau: Hộ khẩu thường trú; Sổ tạm trú; Giấy chứng nhận quyền sở hữu nhà; Quyết định phân nhà; Hợp đồng mua bán nhà; Hợp đồng thuê nhà có thời hạn từ 01 năm trở lên và đồng ý của chủ sở hữu; Giấy chứng nhận quyền sử dụng đất; Hợp đồng ủy quyền quản lý và sử dụng nhà/đất; Hợp đồng thuê địa điểm và đồng ý của chủ sở hữu; Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định mục đích sử dụng điện là một trong những loại giấy tờ sau: Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị; Biên bản khảo sát cấp điện của Điện lực/Công ty Điện lực; Thông tin của doanh nghiệp trên Cổng thông tin đăng ký doanh nghiệp quốc gia tại địa chỉ http://www.dangkykinhdoanh.gov.vn.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Bản đăng ký biểu đồ phụ tải. (Trường hợp khách hàng sản xuất, kinh doanh dịch vụ)",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\BẢNG KÊ CÔNG SUẤT THIẾT BỊ SỬ DỤNG ĐIỆN.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            }
+        ],
+        "Khách hàng mua điện sinh hoạt (01 pha, 03 pha)": [
+            {
+                "Tên giấy tờ": "Giấy đề nghị mua điện",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\Giay de nghi mua dien.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ tùy thân của cá nhân hoặc người đại diện hợp pháp của tổ chức; là một trong những loại giấy tờ sau: Giấy chứng minh nhân dân; Giấy chứng minh công an nhân dân; Giấy chứng minh sỹ quan quân đội nhân dân; Thẻ căn cước công dân; Hộ chiếu hoặc Giấy xác nhận nhân thân của công an phường, xã (có ảnh đóng dấu giáp lai).",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định chủ thể HĐMBĐ là một trong các loại giấy tờ có tên của Tổ chức/cá nhân tại địa điểm mua điện sau: Hộ khẩu thường trú; Sổ tạm trú; Giấy chứng nhận quyền sở hữu nhà; Quyết định phân nhà; Hợp đồng mua bán nhà; Hợp đồng thuê nhà có thời hạn từ 01 năm trở lên và đồng ý của chủ sở hữu; Giấy chứng nhận quyền sử dụng đất; Hợp đồng ủy quyền quản lý và sử dụng nhà/đất; Hợp đồng thuê địa điểm và đồng ý của chủ sở hữu; Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            }
+        ],
+        "Khách hàng mua điện sinh hoạt (01 pha, 03 pha), sử dụng chung công tơ": [
+            {
+                "Tên giấy tờ": "Giấy đề nghị mua điện",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\Giay de nghi mua dien.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ tùy thân của cá nhân hoặc người đại diện hợp pháp của tổ chức; là một trong những loại giấy tờ sau: Giấy chứng minh nhân dân; Giấy chứng minh công an nhân dân; Giấy chứng minh sỹ quan quân đội nhân dân; Thẻ căn cước công dân; Hộ chiếu hoặc Giấy xác nhận nhân thân của công an phường, xã (có ảnh đóng dấu giáp lai).",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định chủ thể HĐMBĐ là một trong các loại giấy tờ có tên của Tổ chức/cá nhân tại địa điểm mua điện sau: Hộ khẩu thường trú; Sổ tạm trú; Giấy chứng nhận quyền sở hữu nhà; Quyết định phân nhà; Hợp đồng mua bán nhà; Hợp đồng thuê nhà có thời hạn từ 01 năm trở lên và đồng ý của chủ sở hữu; Giấy chứng nhận quyền sử dụng đất; Hợp đồng ủy quyền quản lý và sử dụng nhà/đất; Hợp đồng thuê địa điểm và đồng ý của chủ sở hữu; Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Sổ hộ khẩu/sổ tạm trú/xác nhận công an quản lý trên địa bàn của các hộ dùng chung",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy ủy quyền có chữ ký của các hộ dùng chung",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            }
+        ],
+        "Khách hàng tách công tơ dùng chung": [
+            {
+                "Tên giấy tờ": "Giấy đề nghị mua điện",
+                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\dien_luc_nha_o_dat_dai\\Giay de nghi mua dien.pdf",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ tùy thân của cá nhân hoặc người đại diện hợp pháp của tổ chức; là một trong những loại giấy tờ sau: Giấy chứng minh nhân dân; Giấy chứng minh công an nhân dân; Giấy chứng minh sỹ quan quân đội nhân dân; Thẻ căn cước công dân; Hộ chiếu hoặc Giấy xác nhận nhân thân của công an phường, xã (có ảnh đóng dấu giáp lai).",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "Giấy tờ xác định chủ thể HĐMBĐ là một trong các loại giấy tờ có tên của Tổ chức/cá nhân tại địa điểm mua điện sau: Hộ khẩu thường trú; Sổ tạm trú; Giấy chứng nhận quyền sở hữu nhà; Quyết định phân nhà; Hợp đồng mua bán nhà; Hợp đồng thuê nhà có thời hạn từ 01 năm trở lên và đồng ý của chủ sở hữu; Giấy chứng nhận quyền sử dụng đất; Hợp đồng ủy quyền quản lý và sử dụng nhà/đất; Hợp đồng thuê địa điểm và đồng ý của chủ sở hữu; Giấy chứng nhận đăng ký doanh nghiệp; Giấy chứng nhận đăng ký kinh doanh; Giấy chứng nhận đăng ký hộ kinh doanh; Giấy chứng nhận đăng ký hoạt động chi nhánh, văn phòng đại diện; Giấy phép đầu tư; Quyết định thành lập đơn vị.",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 0Bản sao: 1"
+            },
+            {
+                "Tên giấy tờ": "4. Giấy cam kết thanh toán hết nợ tiền điện với chủ HĐMBĐ đang dùng chung",
+                "Mẫu đơn, tờ khai": "",
+                "Số lượng": "Bản chính: 1Bản sao: 0"
+            }
+        ]
+    },
+    "Đối tượng thực hiện:": "Công dân Việt Nam, Người nước ngoài, Doanh nghiệp, Doanh nghiệp có vốn đầu tư nước ngoài, Tổ chức (không bao gồm doanh nghiệp, HTX), Tổ chức nước ngoài, Hợp tác xã",
+    "Cơ quan thực hiện:": "Tập đoàn Điện lực Việt Nam",
+    "Cơ quan có thẩm quyền:": "Tập đoàn Điện lực Việt Nam",
+    "Địa chỉ tiếp nhận HS:": "Không có thông tin",
+    "Cơ quan được ủy quyền:": "Không có thông tin",
+    "Cơ quan phối hợp:": "Không có thông tin",
+    "Kết quả thực hiện:": "Hợp đồng mua bán điện",
+    "Căn cứ pháp lý:": [
+        {
+            "Số ký hiệu": "61/2024/QH15",
+            "Trích yếu": "Luật điện lực",
+            "Ngày ban hành": "30-11-2024",
+            "Cơ quan ban hành": "Quốc Hội"
+        },
+        {
+            "Số ký hiệu": "18/2025/NĐ-CP",
+            "Trích yếu": "Nghị định 18",
+            "Ngày ban hành": "18-02-2025",
+            "Cơ quan ban hành": "Chính phủ"
+        }
+    ],
+    "Yêu cầu, điều kiện thực hiện:": "Không có yêu cầu điều kiện",
+    "Từ khóa:": "Không có thông tin",
+    "Mô tả:": "Không có thông tin"
+}

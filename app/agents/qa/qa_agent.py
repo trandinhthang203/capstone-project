@@ -10,7 +10,9 @@ from sqlalchemy import text
 from app.helpers.utils.logger import logging
 from app.helpers.utils.exception import CustomException
 from app.agents.qa.qa_tools import build_query_plan, build_where_clause, TABLE_ALIASES
+from langsmith import traceable
 
+@traceable
 def qa_node(state: AgentState) -> dict:
     user_input = state["user_input"]
     procedure_ids = state["procedures"]
