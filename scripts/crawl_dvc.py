@@ -10,7 +10,7 @@ import time
 from app.helpers.utils.common import read_yaml
 import json
 
-DOWNLOAD_DIR = os.path.abspath("forms")
+DOWNLOAD_DIR = os.path.abspath("forms/nguoi_than_qua_doi")
 
 class Crawl_DVC:
     def __init__(self):
@@ -239,6 +239,6 @@ class Crawl_DVC:
     
 if __name__ == "__main__":
     crawler = Crawl_DVC()
-    # crawler.get_links(crawler.config.craw_dvc.base_url, crawler.config.craw_dvc.file_name)
+    crawler.get_links(crawler.config.crawl_dvc.base_url, crawler.config.crawl_dvc.file_name)
     df = pd.read_csv(crawler.config.crawl_dvc.file_name, header=None)
     crawler.parse_listing(df[0].to_list())

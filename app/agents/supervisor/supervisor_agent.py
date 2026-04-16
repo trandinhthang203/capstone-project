@@ -6,7 +6,9 @@ from app.core.config import *
 import json
 from app.helpers.utils.logger import logging
 from app.helpers.utils.common import read_json
+from langsmith import traceable
 
+@traceable
 def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     user_input = state['user_input']
     prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
