@@ -5,7 +5,7 @@ import yaml
 from pathlib import Path
 
 load_dotenv()
-BASE_DIR = 'D:/capstone-project/prompts'
+BASE_DIR = 'D:/capstone-project/app/prompts'
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'CAPSTONE-PROJECTD')
