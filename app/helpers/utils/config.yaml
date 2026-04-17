@@ -1,6 +1,5 @@
 crawl_dvc:
   driver_path: D:/chromedriver/chromedriver-win64/chromedriver.exe
-  # base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-thu-tuc-theo-nhom-su-kien.html?objectId=1&groupEventId=753#mainTitle
   base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-thu-tuc-theo-nhom-su-kien.html?objectId=1&groupEventId=759
   file_name: data/links/nguoi_than_qua_doi.csv
   proceduces_raw: D:/capstone-project/data/raw/nguoi_than_qua_doi
