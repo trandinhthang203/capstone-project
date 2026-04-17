@@ -6,5 +6,5 @@ crawl_dvc:
   proceduces_raw: D:/capstone-project/data/raw/nguoi_than_qua_doi
 
 process_forms:
-  proceduces_raw: D:/capstone-project/data/raw/nguoi_than_qua_doi
-  proceduces_processed: D:/capstone-project/data/processed/nguoi_than_qua_doi
+  proceduces_raw: D:/capstone-project/data/raw/hoc_tap
+  proceduces_processed: D:/capstone-project/data/processed/hoc_tap
