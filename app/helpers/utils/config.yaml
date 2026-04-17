@@ -14,3 +14,10 @@ evaluation_collect:
   base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-cau-hoi-theo-nhom-su-kien.html?objectId=1&groupEventId=759#mainTitle
   file_name: data/evaluation/nguoi_than_qua_doi.csv
   data_eval: D:/capstone-project/data/evaluation/nguoi_than_qua_doi_qa.csv
+
+
+backup_data:
+  DOWNLOAD_DIR: D:/capstone-project/backup
+  base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-cau-hoi-theo-nhom-su-kien.html?objectId=1&groupEventId=750#mainTitle
+  file_name: backup/
+  data_links: D:/capstone-project/data/links
