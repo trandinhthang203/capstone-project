@@ -8,3 +8,10 @@ crawl_dvc:
 process_forms:
   proceduces_raw: D:/capstone-project/data/raw/hoc_tap
   proceduces_processed: D:/capstone-project/data/processed/hoc_tap
+
+
+evaluation_collect:
+  DOWNLOAD_DIR: D:/capstone-project/data/evaluation/nguoi_than_qua_doi
+  base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-cau-hoi-theo-nhom-su-kien.html?objectId=1&groupEventId=759#mainTitle
+  file_name: data/evaluation/nguoi_than_qua_doi.csv
+  data_eval: D:/capstone-project/data/evaluation/nguoi_than_qua_doi_qa.csv
