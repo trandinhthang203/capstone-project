@@ -95,7 +95,6 @@ class Evaluation:
             driver.quit()
 
     def _parse_single_link(self, driver, wait, link: str, retries: int = 3) -> list:
-        """Parse một link với cơ chế retry, trả về [cau_hoi, tra_loi, procedures]."""
         for attempt in range(1, retries + 1):
             try:
                 driver.get(link)
@@ -130,7 +129,7 @@ class Evaluation:
             except WebDriverException as e:
                 print(f"[Attempt {attempt}/{retries}] WebDriverException - link: {link} | {e.msg or e}")
                 if attempt < retries:
-                    time.sleep(2 * attempt)  # back-off: 2s, 4s
+                    time.sleep(2 * attempt) 
                 else:
                     return [link, "ERROR", "ERROR"]
 
@@ -150,7 +149,6 @@ class Evaluation:
 
         try:
             for i, link in enumerate(links):
-                # Restart driver theo batch để tránh memory leak / crash
                 if i % batch_size == 0:
                     if driver:
                         try:
@@ -165,7 +163,6 @@ class Evaluation:
                 result = self._parse_single_link(driver, wait, link)
                 data.append(result)
 
-                # Lưu checkpoint sau mỗi batch để không mất data nếu crash
                 if (i + 1) % batch_size == 0 or (i + 1) == total:
                     df = pd.DataFrame(data, columns=columns)
                     df.to_csv(
