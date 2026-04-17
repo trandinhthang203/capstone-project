@@ -1,10 +1,23 @@
 crawl_dvc:
   driver_path: D:/chromedriver/chromedriver-win64/chromedriver.exe
-  # base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-thu-tuc-theo-nhom-su-kien.html?objectId=1&groupEventId=753#mainTitle
   base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-thu-tuc-theo-nhom-su-kien.html?objectId=1&groupEventId=759
   file_name: data/links/nguoi_than_qua_doi.csv
   proceduces_raw: D:/capstone-project/data/raw/nguoi_than_qua_doi
 
 process_forms:
-  proceduces_raw: D:/capstone-project/data/raw/nguoi_than_qua_doi
-  proceduces_processed: D:/capstone-project/data/processed/nguoi_than_qua_doi
+  proceduces_raw: D:/capstone-project/data/raw/hoc_tap
+  proceduces_processed: D:/capstone-project/data/processed/hoc_tap
+
+
+evaluation_collect:
+  DOWNLOAD_DIR: D:/capstone-project/data/evaluation/nguoi_than_qua_doi
+  base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-cau-hoi-theo-nhom-su-kien.html?objectId=1&groupEventId=759#mainTitle
+  file_name: data/evaluation/nguoi_than_qua_doi.csv
+  data_eval: D:/capstone-project/data/evaluation/nguoi_than_qua_doi_qa.csv
+
+
+backup_data:
+  DOWNLOAD_DIR: D:/capstone-project/backup
+  base_url: https://dichvucong.gov.vn/p/home/dvc-danh-sach-cau-hoi-theo-nhom-su-kien.html?objectId=1&groupEventId=750#mainTitle
+  file_name: backup/
+  data_links: D:/capstone-project/data/links
