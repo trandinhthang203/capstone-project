@@ -16,98 +16,69 @@
 #       port=8000,
 #       reload=True
 #     )
-import sys
+# main.py
 import os
+import sys
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 
-from scripts.models.procedure import Thu_Tuc
-from scripts.models.method import Cach_Thuc_Thuc_Hien
-from scripts.models.component import Thanh_Phan_Ho_So
-from scripts.models.basis import Can_Cu_Phap_Ly
 from dotenv import load_dotenv
-from app.core.config import *
-import chainlit as cl
-from langchain_core.messages import HumanMessage, AIMessageChunk
-
-from app.agents.base.graph import app
 load_dotenv()
 
-# main.py
-
-# from langsmith import traceable
-
-# @traceable
-# def run():
-#     result = app.invoke({
-#         "user_input": "lệ phí làm lại thẻ căn cước công dân là bao nhiêu?",
-#         "messages": [],
-#         "session_id": "test-001",
-#         "procedures": [],
-#         "pipeline": [],
-#         "current_agent": "",
-#         "next_agent": "",
-#         "qa_output": None,
-#         "forms_output": None,
-#         "location_output": None,
-#         "error": None,
-#         "final_response": None,
-#     })
-
-#     print(result["final_response"])
-
-# if __name__ == "__main__":
-#     run()
+from app.core.config import *
+import chainlit as cl
+from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
+from app.agents.base.graph import create_workflow
 
 @cl.on_chat_start
 async def on_chat_start():
-    # Lưu lịch sử hội thoại vào session
+    # Khởi tạo workflow app 1 lần cho mỗi session
+    workflow_app = create_workflow()
+    
+    # Lấy session_id và user_id (có thể lấy từ cl.user_session hoặc hardcode khi test)
+    session_id = cl.user_session.get("id")  # Chainlit tự tạo session id
+    user_id = cl.user_session.get("user_id", "anonymous")
+
+    cl.user_session.set("app", workflow_app)
     cl.user_session.set("history", [])
+    cl.user_session.set("config", {
+        "configurable": {
+            "thread_id": session_id,
+            "user_id": user_id,
+        }
+    })
+
     await cl.Message(content="Xin chào! Tôi có thể giúp gì cho bạn?").send()
 
-# ✅ Chạy mỗi khi user gửi tin nhắn
+
 @cl.on_message
 async def on_message(message: cl.Message):
+    workflow_app = cl.user_session.get("app")
+    config = cl.user_session.get("config")
     history = cl.user_session.get("history")
-    
-    # Thêm tin nhắn user vào history
+
     history.append(HumanMessage(content=str(message.content)))
-    
-    # Tạo message placeholder để stream response
+
     msg = cl.Message(content="")
     await msg.send()
-    
-    # Stream output từ LangGraph
-    async for event in app.astream_events(
+
+    async for event in workflow_app.astream_events(
         {
-        "user_input": message.content,
-        "messages": [],
-        "session_id": "test-001",
-        "procedures": [],
-        "pipeline": [],
-        "current_agent": "",
-        "next_agent": "",
-        "qa_output": None,
-        "forms_output": None,
-        "location_output": None,
-        "error": None,
-        "final_response": None,
-    },
-        version="v2"
+            "messages": history,      
+            "user_id": cl.user_session.get("user_id", "anonymous"),
+        },
+        config,
+        version="v2"                 
     ):
         kind = event["event"]
-        
-        # Bắt token streaming từ LLM
+
         if kind == "on_chat_model_stream":
             chunk = event["data"]["chunk"]
             if isinstance(chunk, AIMessageChunk) and chunk.content:
                 await msg.stream_token(chunk.content)
-    
-    # Finalize message
+
     await msg.update()
-    
-    # Lưu response vào history
-    from langchain_core.messages import AIMessage
+
     history.append(AIMessage(content=msg.content))
     cl.user_session.set("history", history)
