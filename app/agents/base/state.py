@@ -37,6 +37,7 @@ class AgentState(TypedDict):
     user_input: str
     messages: Annotated[list, add_messages]
     session_id: str
+    user_id: str
 
     procedures: list[str]  
     resolved_procedures: list[ProcedureMatch]           
