@@ -4,7 +4,7 @@ import os
 import json
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-from langchain.messages import HumanMessage, SystemMessage
+from langchain.messages import HumanMessage, SystemMessage, AnyMessage
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -18,12 +18,11 @@ _llm = ChatGoogleGenerativeAI(
     max_retries=2,
 )
 
-def get_response_llm(prompt: str, user_query: str) -> str:
-    messages = [
-        SystemMessage(content=prompt),
-        HumanMessage(content=user_query),
-    ]
-    return _llm.invoke(messages).content
+def get_response_llm(prompt: str, messages: list[AnyMessage]) -> str:  
+    return _llm.invoke([
+        SystemMessage(content=prompt),  
+        *messages                       
+    ]).content
 
 def read_yaml():
     base_dir = os.path.dirname(os.path.abspath(__file__))
