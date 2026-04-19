@@ -7,52 +7,44 @@ import json
 from app.helpers.utils.logger import logging
 from app.helpers.utils.common import read_json
 from langsmith import traceable
+from langchain.messages import HumanMessage, AIMessage
+from langgraph.graph import END
 
 @traceable
-def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
-    user_input = state['user_input']
+def supervisor_node(state: AgentState) -> Command[Literal["qa", "__end__"]]:
+    messages = state["messages"]
+    user_input = messages[-1].content
+
     prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query = user_input
     )
-    response = get_response_llm(prompt, user_input)
+
+    response = get_response_llm(prompt, messages)
     data = json.loads(response)
 
-    # resolved = []
     procedures = data.get("procedures", [])
     logging.info(f"[supervisor_node] procedures original: {procedures}")
+    if not procedures:
+        return Command(
+            goto=END,
+            update={
+                "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
+            },
+    )
 
     name_ids = read_json("app/agents/supervisor", "name_id.json")
 
     procedure_ids = [name_ids[proc] for proc in procedures if proc in name_ids]    
-    # if procedures:
-    #     db = next(get_db())
-    #     try:
-    #         resolved = resolve_procedures_fts(
-    #             db=db,
-    #             user_query=user_input,
-    #             supervisor_candidates=procedures,
-    #         )
-    #     finally:
-    #         db.close()
-
-    #     if resolved:
-    #         data["procedures"] = [item["ten_thu_tuc"] for item in resolved]
-
-    # logging.info(f"[supervisor_node]: {resolved}")
 
     return Command(
         goto=data["pipeline"][0],
         update={
             "procedures": procedure_ids,
-            # "resolved_procedures": resolved,
+            "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
             "pipeline": data.get("pipeline", ["qa"]),
             "fields": data.get("fields", [])
         },
     )
-
-
-
-###################################### WHY  INCREASE LATENCY ~ 30S ALTHOUGH ONLY HAVE 2 REQUEST ###########################
 
 
     

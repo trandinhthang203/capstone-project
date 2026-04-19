@@ -14,12 +14,16 @@ from langsmith import traceable
 
 @traceable
 def qa_node(state: AgentState) -> dict:
-    user_input = state["user_input"]
+    messages = state["messages"]
+    user_input = messages[-1].content
+
     procedure_ids = state["procedures"]
+    logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
+
     # resolved = state.get("resolved_procedures", [])
 
     # procedure_ids = [p["ma_thu_tuc"] for p in resolved]
-    logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
+
     # procedure_names = [p["ten_thu_tuc"] for p in resolved]
 
     # sql_prompt = supervisor_prompt["SQL_GENERATION"].format(

@@ -1,18 +1,20 @@
+# store.py
+from langgraph.store.postgres.aio import AsyncPostgresStore  # ← đổi import
+from psycopg_pool import AsyncConnectionPool
 import os
 from dotenv import load_dotenv
-from langgraph.store.postgres import PostgresStore      
-from psycopg_pool import ConnectionPool    
-load_dotenv()
-DATABASE_URL = os.getenv("SQL_DATABASE_URL")            
 
-def get_store() -> PostgresStore:
-    pool = ConnectionPool(
+load_dotenv()
+DATABASE_URL = os.getenv("SQL_DATABASE_URL")
+
+async def get_store() -> AsyncPostgresStore:
+    pool = AsyncConnectionPool(
         conninfo=DATABASE_URL,
         max_size=20,
         kwargs={"autocommit": True},
         open=False,
     )
-    pool.open()
-    store = PostgresStore(pool)
-    store.setup()
+    await pool.open()
+    store = AsyncPostgresStore(pool)
+    await store.setup()
     return store
