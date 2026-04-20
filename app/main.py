@@ -18,13 +18,15 @@
 #     )
 # main.py
 # test_terminal.py
+
 import os
 import sys
 import asyncio
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
-
+from app.agents.base.utils import set_queue
+from app.agents.base.state import StreamEvent
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -32,7 +34,7 @@ from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
 from app.agents.base.graph import create_workflow
 
 # ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-001"   # giữ nguyên để test memory xuyên suốt
+SESSION_ID = "test-session-002"   # giữ nguyên để test memory xuyên suốt
 USER_ID    = "test-user-001"
 
 CONFIG = {
@@ -44,32 +46,54 @@ CONFIG = {
 # ───────────────────────────────────────────────────────────────────────────
 
 
+# test_chat.py — sửa hàm chat
 async def chat(app, history: list, user_input: str) -> str:
-    """Gửi tin nhắn, stream response ra terminal, trả về nội dung đầy đủ."""
     history.append(HumanMessage(content=user_input))
 
-    
+    # Tạo queue cho request này
+    queue = asyncio.Queue()
+    set_queue(queue)  # inject vào context — các node dùng emit() sẽ push vào đây
 
     print("\n\033[94mAssistant:\033[0m ", end="", flush=True)
 
     full_response = ""
 
-    async for event in app.astream_events(
-        {
-            "messages": [HumanMessage(content=user_input)],
-            "user_id": USER_ID,
-        },
-        CONFIG,
-        version="v2",
-    ):
-        if event["event"] == "on_chat_model_stream":
-            chunk = event["data"]["chunk"]
-            if isinstance(chunk, AIMessageChunk) and chunk.content:
-                print(chunk.content, end="", flush=True)
-                full_response += chunk.content
+    # Chạy graph trong background
+    graph_task = asyncio.create_task(
+        app.ainvoke(
+            {
+                "messages": [HumanMessage(content=user_input)],
+                "user_id": USER_ID,
+            },
+            CONFIG,
+        )
+    )
 
-    print()  # xuống dòng sau khi stream xong
+    # Đọc queue song song với graph đang chạy
+    # test_chat.py
+    while True:
+        while not queue.empty():
+            event: StreamEvent = await queue.get()   # ← biết chắc kiểu
+            if event.type == "progress":
+                print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
 
+            elif event.type == "result":
+                print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
+                if event.data and "answer" in event.data:
+                    full_response = event.data["answer"]
+
+            elif event.type == "error":
+                print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
+
+        if graph_task.done():
+            break
+
+        await asyncio.sleep(0.05)
+
+    # Lấy final state nếu cần
+    result = graph_task.result()
+
+    print()
     history.append(AIMessage(content=full_response))
     return full_response
 

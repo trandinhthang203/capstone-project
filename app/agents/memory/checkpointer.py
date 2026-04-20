@@ -1,22 +1,9 @@
 # checkpointer.py
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver  
-from psycopg_pool import AsyncConnectionPool                      
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-DATABASE_URL = os.getenv("SQL_DATABASE_URL")
-
-print(DATABASE_URL)
+from app.agents.memory.db_pool import get_pool
 
 async def get_checkpointer() -> AsyncPostgresSaver:
-    pool = AsyncConnectionPool(
-        conninfo=DATABASE_URL,
-        max_size=20,
-        kwargs={"autocommit": True},
-        open=False,
-    )
-    await pool.open()
+    pool = await get_pool()        
     checkpointer = AsyncPostgresSaver(pool)
     await checkpointer.setup()
     return checkpointer

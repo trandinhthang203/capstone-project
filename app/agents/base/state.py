@@ -1,7 +1,10 @@
 from typing import TypedDict, Annotated, Optional
 from langgraph.graph.message import add_messages
 from dataclasses import dataclass
-from typing import List, Union
+import operator
+from pydantic import BaseModel
+from typing import Literal, Any
+from datetime import datetime
 
 class QAOutput(TypedDict):
     answer_text: str
@@ -31,7 +34,14 @@ class ProcedureMatch(TypedDict):
 @dataclass
 class SupervisorOutput:
     procedures: list[str]
-    fields: list[str]          
+    fields: list[str]     
+
+class StreamEvent(BaseModel):
+    type: Literal["progress", "result", "error"]
+    node: str
+    message: str                   
+    data: Any = None               
+    timestamp: datetime = datetime.now()     
 
 class AgentState(TypedDict):
     user_input: str
@@ -44,7 +54,10 @@ class AgentState(TypedDict):
     pipeline: list[str]    
     fields: list[str]      
     current_agent: str          
-    next_agent: str             
+    next_agent: str     
+
+    node_outputs: str  
+    events: Annotated[list[StreamEvent], operator.add]      
 
     qa_output: Optional[QAOutput]
     forms_output: Optional[FormsOutput]
