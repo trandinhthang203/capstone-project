@@ -9,11 +9,18 @@ from app.helpers.utils.common import read_json
 from langsmith import traceable
 from langchain.messages import HumanMessage, AIMessage
 from langgraph.graph import END
+from app.agents.base.state import StreamEvent
+from app.agents.base.utils import emit
+import asyncio
 
 @traceable
-def supervisor_node(state: AgentState) -> Command[Literal["qa", "__end__"]]:
+async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     messages = state["messages"]
     user_input = messages[-1].content
+    await emit(StreamEvent(
+        type="progress", node="supervisor",
+        message="Đang xác định thủ tục của bạn..."
+    ))
 
     prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query = user_input
@@ -23,14 +30,12 @@ def supervisor_node(state: AgentState) -> Command[Literal["qa", "__end__"]]:
     data = json.loads(response)
 
     procedures = data.get("procedures", [])
-    logging.info(f"[supervisor_node] procedures original: {procedures}")
-    if not procedures:
-        return Command(
-            goto=END,
-            update={
-                "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
-            },
-    )
+
+    await emit(StreamEvent(
+        type="result", node="supervisor",
+        message=f"Đã tìm thấy: {procedures}",
+        data={"procedures": procedures}
+    ))
 
     name_ids = read_json("app/agents/supervisor", "name_id.json")
 
