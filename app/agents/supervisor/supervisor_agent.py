@@ -16,7 +16,8 @@ import asyncio
 @traceable
 async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     messages = state["messages"]
-    user_input = messages[-1].content
+    user_input = state["user_input"]
+
     await emit(StreamEvent(
         type="progress", node="supervisor",
         message="Đang xác định thủ tục của bạn..."
@@ -26,7 +27,7 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
         query = user_input
     )
 
-    response = get_response_llm(prompt, messages)
+    response = await get_response_llm(prompt, messages)
     data = json.loads(response)
 
     procedures = data.get("procedures", [])
@@ -45,7 +46,7 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
         goto=data["pipeline"][0],
         update={
             "procedures": procedure_ids,
-            "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
+            # "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
             "pipeline": data.get("pipeline", ["qa"]),
             "fields": data.get("fields", [])
         },

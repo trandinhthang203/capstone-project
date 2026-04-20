@@ -14,6 +14,7 @@ from langsmith import traceable
 from typing import Literal
 from app.agents.base.utils import emit
 from app.agents.base.state import StreamEvent
+from langchain.messages import AIMessage
 
 @traceable
 async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__end__"]]:
@@ -22,7 +23,8 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     next_agent = get_next_agent(pipeline, current_agent),
 
     messages = state["messages"]
-    user_input = messages[-1].content
+    user_input = state["user_input"]
+    logging.info(f"[qa_node]: user_input: {user_input}")
 
     procedure_ids = state["procedures"]
     # logging.info(f"[qa_node]: procedure_ids: {procedure_ids}")
@@ -40,7 +42,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
 
         sql_query = build_query_plan(case).main_sql
         _, main_params = build_where_clause(case.procedures, TABLE_ALIASES["thu_tuc"])
-        # logging.info(f"[qa_node] Generated SQL: {sql_query}")
+        logging.info(f"[qa_node] Generated SQL: {sql_query}")
     except CustomException as e:
         logging.warning(f"[qa_node] Invalid SQL: {e}")
 
@@ -64,7 +66,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         link=None
     )
 
-    answer = get_response_llm(answer_prompt, messages)
+    answer = await get_response_llm(answer_prompt, messages)
     logging.info(f"[qa_node] Answer returned: {answer}")
 
     await emit(StreamEvent(
@@ -76,6 +78,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     return Command(
         goto=get_next_agent(pipeline, current_agent),
         update={
-            "final_response" : answer
+            "final_response" : answer,
+            "messages": [AIMessage(content=answer)]
         }
     )

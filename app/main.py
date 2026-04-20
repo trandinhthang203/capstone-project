@@ -34,7 +34,7 @@ from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
 from app.agents.base.graph import create_workflow
 
 # ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-002"   # giữ nguyên để test memory xuyên suốt
+SESSION_ID = "test-session-003"   # giữ nguyên để test memory xuyên suốt
 USER_ID    = "test-user-001"
 
 CONFIG = {
@@ -50,52 +50,50 @@ CONFIG = {
 async def chat(app, history: list, user_input: str) -> str:
     history.append(HumanMessage(content=user_input))
 
-    # Tạo queue cho request này
     queue = asyncio.Queue()
-    set_queue(queue)  # inject vào context — các node dùng emit() sẽ push vào đây
+    set_queue(queue)
 
     print("\n\033[94mAssistant:\033[0m ", end="", flush=True)
 
     full_response = ""
 
-    # Chạy graph trong background
     graph_task = asyncio.create_task(
         app.ainvoke(
             {
                 "messages": [HumanMessage(content=user_input)],
                 "user_id": USER_ID,
+                "user_input": user_input, 
             },
             CONFIG,
         )
     )
 
-    # Đọc queue song song với graph đang chạy
-    # test_chat.py
-    while True:
-        while not queue.empty():
-            event: StreamEvent = await queue.get()   # ← biết chắc kiểu
-            if event.type == "progress":
-                print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
+    while not graph_task.done() or not queue.empty():
+        try:
+            event: StreamEvent = await asyncio.wait_for(queue.get(), timeout=0.05)
+        except asyncio.TimeoutError:
+            continue
 
-            elif event.type == "result":
-                print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
-                if event.data and "answer" in event.data:
-                    full_response = event.data["answer"]
+        if event.type == "progress":
+            print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
 
-            elif event.type == "error":
-                print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
+        elif event.type == "result":
+            print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
+            if event.data and "answer" in event.data and event.data["answer"]:
+                full_response = event.data["answer"]
 
-        if graph_task.done():
-            break
+        elif event.type == "error":
+            print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
 
-        await asyncio.sleep(0.05)
+    result = await graph_task
 
-    # Lấy final state nếu cần
-    result = graph_task.result()
+    if not full_response:
+        full_response = result.get("final_response", "") or ""
 
     print()
     history.append(AIMessage(content=full_response))
     return full_response
+
 
 
 async def main():
