@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Literal, Any
 from datetime import datetime
 
+@dataclass
 class QAOutput(TypedDict):
     answer_text: str
     form_id: Optional[str]       
@@ -48,13 +49,15 @@ class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
     session_id: str
     user_id: str
+    summary: str
 
     procedures: list[str]  
     resolved_procedures: list[ProcedureMatch]           
     pipeline: list[str]    
     fields: list[str]      
     current_agent: str          
-    next_agent: str     
+    next_agent: str   
+    context: str  
 
     node_outputs: str  
     events: Annotated[list[StreamEvent], operator.add]      

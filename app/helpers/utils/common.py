@@ -2,7 +2,7 @@ import yaml
 from box import ConfigBox
 import os
 import json
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from langchain.messages import HumanMessage, SystemMessage, AnyMessage
@@ -10,6 +10,7 @@ import asyncio
 
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 _llm = ChatGroq(
     api_key=GROQ_API_KEY,

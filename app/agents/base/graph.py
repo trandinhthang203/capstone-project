@@ -1,8 +1,8 @@
 # graph.py
 from langgraph.graph import StateGraph, END
 from app.agents.base.state import AgentState
-from app.agents.supervisor.supervisor_agent import supervisor_node
-from app.agents.qa.qa_agent import qa_node
+from app.agents.supervisor.supervisor_node import supervisor_node
+from app.agents.qa.qa_node import qa_node
 from app.agents.memory.checkpointer import get_checkpointer
 from app.agents.memory.store import get_store
 from app.agents.forms.forms_agent import forms_node
