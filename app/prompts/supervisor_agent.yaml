@@ -103,7 +103,7 @@ SUPERVISOR_PROMPT_V2: |
 
   1. Chỉ hỏi thông tin → pipeline: ["qa"]
   2. Muốn điền mẫu đơn → pipeline: ["qa", "forms"]
-  3. Muốn chỉ đường → pipeline: ["qa", "location"]
+  3. Muốn chỉ đường hoặc hỏi thông tin liên quan đến địa chỉ → pipeline: ["qa", "location"]
   4. Muốn cả điền đơn lẫn chỉ đường → pipeline: ["qa", ["forms", "location"]]
   5. Không liên quan thủ tục hành chính → pipeline: ["qa"], procedures: [], fields: []
 

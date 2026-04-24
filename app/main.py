@@ -34,7 +34,7 @@ from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
 from app.agents.base.graph import create_workflow
 
 # ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-003"   # giữ nguyên để test memory xuyên suốt
+SESSION_ID = "test-session-004"   # giữ nguyên để test memory xuyên suốt
 USER_ID    = "test-user-001"
 
 CONFIG = {
