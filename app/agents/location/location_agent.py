@@ -2,7 +2,7 @@
 location_agent.py
 ─────────────────
 Agent thực sự: LLM tự quyết định gọi tool nào, thứ tự nào.
-Chi phí: đúng 1 lần gọi LLM (với tool_choice="any").
+Sử dụng ChatGroq (LangChain) thay vì Anthropic native API.
 
 Flow:
   1. Build prompt với đủ context (qa answer + user profile)
@@ -16,36 +16,29 @@ from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import get_next_agent, emit
 from app.helpers.utils.logger import logging
 from app.core.config import settings
-from app.db.session import get_db
 from langgraph.types import Command
-from langchain.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, ToolMessage, SystemMessage, HumanMessage
 from langsmith import traceable
 from typing import Literal
 from urllib.parse import quote
 import asyncio
 import json
 
-from anthropic import AsyncAnthropic
-from location_tools import search_agency_place, geocode_user_address, get_directions
+from app.agents.location.location_tools import search_agency_place, geocode_user_address, get_directions
+from app.services.user_service import get_profile_for_chatbot
+from app.db.session import get_db
 
 # ── Constants ────────────────────────────────────────────────────────────────
 MAX_ITER = 3   # Giới hạn vòng lặp tool-call, tránh loop vô hạn
-MODEL    = "claude-sonnet-4-20250514"
 
 # ── Tool registry ─────────────────────────────────────────────────────────────
 TOOLS = [search_agency_place, geocode_user_address, get_directions]
-
-# Chuyển LangChain @tool → format Anthropic tool spec
-TOOL_SPECS = [
-    {
-        "name": t.name,
-        "description": t.description,
-        "input_schema": t.args_schema.schema(),
-    }
-    for t in TOOLS
-]
-
 TOOL_REGISTRY = {t.name: t for t in TOOLS}
+
+# ── LLM với tools đã bind ─────────────────────────────────────────────────────
+from app.helpers.utils.common import _llm  
+
+_llm_with_tools = _llm.bind_tools(TOOLS)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -88,19 +81,31 @@ Hãy tìm địa điểm thực hiện thủ tục và tính đường đi cho n
 
 
 async def execute_tool_calls_parallel(tool_calls: list) -> list[dict]:
-    """Thực thi tất cả tool calls song song, trả về list ToolMessage-compatible dicts."""
+    """Thực thi tất cả tool calls song song, trả về list dict chứa id và kết quả."""
     async def run_one(tc):
+        # LangChain tool_calls format: {"name": ..., "args": ..., "id": ...}
         tool_fn = TOOL_REGISTRY.get(tc["name"])
         if not tool_fn:
-            return {"tool_use_id": tc["id"], "content": json.dumps({"error": f"Unknown tool: {tc['name']}"})}
+            return {
+                "id": tc["id"],
+                "content": json.dumps({"error": f"Unknown tool: {tc['name']}"}),
+            }
         try:
-            result = await tool_fn.ainvoke(tc["input"])
-            return {"tool_use_id": tc["id"], "content": json.dumps(result)}
+            result = await tool_fn.ainvoke(tc["args"])
+            return {"id": tc["id"], "content": json.dumps(result)}
         except Exception as e:
             logging.error(f"[location_agent] Tool '{tc['name']}' error: {e}", exc_info=True)
-            return {"tool_use_id": tc["id"], "content": json.dumps({"error": str(e)})}
+            return {"id": tc["id"], "content": json.dumps({"error": str(e)})}
 
     return await asyncio.gather(*[run_one(tc) for tc in tool_calls])
+
+
+async def invoke_llm_with_tools(messages: list) -> AIMessage:
+    """Gọi LLM với tools đã bind, wrap trong asyncio.to_thread vì ChatGroq là sync."""
+    return await asyncio.to_thread(
+        _llm_with_tools.invoke,
+        [SystemMessage(content=build_system_prompt()), *messages],
+    )
 
 
 def build_map_url(user_address: str, agency_address: str) -> str:
@@ -113,8 +118,10 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     current_agent = "location"
     next_agent = get_next_agent(state["pipeline"], current_agent)
 
-    qa_answer    = state["final_response"]        # output từ qa_node
-    user_profile = state["user_profile"]          # {"address": ..., "province": ...}
+    qa_answer    = state["final_response"]   # output từ qa_node
+
+    with next(get_db()) as db:
+        user_profile = get_profile_for_chatbot(db, 2)
 
     logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
@@ -123,59 +130,49 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
         message="Đang xác định địa điểm thực hiện thủ tục..."
     ))
 
-    client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
-
     # ── Agentic loop ──────────────────────────────────────────────────────────
-    messages = [{"role": "user", "content": build_user_prompt(qa_answer, user_profile)}]
+    messages = [HumanMessage(content=build_user_prompt(qa_answer, user_profile))]
     final_result = None
 
     for iteration in range(MAX_ITER):
         logging.info(f"[location_agent] Iteration {iteration + 1}/{MAX_ITER}")
 
-        response = await client.messages.create(
-            model=MODEL,
-            max_tokens=1024,
-            system=build_system_prompt(),
-            tools=TOOL_SPECS,
-            messages=messages,
-            # tool_choice="any" → buộc LLM phải gọi tool, không trả lời suông
-            tool_choice={"type": "any"} if iteration == 0 else {"type": "auto"},
-        )
+        response: AIMessage = await invoke_llm_with_tools(messages)
+        messages.append(response)
 
-        # Append assistant response vào history
-        messages.append({"role": "assistant", "content": response.content})
+        # ── Kiểm tra có tool_calls không ─────────────────────────────────────
+        # LangChain: response.tool_calls là list[dict] hoặc []
+        tool_calls = response.tool_calls or []
 
-        # ── Kiểm tra stop reason ──────────────────────────────────────────────
-        if response.stop_reason == "end_turn":
-            # LLM đã có đủ data, extract JSON từ text block cuối
-            for block in response.content:
-                if block.type == "text":
-                    try:
-                        final_result = json.loads(block.text)
-                        logging.info(f"[location_agent] Got final result on iteration {iteration + 1}")
-                    except json.JSONDecodeError:
-                        logging.warning(f"[location_agent] LLM returned non-JSON text: {block.text[:200]}")
-            break
-
-        if response.stop_reason != "tool_use":
-            logging.warning(f"[location_agent] Unexpected stop_reason: {response.stop_reason}")
+        if not tool_calls:
+            # LLM đã có đủ data, không gọi tool nữa → parse JSON từ content
+            try:
+                final_result = json.loads(response.content)
+                logging.info(f"[location_agent] Got final result on iteration {iteration + 1}")
+            except (json.JSONDecodeError, TypeError):
+                logging.warning(
+                    f"[location_agent] LLM returned non-JSON text: "
+                    f"{str(response.content)[:200]}"
+                )
             break
 
         # ── Thực thi tool calls song song ────────────────────────────────────
-        tool_calls = [
-            {"id": block.id, "name": block.name, "input": block.input}
-            for block in response.content
-            if block.type == "tool_use"
-        ]
-        logging.info(f"[location_agent] Executing tools parallel: {[tc['name'] for tc in tool_calls]}")
+        logging.info(
+            f"[location_agent] Executing tools parallel: "
+            f"{[tc['name'] for tc in tool_calls]}"
+        )
 
         tool_results = await execute_tool_calls_parallel(tool_calls)
 
-        # Append tool results vào history để LLM đọc ở vòng tiếp theo
-        messages.append({
-            "role": "user",
-            "content": [{"type": "tool_result", **r} for r in tool_results],
-        })
+        # Append ToolMessage vào history để LLM đọc ở vòng tiếp theo
+        # LangChain yêu cầu ToolMessage với tool_call_id tương ứng
+        messages.extend([
+            ToolMessage(
+                content=r["content"],
+                tool_call_id=r["id"],
+            )
+            for r in tool_results
+        ])
 
     # ── Fallback nếu loop kết thúc mà không có kết quả ───────────────────────
     if not final_result:

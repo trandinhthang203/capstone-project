@@ -38,8 +38,8 @@ from app.models import Role, User, ChatSession, ChatMessage, Feedback
 
 Base.metadata.create_all(bind=engine)
 # ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-004"   # giữ nguyên để test memory xuyên suốt
-USER_ID    = "test-user-001"
+SESSION_ID = "test-session-005"   # giữ nguyên để test memory xuyên suốt
+USER_ID    = 2
 
 CONFIG = {
     "configurable": {

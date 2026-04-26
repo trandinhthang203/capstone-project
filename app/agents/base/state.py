@@ -67,4 +67,5 @@ class AgentState(TypedDict):
     location_output: Optional[LocationOutput]
 
     error: Optional[str]
+    location_result: Optional[str]
     final_response: Optional[str]
