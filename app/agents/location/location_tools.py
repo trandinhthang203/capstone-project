@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 import os
 from langchain.tools import tool
 from app.helpers.utils.logger import logging
@@ -11,31 +10,46 @@ _http_client = httpx.AsyncClient(timeout=10.0)
 @tool
 async def search_agency_place(query: str) -> dict:
     """
-    Tìm địa điểm cơ quan nhà nước trên Google Maps theo tên + tỉnh/thành.
+    Tìm địa điểm cơ quan nhà nước trên Google Maps theo tên + tỉnh/thành hoặc xã phường.
     Trả về: name, address, lat, lng, place_id.
     Dùng khi cần tìm địa chỉ thực tế của cơ quan thực hiện thủ tục.
 
     Args:
-        query: Tên cơ quan kèm tỉnh/thành, ví dụ:
+        query: Tên cơ quan kèm tỉnh/thành hoặc xã phường, ví dụ:
                "Phòng cảnh sát quản lý hành chính trật tự xã hội Đà Nẵng"
     """
-    resp = await _http_client.get(
-        "https://maps.googleapis.com/maps/api/place/textsearch/json",
-        params={"query": query, "key": GOOGLE_MAPS_API_KEY, "language": "vi", "region": "VN"},
+    resp = await _http_client.post(
+        "https://places.googleapis.com/v1/places:searchText",
+        headers={
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+            "X-Goog-FieldMask": (
+                "places.displayName,"
+                "places.formattedAddress,"
+                "places.location,"
+                "places.id"
+            ),
+        },
+        json={
+            "textQuery": query,
+            "languageCode": "vi",
+            "regionCode": "VN",
+        },
     )
     data = resp.json()
-    if data["status"] != "OK" or not data["results"]:
-        logging.warning(f"[search_agency_place] No result for query='{query}': {data['status']}")
+    places = data.get("places", [])
+
+    if not places:
+        logging.warning(f"[search_agency_place] No result for query='{query}': {data}")
         return {"error": f"Không tìm thấy địa điểm cho: {query}"}
 
-    place = data["results"][0]
-    loc = place["geometry"]["location"]
+    place = places[0]
     return {
-        "name": place["name"],
-        "address": place["formatted_address"],
-        "lat": loc["lat"],
-        "lng": loc["lng"],
-        "place_id": place["place_id"],
+        "name": place["displayName"]["text"],
+        "address": place["formattedAddress"],
+        "lat": place["location"]["latitude"],
+        "lng": place["location"]["longitude"],
+        "place_id": place.get("id", ""),
     }
 
 
@@ -51,7 +65,12 @@ async def geocode_user_address(address: str) -> dict:
     """
     resp = await _http_client.get(
         "https://maps.googleapis.com/maps/api/geocode/json",
-        params={"address": address, "key": GOOGLE_MAPS_API_KEY, "language": "vi", "region": "VN"},
+        params={
+            "address": address,
+            "key": GOOGLE_MAPS_API_KEY,
+            "language": "vi",
+            "region": "VN",
+        },
     )
     data = resp.json()
     if data["status"] != "OK" or not data["results"]:
@@ -59,7 +78,11 @@ async def geocode_user_address(address: str) -> dict:
         return {"error": f"Không tìm thấy tọa độ cho: {address}"}
 
     loc = data["results"][0]["geometry"]["location"]
-    return {"lat": loc["lat"], "lng": loc["lng"], "formatted_address": data["results"][0]["formatted_address"]}
+    return {
+        "lat": loc["lat"],
+        "lng": loc["lng"],
+        "formatted_address": data["results"][0]["formatted_address"],
+    }
 
 
 @tool
