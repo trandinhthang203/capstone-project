@@ -63,7 +63,6 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     answer_prompt = supervisor_prompt["ANSWER_GENERATION"].format(
         query=user_input,
         context=context,
-        link=None,
     )
     answer = await get_response_llm(answer_prompt, messages)
     logging.info(f"[qa_node] Answer: {answer}")
