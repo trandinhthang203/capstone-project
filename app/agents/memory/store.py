@@ -1,18 +1,8 @@
-import os
-from dotenv import load_dotenv
-from langgraph.store.postgres import PostgresStore      
-from psycopg_pool import ConnectionPool    
-load_dotenv()
-DATABASE_URL = os.getenv("SQL_DATABASE_URL")            
+from langgraph.store.postgres.aio import AsyncPostgresStore
+from app.agents.memory.db_pool import get_pool
 
-def get_store() -> PostgresStore:
-    pool = ConnectionPool(
-        conninfo=DATABASE_URL,
-        max_size=20,
-        kwargs={"autocommit": True},
-        open=False,
-    )
-    pool.open()
-    store = PostgresStore(pool)
-    store.setup()
+async def get_store() -> AsyncPostgresStore:
+    pool = await get_pool()          # dùng chung pool
+    store = AsyncPostgresStore(pool)
+    await store.setup()
     return store
