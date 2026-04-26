@@ -17,68 +17,130 @@
 #       reload=True
 #     )
 # main.py
+# test_terminal.py
+
 import os
 import sys
+import asyncio
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
-
+from app.agents.base.utils import set_queue
+from app.agents.base.state import StreamEvent
 from dotenv import load_dotenv
 load_dotenv()
 
-from app.core.config import *
-import chainlit as cl
 from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
 from app.agents.base.graph import create_workflow
+from app.db.base import Base
+from app.db.session import engine
+from app.models import Role, User, ChatSession, ChatMessage, Feedback
 
-@cl.on_chat_start
-async def on_chat_start():
-    # Khởi tạo workflow app 1 lần cho mỗi session
-    workflow_app = create_workflow()
-    
-    # Lấy session_id và user_id (có thể lấy từ cl.user_session hoặc hardcode khi test)
-    session_id = cl.user_session.get("id")  # Chainlit tự tạo session id
-    user_id = cl.user_session.get("user_id", "anonymous")
+Base.metadata.create_all(bind=engine)
+# ── Config cố định để test ──────────────────────────────────────────────────
+SESSION_ID = "test-session-005"   # giữ nguyên để test memory xuyên suốt
+USER_ID    = 2
 
-    cl.user_session.set("app", workflow_app)
-    cl.user_session.set("history", [])
-    cl.user_session.set("config", {
-        "configurable": {
-            "thread_id": session_id,
-            "user_id": user_id,
-        }
-    })
-
-    await cl.Message(content="Xin chào! Tôi có thể giúp gì cho bạn?").send()
+CONFIG = {
+    "configurable": {
+        "thread_id": SESSION_ID,
+        "user_id":   USER_ID,
+    }
+}
+# ───────────────────────────────────────────────────────────────────────────
 
 
-@cl.on_message
-async def on_message(message: cl.Message):
-    workflow_app = cl.user_session.get("app")
-    config = cl.user_session.get("config")
-    history = cl.user_session.get("history")
+# test_chat.py — sửa hàm chat
+async def chat(app, history: list, user_input: str) -> str:
+    history.append(HumanMessage(content=user_input))
 
-    history.append(HumanMessage(content=str(message.content)))
+    queue = asyncio.Queue()
+    set_queue(queue)
 
-    msg = cl.Message(content="")
-    await msg.send()
+    print("\n\033[94mAssistant:\033[0m ", end="", flush=True)
 
-    async for event in workflow_app.astream_events(
-        {
-            "messages": history,      
-            "user_id": cl.user_session.get("user_id", "anonymous"),
-        },
-        config,
-        version="v2"                 
-    ):
-        kind = event["event"]
+    full_response = ""
 
-        if kind == "on_chat_model_stream":
-            chunk = event["data"]["chunk"]
-            if isinstance(chunk, AIMessageChunk) and chunk.content:
-                await msg.stream_token(chunk.content)
+    graph_task = asyncio.create_task(
+        app.ainvoke(
+            {
+                "messages": [HumanMessage(content=user_input)],
+                "user_id": USER_ID,
+                "user_input": user_input, 
+            },
+            CONFIG,
+        )
+    )
 
-    await msg.update()
+    while not graph_task.done() or not queue.empty():
+        try:
+            event: StreamEvent = await asyncio.wait_for(queue.get(), timeout=0.05)
+        except asyncio.TimeoutError:
+            continue
 
-    history.append(AIMessage(content=msg.content))
-    cl.user_session.set("history", history)
+        if event.type == "progress":
+            print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
+
+        elif event.type == "result":
+            print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
+            if event.data and "answer" in event.data and event.data["answer"]:
+                full_response = event.data["answer"]
+
+        elif event.type == "error":
+            print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
+
+    result = await graph_task
+
+    if not full_response:
+        full_response = result.get("final_response", "") or ""
+
+    print()
+    history.append(AIMessage(content=full_response))
+    return full_response
+
+
+
+async def main():
+    print("⏳ Đang khởi tạo workflow...")
+    app = await create_workflow()
+    print(f"✅ Sẵn sàng!  (session={SESSION_ID}, user={USER_ID})")
+    print("💡 Gõ 'quit' hoặc 'exit' để thoát | 'clear' để reset history local\n")
+
+    history: list = []
+
+    while True:
+        try:
+            user_input = input("\033[92mBạn:\033[0m ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n👋 Tạm biệt!")
+            break
+
+        if not user_input:
+            continue
+
+        if user_input.lower() in {"quit", "exit"}:
+            print("👋 Tạm biệt!")
+            break
+
+        if user_input.lower() == "clear":
+            history.clear()
+            print("🗑️  Đã xoá history local (memory trên DB vẫn giữ nguyên)")
+            continue
+
+        if user_input.lower() == "history":
+            if not history:
+                print("  (chưa có tin nhắn nào)")
+            for msg in history:
+                role = "Bạn" if isinstance(msg, HumanMessage) else "AI"
+                print(f"  [{role}] {msg.content[:120]}{'...' if len(msg.content) > 120 else ''}")
+            continue
+
+        try:
+            await chat(app, history, user_input)
+        except Exception as e:
+            print(f"\n❌ Lỗi: {e}")
+
+
+if __name__ == "__main__":
+    import selectors
+    asyncio.run(main(), loop_factory=lambda: asyncio.SelectorEventLoop(selectors.SelectSelector()))

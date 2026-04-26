@@ -7,52 +7,50 @@ import json
 from app.helpers.utils.logger import logging
 from app.helpers.utils.common import read_json
 from langsmith import traceable
+from langchain.messages import HumanMessage, AIMessage
+from langgraph.graph import END
+from app.agents.base.state import StreamEvent
+from app.agents.base.utils import emit
+import asyncio
 
 @traceable
-def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
-    user_input = state['user_input']
+async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
+    messages = state["messages"]
+    user_input = state["user_input"]
+
+    await emit(StreamEvent(
+        type="progress", node="supervisor",
+        message="Đang xác định thủ tục của bạn..."
+    ))
+
     prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query = user_input
     )
-    response = get_response_llm(prompt, user_input)
+
+    response = await get_response_llm(prompt, messages)
     data = json.loads(response)
 
-    # resolved = []
     procedures = data.get("procedures", [])
-    logging.info(f"[supervisor_node] procedures original: {procedures}")
+
+    await emit(StreamEvent(
+        type="result", node="supervisor",
+        message=f"Đã tìm thấy: {procedures}\n Các bước tiếp theo: {data.get("pipeline", ["qa"])}",
+        data={"procedures": procedures}
+    ))
 
     name_ids = read_json("app/agents/supervisor", "name_id.json")
 
     procedure_ids = [name_ids[proc] for proc in procedures if proc in name_ids]    
-    # if procedures:
-    #     db = next(get_db())
-    #     try:
-    #         resolved = resolve_procedures_fts(
-    #             db=db,
-    #             user_query=user_input,
-    #             supervisor_candidates=procedures,
-    #         )
-    #     finally:
-    #         db.close()
-
-    #     if resolved:
-    #         data["procedures"] = [item["ten_thu_tuc"] for item in resolved]
-
-    # logging.info(f"[supervisor_node]: {resolved}")
 
     return Command(
         goto=data["pipeline"][0],
         update={
             "procedures": procedure_ids,
-            # "resolved_procedures": resolved,
+            # "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
             "pipeline": data.get("pipeline", ["qa"]),
             "fields": data.get("fields", [])
         },
     )
-
-
-
-###################################### WHY  INCREASE LATENCY ~ 30S ALTHOUGH ONLY HAVE 2 REQUEST ###########################
 
 
     
