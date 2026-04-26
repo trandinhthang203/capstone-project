@@ -46,7 +46,7 @@ CHILD_TABLES = {"thanh_phan_ho_so", "cach_thuc_thuc_hien", "can_cu_phap_ly"}
 PROCEDURE_MATCH_COLUMN = "ma_thu_tuc"
 
 # Luôn SELECT ma_thu_tuc để có thể liên kết kết quả
-ALWAYS_SELECT = {"thu_tuc": {"ma_thu_tuc", "ten_thu_tuc"}}
+ALWAYS_SELECT = {"thu_tuc": {"ma_thu_tuc", "ten_thu_tuc", "link_tham_khao"}}
 
 
 # ─────────────────────────────────────────────

@@ -48,13 +48,7 @@ def get_user_by_id(db: Session, user_id: int) -> User:
 
 
 def get_user_by_citizenid(db: Session, citizenid: str) -> User | None:
-    user = db.query(User).filter(User.citizenid == citizenid).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy người dùng"
-        )
-    return user
+    return db.query(User).filter(User.citizenid == citizenid).first()
 
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 20) -> list[User]:
@@ -82,14 +76,14 @@ def update_last_login(db: Session, user_id: int) -> None:
 
 
 def change_password(db: Session, user_id: int, old_password: str, new_password: str) -> None:
-    user = get_user_by_id(user_id)
+    user = get_user_by_id(db, user_id)
 
     if not verify_password(old_password, user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Mật khẩu cũ không đúng"
         )
-    
+
     user.password = get_password_hash(new_password)
     db.commit()
 
@@ -113,9 +107,32 @@ def deactivate_user(db: Session, user_id: int) -> User:
 
 # ─── AUTH ─────
 
-# def authenticate_user(db: Session, citizenid: str, password: str) -> User:
-#     pass
+def authenticate_user(db: Session, citizenid: str, password: str) -> User:
+    user = get_user_by_citizenid(db, citizenid)
 
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="CCCD hoặc mật khẩu không đúng"
+        )
+
+    if not verify_password(password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="CCCD hoặc mật khẩu không đúng"
+        )
+
+    if user.status != "Active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tài khoản đã bị vô hiệu hóa"
+        )
+
+    update_last_login(db, user.iduser)
+    return user
+
+
+# ─── CHATBOT ──────
 
 def get_profile_for_chatbot(db: Session, user_id: int) -> dict:
     user = get_user_by_id(db, user_id)
