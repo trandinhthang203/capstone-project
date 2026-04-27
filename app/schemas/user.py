@@ -1,7 +1,7 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import date, datetime
-
+from enum import Enum
 
 class UserBase(BaseModel):
     fullname:    str
@@ -34,19 +34,25 @@ class UserCreate(UserBase):
     idrole:   int
     password: str
 
+class UserRegister(UserBase):
+    password: str
+
+class GenderEnum(str, Enum):
+    male = "Male"
+    female = "Female"
+    other = "Other"
 
 class UserUpdate(BaseModel):
     fullname:    Optional[str] = None
     phonenumber: Optional[str] = None
     dateofbirth: Optional[date] = None
-    gender:      Optional[str] = None
+    gender:      Optional[GenderEnum] = None
     address:     Optional[str] = None
     province:    Optional[str] = None
     district:    Optional[str] = None
     ward:        Optional[str] = None
     avatarurl:   Optional[str] = None
-    status:      Optional[str] = None
-
+    # status:      Optional[str] = None
 
 class UserResponse(UserBase):
     iduser:    int
