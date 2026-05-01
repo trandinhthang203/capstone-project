@@ -151,7 +151,7 @@ class UserService(object):
     # def authenticate_user(db: Session, citizenid: str, password: str) -> User:
     #     pass
 
-
+    @staticmethod
     def get_profile_for_chatbot(self, user_id: int) -> dict:
         user = self.get_user_by_id(user_id)
         return {
