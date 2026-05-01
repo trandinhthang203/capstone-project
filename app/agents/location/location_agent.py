@@ -25,7 +25,7 @@ import asyncio
 import json
 
 from app.agents.location.location_tools import search_agency_place, geocode_user_address, get_directions
-from app.services.user_service import get_profile_for_chatbot
+from app.services.user_service import UserService
 from app.db.session import get_db
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     qa_answer    = state["final_response"]   # output từ qa_node
 
     with next(get_db()) as db:
-        user_profile = get_profile_for_chatbot(db, 2)
+        user_profile = UserService.get_profile_for_chatbot(2)
 
     logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
