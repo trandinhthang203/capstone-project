@@ -7,7 +7,7 @@ class User(Base):
     __tablename__ = "User"
 
     iduser      = Column(Integer, primary_key=True, autoincrement=True)
-    idrole      = Column(Integer, ForeignKey("role.idrole"), nullable=False)
+    idrole      = Column(Integer, ForeignKey("role.idrole"), nullable=False, default=2)
     fullname    = Column(String(100), nullable=False)
     citizenid   = Column(String(12), nullable=False, unique=True)
     password    = Column(String(255), nullable=False)

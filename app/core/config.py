@@ -3,18 +3,20 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 import yaml
 from pathlib import Path
+from app.helpers.utils.logger import LOG_FILE_PATH
 
 load_dotenv()
 BASE_DIR = 'D:/capstone-project/app/prompts'
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'CAPSTONE-PROJECTD')
+    PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'DVC Agents - Hỗ trợ dịch vụ công')
     SECRET_KEY: str = os.getenv('SECRET_KEY', '')
     API_PREFIX: str = ''
     BACKEND_CORS_ORIGINS: list[str] = ['*']
     DATABASE_URL: str = os.getenv('SQL_DATABASE_URL', '')
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7
     SECURITY_ALGORITHM: str = 'HS256'
+    # LOGGING_CONFIG_FILE = LOG_FILE_PATH
 
 
 settings = Settings()
