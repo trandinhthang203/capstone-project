@@ -65,7 +65,7 @@ from app.models import Role, User, ChatSession, ChatMessage, Feedback
 
 Base.metadata.create_all(bind=engine)
 # ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-005"   # giữ nguyên để test memory xuyên suốt
+SESSION_ID = "test-session-006"   # giữ nguyên để test memory xuyên suốt
 USER_ID    = 2
 
 CONFIG = {
