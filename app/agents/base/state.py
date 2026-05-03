@@ -60,12 +60,15 @@ class AgentState(TypedDict):
     context: str  
 
     node_outputs: str  
-    events: Annotated[list[StreamEvent], operator.add]      
 
-    qa_output: Optional[QAOutput]
-    forms_output: Optional[FormsOutput]
-    location_output: Optional[LocationOutput]
+    pdf_url: str
+    pdf_local_path: str
+    filled_pdf_path: str
 
-    error: Optional[str]
-    location_result: Optional[str]
+    # qa_output: Optional[QAOutput]
+    # forms_output: Optional[FormsOutput]
+    # location_output: Optional[LocationOutput]
+
+    # error: Optional[str]
+    # location_result: Optional[str]
     final_response: Optional[str]
