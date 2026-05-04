@@ -1,173 +1,173 @@
-# import logging
+import logging
 
-# import uvicorn
-# from fastapi import FastAPI
-# from fastapi_sqlalchemy import DBSessionMiddleware
-# from starlette.middleware.cors import CORSMiddleware
+import uvicorn
+from fastapi import FastAPI
+from fastapi_sqlalchemy import DBSessionMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
-# from app.api.api_router import router
-# from app.db.base import Base
-# from app.db.session import engine
-# from app.core.config import settings
-# from app.helpers.utils.exception import CustomException
+from app.api.api_router import router
+from app.db.base import Base
+from app.db.session import engine
+from app.core.config import settings
+from app.helpers.utils.exception import CustomException
 
-# # logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
-# Base.metadata.create_all(bind=engine)
-
-
-# def get_application() -> FastAPI:
-#     application = FastAPI(
-#         title=settings.PROJECT_NAME, docs_url="/docs", redoc_url='/re-docs',
-#         openapi_url=f"{settings.API_PREFIX}/openapi.json",
-#         description='''
-#         Multi-agent system for supporting administrative procedures:
-#             - Intelligent routing and task handling
-#             - Q&A over legal knowledge (RAG)
-#             - Workflow guidance for procedures
-#         '''
-#     )
-#     application.add_middleware(
-#         CORSMiddleware,
-#         allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-#         allow_credentials=True,
-#         allow_methods=["*"],
-#         allow_headers=["*"],
-#     )
-#     application.add_middleware(DBSessionMiddleware, db_url=settings.DATABASE_URL)
-#     application.include_router(router, prefix=settings.API_PREFIX)
-#     # application.add_exception_handler(CustomException, http_exception_handler)
-
-#     return application
+# logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
+Base.metadata.create_all(bind=engine)
 
 
-# app = get_application()
-# if __name__ == '__main__':
-#     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+def get_application() -> FastAPI:
+    application = FastAPI(
+        title=settings.PROJECT_NAME, docs_url="/docs", redoc_url='/re-docs',
+        openapi_url=f"{settings.API_PREFIX}/openapi.json",
+        description='''
+        Multi-agent system for supporting administrative procedures:
+            - Intelligent routing and task handling
+            - Q&A over legal knowledge (RAG)
+            - Workflow guidance for procedures
+        '''
+    )
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    application.add_middleware(DBSessionMiddleware, db_url=settings.DATABASE_URL)
+    application.include_router(router, prefix=settings.API_PREFIX)
+    # application.add_exception_handler(CustomException, http_exception_handler)
+
+    return application
+
+
+app = get_application()
+if __name__ == '__main__':
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
 # main.py
 # test_terminal.py
 
-import os
-import sys
-import asyncio
+# import os
+# import sys
+# import asyncio
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT_DIR)
-from app.agents.base.utils import set_queue
-from app.agents.base.state import StreamEvent
-from dotenv import load_dotenv
-load_dotenv()
+# ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, ROOT_DIR)
+# from app.agents.base.utils import set_queue
+# from app.agents.base.state import StreamEvent
+# from dotenv import load_dotenv
+# load_dotenv()
 
-from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
-from app.agents.base.graph import create_workflow
-from app.db.base import Base
-from app.db.session import engine
-from app.models import Role, User, ChatSession, ChatMessage, Feedback
+# from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
+# from app.agents.base.graph import create_workflow
+# from app.db.base import Base
+# from app.db.session import engine
+# from app.models import Role, User, ChatSession, ChatMessage, Feedback
 
-Base.metadata.create_all(bind=engine)
-# ── Config cố định để test ──────────────────────────────────────────────────
-SESSION_ID = "test-session-006"   # giữ nguyên để test memory xuyên suốt
-USER_ID    = 2
+# Base.metadata.create_all(bind=engine)
+# # ── Config cố định để test ──────────────────────────────────────────────────
+# SESSION_ID = "test-session-006"   # giữ nguyên để test memory xuyên suốt
+# USER_ID    = 2
 
-CONFIG = {
-    "configurable": {
-        "thread_id": SESSION_ID,
-        "user_id":   USER_ID,
-    }
-}
-# ───────────────────────────────────────────────────────────────────────────
-
-
-# test_chat.py — sửa hàm chat
-async def chat(app, history: list, user_input: str) -> str:
-    history.append(HumanMessage(content=user_input))
-
-    queue = asyncio.Queue()
-    set_queue(queue)
-
-    print("\n\033[94mAssistant:\033[0m ", end="", flush=True)
-
-    full_response = ""
-
-    graph_task = asyncio.create_task(
-        app.ainvoke(
-            {
-                "messages": [HumanMessage(content=user_input)],
-                "user_id": USER_ID,
-                "user_input": user_input, 
-            },
-            CONFIG,
-        )
-    )
-
-    while not graph_task.done() or not queue.empty():
-        try:
-            event: StreamEvent = await asyncio.wait_for(queue.get(), timeout=0.05)
-        except asyncio.TimeoutError:
-            continue
-
-        if event.type == "progress":
-            print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
-
-        elif event.type == "result":
-            print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
-            if event.data and "answer" in event.data and event.data["answer"]:
-                full_response = event.data["answer"]
-
-        elif event.type == "error":
-            print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
-
-    result = await graph_task
-
-    if not full_response:
-        full_response = result.get("final_response", "") or ""
-
-    print()
-    history.append(AIMessage(content=full_response))
-    return full_response
+# CONFIG = {
+#     "configurable": {
+#         "thread_id": SESSION_ID,
+#         "user_id":   USER_ID,
+#     }
+# }
+# # ───────────────────────────────────────────────────────────────────────────
 
 
+# # test_chat.py — sửa hàm chat
+# async def chat(app, history: list, user_input: str) -> str:
+#     history.append(HumanMessage(content=user_input))
 
-async def main():
-    print("⏳ Đang khởi tạo workflow...")
-    app = await create_workflow()
-    print(f"✅ Sẵn sàng!  (session={SESSION_ID}, user={USER_ID})")
-    print("💡 Gõ 'quit' hoặc 'exit' để thoát | 'clear' để reset history local\n")
+#     queue = asyncio.Queue()
+#     set_queue(queue)
 
-    history: list = []
+#     print("\n\033[94mAssistant:\033[0m ", end="", flush=True)
 
-    while True:
-        try:
-            user_input = input("\033[92mBạn:\033[0m ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\n👋 Tạm biệt!")
-            break
+#     full_response = ""
 
-        if not user_input:
-            continue
+#     graph_task = asyncio.create_task(
+#         app.ainvoke(
+#             {
+#                 "messages": [HumanMessage(content=user_input)],
+#                 "user_id": USER_ID,
+#                 "user_input": user_input, 
+#             },
+#             CONFIG,
+#         )
+#     )
 
-        if user_input.lower() in {"quit", "exit"}:
-            print("👋 Tạm biệt!")
-            break
+#     while not graph_task.done() or not queue.empty():
+#         try:
+#             event: StreamEvent = await asyncio.wait_for(queue.get(), timeout=0.05)
+#         except asyncio.TimeoutError:
+#             continue
 
-        if user_input.lower() == "clear":
-            history.clear()
-            print("🗑️  Đã xoá history local (memory trên DB vẫn giữ nguyên)")
-            continue
+#         if event.type == "progress":
+#             print(f"\n\033[93m⏳ [{event.node}] {event.message}\033[0m", flush=True)
 
-        if user_input.lower() == "history":
-            if not history:
-                print("  (chưa có tin nhắn nào)")
-            for msg in history:
-                role = "Bạn" if isinstance(msg, HumanMessage) else "AI"
-                print(f"  [{role}] {msg.content[:120]}{'...' if len(msg.content) > 120 else ''}")
-            continue
+#         elif event.type == "result":
+#             print(f"\n\033[92m✅ [{event.node}] {event.message}\033[0m", flush=True)
+#             if event.data and "answer" in event.data and event.data["answer"]:
+#                 full_response = event.data["answer"]
 
-        try:
-            await chat(app, history, user_input)
-        except Exception as e:
-            print(f"\n❌ Lỗi: {e}")
+#         elif event.type == "error":
+#             print(f"\n\033[91m❌ [{event.node}] {event.message}\033[0m", flush=True)
+
+#     result = await graph_task
+
+#     if not full_response:
+#         full_response = result.get("final_response", "") or ""
+
+#     print()
+#     history.append(AIMessage(content=full_response))
+#     return full_response
 
 
-if __name__ == "__main__":
-    import selectors
-    asyncio.run(main(), loop_factory=lambda: asyncio.SelectorEventLoop(selectors.SelectSelector()))
+
+# async def main():
+#     print("⏳ Đang khởi tạo workflow...")
+#     app = await create_workflow()
+#     print(f"✅ Sẵn sàng!  (session={SESSION_ID}, user={USER_ID})")
+#     print("💡 Gõ 'quit' hoặc 'exit' để thoát | 'clear' để reset history local\n")
+
+#     history: list = []
+
+#     while True:
+#         try:
+#             user_input = input("\033[92mBạn:\033[0m ").strip()
+#         except (EOFError, KeyboardInterrupt):
+#             print("\n👋 Tạm biệt!")
+#             break
+
+#         if not user_input:
+#             continue
+
+#         if user_input.lower() in {"quit", "exit"}:
+#             print("👋 Tạm biệt!")
+#             break
+
+#         if user_input.lower() == "clear":
+#             history.clear()
+#             print("🗑️  Đã xoá history local (memory trên DB vẫn giữ nguyên)")
+#             continue
+
+#         if user_input.lower() == "history":
+#             if not history:
+#                 print("  (chưa có tin nhắn nào)")
+#             for msg in history:
+#                 role = "Bạn" if isinstance(msg, HumanMessage) else "AI"
+#                 print(f"  [{role}] {msg.content[:120]}{'...' if len(msg.content) > 120 else ''}")
+#             continue
+
+#         try:
+#             await chat(app, history, user_input)
+#         except Exception as e:
+#             print(f"\n❌ Lỗi: {e}")
+
+
+# if __name__ == "__main__":
+#     import selectors
+#     asyncio.run(main(), loop_factory=lambda: asyncio.SelectorEventLoop(selectors.SelectSelector()))
