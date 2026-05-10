@@ -68,6 +68,6 @@ jobs:
             SQL_DATABASE_URL=${{ secrets.SQL_DATABASE_URL }}
             IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
             EOF  
-            docker compose pull backend
-            docker compose up -d --remove-orphans
+            docker-compose pull backend
+            docker-compose up -d --remove-orphans
             docker image prune -f
