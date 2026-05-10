@@ -5,7 +5,7 @@ import yaml
 from pathlib import Path
 from app.helpers.utils.logger import LOG_FILE_PATH
 from pathlib import Path
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).parent.parent
 path = BASE_DIR / "prompts"
 
 load_dotenv()
