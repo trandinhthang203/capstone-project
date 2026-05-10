@@ -66,10 +66,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/app
-            cat > .env << EOF
-            SQL_DATABASE_URL=${{ secrets.SQL_DATABASE_URL }}
-            IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
-            EOF  
+            echo "SQL_DATABASE_URL=${{ secrets.SQL_DATABASE_URL }}" > .env
+            echo "IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}" >> .env
             docker-compose pull backend
             docker-compose up -d --remove-orphans
             docker image prune -f
