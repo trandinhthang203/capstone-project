@@ -55,6 +55,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.yml"
           target: "~/app"
+          # target: "/home/ubuntu/app"
+          # strip_components: 0
 
       - name: SSH vào EC2 và deploy
         uses: appleboy/ssh-action@v1.0.3
