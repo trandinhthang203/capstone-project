@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.chat_session import ChatSession
+from app.models.chat_message import ChatMessage
 from app.schemas.chat_session import ChatSessionCreate, ChatSessionResponse
+from app.schemas.chat_message import ChatMessageResponse
 from fastapi import Depends
 from app.db.session import get_db
 from uuid import UUID
@@ -27,8 +29,33 @@ class SessionService(object):
     # ─── READ ─────
 
     def get_sessions(self, user_id: int) -> list[ChatSessionResponse]:
-        sessions = self.db.query(ChatSession).filter(ChatSession.iduser == user_id).all()
+        sessions = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.iduser == user_id)
+            .order_by(ChatSession.createddate.desc())
+            .all()
+        )
         return sessions
+
+    def get_details_session(self, session_id: UUID, user_id: int) -> list[ChatMessageResponse]:
+        session = (
+            self.db.query(ChatSession)
+            .filter(
+                ChatSession.idchatsession == session_id,
+                ChatSession.iduser == user_id
+            )
+            .first()
+        )
+        if not session:
+            raise HTTPException(status_code=404, detail="Session không tồn tại hoặc không có quyền truy cập")
+
+        messages = (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.idchatsession == session_id)
+            .order_by(ChatMessage.sentat.asc())
+            .all()
+        )
+        return messages
 
 
     # ─── UPDATE ─────
