@@ -21,3 +21,14 @@ psycopg2-binary
 python-box
 langchain-groq
 langchain-google-genai
+langgraph-checkpoint-postgres
+PyYAML
+boto3
+pandas
+selenium
+requests
+pgvector
+langchain-huggingface
+langchain-community
+langchain-classic
+alembic
