@@ -33,7 +33,8 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     procedures = data.get("procedures", [])
 
     await emit(StreamEvent(
-        type="result", node="supervisor",
+        type="result", 
+        node="supervisor",
         message=f"Đã tìm thấy: {procedures}\n Các bước tiếp theo: {data.get("pipeline", ["qa"])}",
         data={"procedures": procedures}
     ))
