@@ -27,7 +27,8 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     procedure_ids = state["procedures"]
 
     await emit(StreamEvent(
-        type="progress", node="qa",
+        type="progress", 
+        node="qa",
         message="Đang tìm thông tin cho thủ tục..."
     ))
 
@@ -56,7 +57,8 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     context = format_context(rows, columns)
     
     await emit(StreamEvent(
-        type="progress", node="qa",
+        type="progress", 
+        node="qa",
         message="Đang tổng hợp câu trả lời..."
     ))
 
@@ -69,7 +71,8 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     # logging.info(f"[qa_node] Answer: {answer}")
 
     await emit(StreamEvent(
-        type="result", node="qa",
+        type="result", 
+        node="qa",
         message=f"Đã tìm thấy thông tin: {answer}",
         data={"answer": answer},
     ))

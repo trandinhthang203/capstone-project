@@ -18,7 +18,7 @@ services:
 
   backend:
     image: thangtd203/dvc-agents:${IMAGE_TAG:-latest}
-    container_name: procedures_backend
+    container_name: backend
     restart: unless-stopped
     env_file:
       - .env
