@@ -1,4 +1,5 @@
 ﻿langgraph
+langchain
 langchain-core
 langsmith
 pydantic
