@@ -18,3 +18,5 @@ pyjwt
 pydantic-settings
 psycopg2-binary
 python-box
+langchain-groq
+langchain-google-genai
