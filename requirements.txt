@@ -5,8 +5,7 @@ langsmith
 pydantic
 fastapi
 sqlalchemy
-psycopg[pool]
-psycopg-pool
+psycopg[binary,pool]
 python-dotenv
 httpx
 uvicorn
