@@ -9,7 +9,7 @@ from uuid import UUID
 
 router = APIRouter()
 
-@router.post("")
+@router.post("/new")
 def create(
     current_user = Depends(get_current_user),  
     service: SessionService = Depends()
@@ -26,6 +26,13 @@ def get_sessions(
 ):
     return service.get_sessions(current_user.iduser)
 
+@router.get("/{session_id}")
+async def get_details_session(
+    session_id: UUID,
+    current_user = Depends(get_current_user),  
+    service: SessionService = Depends() 
+):
+    return service.get_details_session(session_id, user_id=current_user.iduser)
 
 @router.delete("/{session_id}")
 def delete(

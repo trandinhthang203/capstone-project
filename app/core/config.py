@@ -4,9 +4,11 @@ from pydantic_settings import BaseSettings
 import yaml
 from pathlib import Path
 from app.helpers.utils.logger import LOG_FILE_PATH
+from pathlib import Path
+BASE_DIR = Path(__file__).parent.parent
+path = BASE_DIR / "prompts"
 
 load_dotenv()
-BASE_DIR = 'D:/capstone-project/app/prompts'
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'DVC Agents - Hỗ trợ dịch vụ công')
@@ -24,7 +26,7 @@ settings = Settings()
 # with open(BASE_DIR / 'system_prompts.yaml', 'r', encoding='utf-8') as file:
 #     system_prompt = yaml.safe_load(file)
 
-with open(os.path.join(BASE_DIR, 'supervisor_agent.yaml'), 'r', encoding='utf-8') as file:
+with open(os.path.join(path, 'supervisor_agent.yaml'), 'r', encoding='utf-8') as file:
     supervisor_prompt = yaml.safe_load(file)
 
 __all__ = ['settings', 'supervisor_prompt']
