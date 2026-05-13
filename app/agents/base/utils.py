@@ -19,6 +19,7 @@ async def emit(event: StreamEvent):
     q = get_queue()
     if q:
         await q.put(event)
+        
 def get_next_agent(pipeline: list[str], current_agent: str) -> str | list[str]:
     
     try:

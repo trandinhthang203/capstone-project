@@ -45,14 +45,13 @@ class MessageService(object):
         queue = asyncio.Queue()
         set_queue(queue)
 
+        state : AgentState = {
+            "messages": [HumanMessage(content=data.msgcontent)],
+            "user_input": data.msgcontent
+        }
+
         graph_task = asyncio.create_task(
-            self.app.ainvoke(
-                {
-                    "messages": [HumanMessage(content=data.msgcontent)],
-                    "user_input": data.msgcontent,
-                },
-                self.config,
-            )
+            self.app.ainvoke(state, self.config)
         )
 
         while not graph_task.done() or not queue.empty():
