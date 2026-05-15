@@ -14,10 +14,13 @@ from langchain_core.tools import tool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
+from app.helpers.utils.common import _llm
 
 # ─────────────────────────────────────────────────────────────
 # TOOL
 # ─────────────────────────────────────────────────────────────
+
+FONT_PATH = "E:/ttf/DejaVuSans.ttf"
 
 SYSTEM_PROMPT_SELECT = """Bạn là trợ lý phân tích danh sách mẫu đơn hành chính Việt Nam.
 
@@ -51,13 +54,13 @@ Trường hợp 2 – cần hỏi thêm:
 
 
 @tool
-def select_form_url(qa_answer: str, user_request: str) -> str:
+def select_form_url(qa_answer: str, user_input: str) -> str:
     """
     Phân tích câu trả lời từ QA node để chọn đúng PDF URL cần điền.
 
     Args:
         qa_answer:    Toàn bộ câu trả lời từ QA node (chứa các URL mẫu đơn).
-        user_request: Yêu cầu của người dùng, ví dụ "điền mẫu CC01"
+        user_input: Yêu cầu của người dùng, ví dụ "điền mẫu CC01"
                       hoặc "điền mẫu đề nghị cấp lại căn cước".
 
     Returns:
@@ -98,12 +101,12 @@ def select_form_url(qa_answer: str, user_request: str) -> str:
 
         # 3. Nhiều URL → nhờ LLM khớp với yêu cầu người dùng
         user_content = (
-            f"Yêu cầu người dùng: {user_request}\n\n"
+            f"Yêu cầu người dùng: {user_input}\n\n"
             f"Danh sách URL mẫu đơn:\n"
             + json.dumps(url_info, ensure_ascii=False, indent=2)
         )
 
-        response = llm.invoke([
+        response = _llm.invoke([
             SystemMessage(content=SYSTEM_PROMPT_SELECT),
             HumanMessage(content=user_content),
         ])
@@ -233,7 +236,7 @@ def extract_form_fields(pdf_path: str) -> str:
             + json.dumps(all_spans, ensure_ascii=False, indent=2)
         )
  
-        response = llm.invoke([
+        response = _llm.invoke([
             SystemMessage(content=SYSTEM_PROMPT_EXTRAC),
             HumanMessage(content=user_content),
         ])
@@ -342,11 +345,3 @@ def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
         }, ensure_ascii=False)
     except Exception as exc:
         return json.dumps({"success": False, "error": str(exc)})
-
-
-# ─────────────────────────────────────────────────────────────
-# LANGGRAPH: bind_tools + agent loop
-# ─────────────────────────────────────────────────────────────
-
-TOOLS = [load_pdf_from_url, extract_form_fields, fill_form_fields, preview_filled_form]
-llm_with_tools = llm.bind_tools(TOOLS)   # <-- đây mới là agent thực sự
