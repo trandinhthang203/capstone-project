@@ -131,13 +131,16 @@ def load_pdf_from_url(pdf_url: str) -> str:
     Trả về JSON: {success, pdf_path, filename, page_count, file_size_kb, message}
     """
     try:
-        parsed = urllib.parse.urlparse(pdf_url)
-        safe_path = urllib.parse.quote(parsed.path, safe="/")
-        safe_url = parsed._replace(path=safe_path).geturl()
+        # Decode trước để về Unicode thuần, rồi encode đúng 1 lần
+        # parsed = urllib.parse.urlparse(pdf_url)
+        # decoded_path = urllib.parse.unquote(parsed.path)        # decode về raw
+        # safe_path = urllib.parse.quote(decoded_path, safe="/")  # encode đúng 1 lần
+        # safe_url = parsed._replace(path=safe_path).geturl()
 
-        resp = requests.get(safe_url, headers={"User-Agent": "FormsAgent/1.0"}, timeout=30)
+        resp = requests.get(pdf_url, headers={"User-Agent": "FormsAgent/1.0"}, timeout=30)
         resp.raise_for_status()
 
+        parsed = urllib.parse.urlparse(pdf_url)
         raw_name = parsed.path.rstrip("/").split("/")[-1]
         filename = urllib.parse.unquote(raw_name)
         if not filename.lower().endswith(".pdf"):

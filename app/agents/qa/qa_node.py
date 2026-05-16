@@ -68,7 +68,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         pipeline=pipeline
     )
     answer = await get_response_llm(answer_prompt, messages)
-    # logging.info(f"[qa_node] Answer: {answer}")
+    logging.info(f"[qa_node] Next agent: {next_agent}")
 
     await emit(StreamEvent(
         type="result", 
