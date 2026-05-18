@@ -2,7 +2,7 @@ from app.agents.base.state import AgentState, SupervisorOutput, QAOutput, Stream
 from langgraph.types import Command
 from langgraph.graph import END
 from typing import Literal
-from app.agents.base.utils import get_next_agent, format_context, emit
+from app.agents.base.utils import get_next_agent, format_context, emit, extract_forms_url
 from app.helpers.utils.common import get_response_llm
 from app.core.config import supervisor_prompt
 from app.db.session import get_db
@@ -56,6 +56,10 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
 
     context = format_context(rows, columns)
     
+    pdf_urls: list[dict] = []
+    if "forms" in pipeline:
+        pdf_urls = extract_forms_url(rows, columns)
+    
     await emit(StreamEvent(
         type="progress", 
         node="qa",
@@ -82,5 +86,6 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         update={
             "final_response": answer,
             "messages": [AIMessage(content=answer)],
+            "pdf_urls" : pdf_urls
         }
     )

@@ -54,44 +54,36 @@ Trường hợp 2 – cần hỏi thêm:
 
 
 @tool
-def select_form_url(qa_answer: str, user_input: str) -> str:
+async def select_form_url(pdf_urls: list[dict], user_input: str) -> str:
     """
-    Phân tích câu trả lời từ QA node để chọn đúng PDF URL cần điền.
+    Chọn đúng PDF URL từ danh sách biểu mẫu đã được QA node trích xuất.
 
     Args:
-        qa_answer:    Toàn bộ câu trả lời từ QA node (chứa các URL mẫu đơn).
-        user_input: Yêu cầu của người dùng, ví dụ "điền mẫu CC01"
-                      hoặc "điền mẫu đề nghị cấp lại căn cước".
+        pdf_urls:   Danh sách dict với keys 'loai_giay_to' và 'mau_don_to_khai',
+                    ví dụ: [{"loai_giay_to": "Mẫu DC02...", "mau_don_to_khai": "https://...pdf"}]
+        user_input: Yêu cầu của người dùng, ví dụ "điền mẫu CC01".
 
     Returns:
-        JSON với một trong hai trường hợp:
-        - status="found"    → selected_url sẵn sàng truyền cho load_pdf_from_url
-        - status="ambiguous" → candidates + câu hỏi để hỏi lại người dùng
-        - status="not_found" → không tìm thấy URL nào
+        JSON với status "found" | "ambiguous" | "not_found"
     """
     try:
-        # 1. Trích xuất tất cả URL kết thúc bằng .pdf từ qa_answer
-        raw_urls: list[str] = re.findall(
-            r'https?://[^\s\)\]\>"\']+\.pdf',
-            qa_answer,
-            flags=re.IGNORECASE,
-        )
+        # 1. Lọc những mẫu có URL hợp lệ
+        url_info = [
+            {
+                "url": item["mau_don_to_khai"],
+                "filename_decoded": item["loai_giay_to"],
+            }
+            for item in pdf_urls
+            if item.get("mau_don_to_khai", "").strip()
+        ]
 
-        if not raw_urls:
+        if not url_info:
             return json.dumps({
                 "status": "not_found",
-                "message": "Không tìm thấy URL PDF nào trong câu trả lời của QA node.",
+                "message": "Không có biểu mẫu nào có URL PDF hợp lệ.",
             }, ensure_ascii=False)
 
-        # Giải mã tên file để LLM dễ hiểu hơn
-        url_info = []
-        for url in raw_urls:
-            parsed = urllib.parse.urlparse(url)
-            raw_name = parsed.path.rstrip("/").split("/")[-1]
-            filename = urllib.parse.unquote(raw_name).replace(".pdf", "")
-            url_info.append({"url": url, "filename_decoded": filename})
-
-        # 2. Nếu chỉ có 1 URL duy nhất → trả luôn không cần hỏi LLM
+        # 2. Chỉ 1 URL → trả luôn
         if len(url_info) == 1:
             return json.dumps({
                 "status": "found",
@@ -124,7 +116,7 @@ def select_form_url(qa_answer: str, user_input: str) -> str:
         }, ensure_ascii=False)
 
 @tool
-def load_pdf_from_url(pdf_url: str) -> str:
+async def load_pdf_from_url(pdf_url: str) -> str:
     """
     Tải file PDF từ URL về máy cục bộ.
     Hỗ trợ URL tên file tiếng Việt (raw Unicode hoặc percent-encoded).
@@ -200,7 +192,7 @@ Trả về JSON hợp lệ duy nhất, KHÔNG markdown, KHÔNG giải thích:
 # ─────────────────────────────────────────────────────────────
  
 @tool
-def extract_form_fields(pdf_path: str) -> str:
+async def extract_form_fields(pdf_path: str) -> str:
     """
     Trích xuất các trường cần điền và tọa độ từ PDF tĩnh tiếng Việt.
  
@@ -267,7 +259,7 @@ def extract_form_fields(pdf_path: str) -> str:
 # ─────────────────────────────────────────────────────────────
  
 @tool
-def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
+async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
     """
     Điền giá trị vào PDF.
 
@@ -324,7 +316,7 @@ def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PA
 # ─────────────────────────────────────────────────────────────
 
 @tool
-def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
+async def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
     """
     Render các trang của PDF thành ảnh PNG để người dùng kiểm tra trước khi nộp.
     Trả về JSON: {success, preview_paths, total_pages, message}

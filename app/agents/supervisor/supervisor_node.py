@@ -47,7 +47,7 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
         goto=data["pipeline"][0],
         update={
             "procedures": procedure_ids,
-            # "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
+            "messages": [AIMessage(content=json.dumps(data, ensure_ascii=False))],
             "pipeline": data.get("pipeline", ["qa"]),
             "fields": data.get("fields", [])
         },

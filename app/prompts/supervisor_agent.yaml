@@ -377,6 +377,7 @@ ANSWER_GENERATION: |
   - Mỗi thủ tục trình bày riêng biệt nếu có nhiều thủ tục
   - KHÔNG tóm tắt, cắt bớt, hay dùng placeholder như "[...]", "[bị cắt bớt]"
   - KHÔNG hiển thị URL thô dạng https://... trong văn bản
+  - QUAN TRỌNG: Đường link lấy từ context phải giữa y nguyên, không sửa đổi, encode,...
   - Mọi đường link PHẢI viết theo cú pháp Markdown: [tên hiển thị](url)
     + Link mẫu đơn: dùng tên giấy tờ làm tên hiển thị, ví dụ: [Mẫu CC01 - Phiếu thu nhận thông tin căn cước](https://...)
     + Link nguồn: dùng "Nguồn: Cổng dịch vụ công quốc gia" hoặc tên trang web làm tên hiển thị

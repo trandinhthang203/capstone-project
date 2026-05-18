@@ -61,7 +61,7 @@ class AgentState(TypedDict):
 
     node_outputs: str  
 
-    pdf_url: str
+    pdf_urls: list
     pdf_local_path: str
     filled_pdf_path: str
 
