@@ -44,31 +44,28 @@ class StreamEvent(BaseModel):
     data: Any = None               
     timestamp: datetime = datetime.now()     
 
-class AgentState(TypedDict):
+class AgentState(TypedDict, total=False):
     user_input: str
     messages: Annotated[list, add_messages]
     session_id: str
     user_id: str
     summary: str
 
-    procedures: list[str]  
-    resolved_procedures: list[ProcedureMatch]           
-    pipeline: list[str]    
-    fields: list[str]      
-    current_agent: str          
-    next_agent: str   
-    context: str  
-
-    node_outputs: str  
+    procedures: list[str]
+    resolved_procedures: list
+    pipeline: list[str]
+    fields: list[str]
+    current_agent: str
+    next_agent: str
+    context: str
+    node_outputs: str
 
     pdf_urls: list
     pdf_local_path: str
     filled_pdf_path: str
-
-    # qa_output: Optional[QAOutput]
-    # forms_output: Optional[FormsOutput]
-    # location_output: Optional[LocationOutput]
-
-    # error: Optional[str]
-    # location_result: Optional[str]
     final_response: Optional[str]
+
+    # NEW
+    extracted_form_fields: list[dict[str, Any]]
+    dynamic_form_payload: Optional[dict[str, Any]]
+    submitted_form_values: Optional[dict[str, Any]]

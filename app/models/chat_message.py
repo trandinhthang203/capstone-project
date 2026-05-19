@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, func, String
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -13,5 +13,7 @@ class ChatMessage(Base):
     isfromuser    = Column(Boolean, default=True)
     sentat        = Column(DateTime, server_default=func.now())
 
+    msgtype       = Column(String(30), nullable=False, default="text")
+    meta_data      = Column(JSONB, nullable=True)
     # Relationships
     chatsession = relationship("ChatSession", back_populates="chatmessages")
