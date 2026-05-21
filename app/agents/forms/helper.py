@@ -58,34 +58,3 @@ def _build_dynamic_form_payload(fields: list[dict], pdf_path: str | None) -> dic
             for f in fields
         ],
     }
-
-
-def _extract_forms_url(rows, columns) -> list[dict]:
-    """
-    Trích xuất thông tin biểu mẫu từ kết quả truy vấn.
-    Chỉ lấy các trường 'loai_giay_to' và 'mau_don_to_khai'.
-    Loại bỏ các dòng không có 'loai_giay_to'.
-    """
-    data = [dict(zip(columns, row)) for row in rows]
-    
-    forms = []
-    seen = set()
-    
-    for item in data:
-        loai_giay_to = item.get("loai_giay_to") or ""
-        mau_don_to_khai = item.get("mau_don_to_khai") or ""
-        
-        if not loai_giay_to:
-            continue
-        
-        # Dedup theo loai_giay_to
-        if loai_giay_to in seen:
-            continue
-        seen.add(loai_giay_to)
-        
-        forms.append({
-            "loai_giay_to": loai_giay_to,
-            "mau_don_to_khai": mau_don_to_khai,
-        })
-    
-    return forms

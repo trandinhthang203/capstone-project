@@ -171,7 +171,7 @@ class MessageService(object):
             return
 
         full_response = result.get("final_response", "") or "Hoàn tất xử lý biểu mẫu."
-        ai_msg = self._save_message(
+        self._save_message(
             session_id=data.idchatsession,
             content=full_response,
             isfromuser=False,

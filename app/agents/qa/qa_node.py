@@ -19,6 +19,9 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     current_agent = "qa"
     pipeline = state["pipeline"]
     next_agent = get_next_agent(pipeline, current_agent) 
+    next_agent = get_next_agent(pipeline, current_agent)
+    logging.info(f"[qa_node] pipeline: {pipeline}")
+    logging.info(f"[qa_node] next_agent repr: {repr(next_agent)}")  
 
     messages = state["messages"]
     user_input = state["user_input"]
