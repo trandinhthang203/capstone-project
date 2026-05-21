@@ -39,7 +39,8 @@ class SupervisorOutput:
 
 class StreamEvent(BaseModel):
     type: Literal["progress", "result", "error"]
-    node: str
+    # type: str = ""
+    node: str = ""
     message: str                   
     data: Any = None               
     timestamp: datetime = datetime.now()     

@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services.message_service import MessageService
-from app.schemas.chat_message import ChatMessageCreate, ChatMessageResponse
+from app.schemas.chat_message import ChatMessageCreate, ChatMessageResponse, DynamicFormSubmitRequest
 from app.helpers.utils.dependencies import get_current_user
 
 router = APIRouter()
@@ -32,5 +32,23 @@ async def create_message_stream(
         headers={
             "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",  
+        }
+    )
+
+@router.post("/forms/submit")
+async def submit_dynamic_form_stream(
+    data: DynamicFormSubmitRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    service = MessageService(db, current_user.iduser)
+    await service.initialize()
+
+    return StreamingResponse(
+        service.submit_dynamic_form_stream(data),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
         }
     )

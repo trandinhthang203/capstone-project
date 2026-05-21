@@ -13,6 +13,7 @@ class ChatMessage(Base):
     isfromuser    = Column(Boolean, default=True)
     sentat        = Column(DateTime, server_default=func.now())
 
+    #new
     msgtype       = Column(String(30), nullable=False, default="text")
     meta_data      = Column(JSONB, nullable=True)
     # Relationships
