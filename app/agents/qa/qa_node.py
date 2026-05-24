@@ -2,7 +2,7 @@ from app.agents.base.state import AgentState, SupervisorOutput, QAOutput, Stream
 from langgraph.types import Command
 from langgraph.graph import END
 from typing import Literal
-from app.agents.base.utils import get_next_agent, format_context, emit, extract_forms_url
+from app.agents.base.utils import get_next_agent, format_context, emit, extract_forms_url, _default_reply
 from app.helpers.utils.common import get_response_llm
 from app.core.config import supervisor_prompt
 from app.db.session import get_db
@@ -16,13 +16,30 @@ from langsmith import traceable
 
 @traceable
 async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__end__"]]:
+    intent = state.get("intent", "chitchat")
+
+    if intent in ("chitchat", "unclear"):
+        await emit(StreamEvent(
+            type="progress",
+            node="qa",
+            message="Đang xử lý câu hỏi..."
+        ))
+        
+        await emit(StreamEvent(
+            type="result", 
+            node="qa",
+            message=_default_reply(intent)
+        ))
+        
+        return Command(
+            goto=END,
+            update={"final_response": _default_reply(intent)},
+        )
+
+
     current_agent = "qa"
     pipeline = state["pipeline"]
     next_agent = get_next_agent(pipeline, current_agent) 
-    next_agent = get_next_agent(pipeline, current_agent)
-    logging.info(f"[qa_node] pipeline: {pipeline}")
-    logging.info(f"[qa_node] next_agent repr: {repr(next_agent)}")  
-
     messages = state["messages"]
     user_input = state["user_input"]
     logging.info(f"[qa_node] user_input: {user_input}")

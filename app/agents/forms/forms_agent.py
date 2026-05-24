@@ -1,23 +1,20 @@
 import json
-import uuid
-
 from langsmith import traceable
 from langgraph.types import interrupt
-from langchain_core.messages import SystemMessage, ToolMessage, AIMessage
+from langchain_core.messages import SystemMessage, AIMessage
 
 from app.agents.forms.forms_tools import (
     select_form_url,
     load_pdf_from_url,
     extract_form_fields,
-    fill_form_fields,
-    preview_filled_form,
+    fill_form_fields
 )
 from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import emit
 from app.helpers.utils.common import _llm
 from app.agents.forms.helper import _is_last_message_from_tool, _find_last_tool_payload, _build_dynamic_form_payload
 
-TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields, preview_filled_form]
+TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields]
 llm_with_tools = _llm.bind_tools(TOOLS)
 
 SYSTEM_PROMPT = """Bạn là Forms Agent – trợ lý điền mẫu đơn hành chính tự động.
@@ -29,8 +26,7 @@ SYSTEM_PROMPT = """Bạn là Forms Agent – trợ lý điền mẫu đơn hành
 4. Khi đã có danh sách field, KHÔNG hỏi người dùng bằng văn bản tự do.
    Hệ thống sẽ tạm dừng để UI hiển thị form động.
 5. Sau khi hệ thống nhận dữ liệu từ UI, tiếp tục điền form bằng `fill_form_fields`.
-6. Gọi `preview_filled_form`.
-7. Trả về kết quả hoàn tất.
+6. Trả về kết quả hoàn tất.
 """
 
 @traceable
@@ -79,27 +75,20 @@ async def forms_node(state: AgentState) -> dict:
             "field_values": field_values
         })
         filled_payload = json.loads(filled_raw)
+        pdf_url = filled_payload.get("pdf_url")
 
-        preview_raw = await preview_filled_form.ainvoke({
-            "pdf_path": filled_payload["output_path"]
-        })
-        preview_payload = json.loads(preview_raw)
-
-        await emit(StreamEvent(
-            type="result",
-            node="forms",
-            message="Đã điền xong biểu mẫu.",
-            data={
-                "filled_pdf": filled_payload,
-                "preview": preview_payload
-            }
-        ))
+        # await emit(StreamEvent(
+        #     type="result",
+        #     node="forms",
+        #     message="Đã điền xong biểu mẫu.",
+        #     data={"filled_pdf_url": pdf_url}
+        # ))
 
         return {
             "submitted_form_values": submitted_values,
-            "filled_pdf_path": filled_payload["output_path"],
+            "filled_pdf_url": pdf_url,
             "dynamic_form_payload": None,
-            "final_response": "Tôi đã điền xong biểu mẫu và tạo preview cho bạn.",
+            "final_response": f"Tôi đã điền xong biểu mẫu cho bạn.[Mẫu tại đây]{pdf_url})",
             "messages": [
                 AIMessage(content="Tôi đã nhận dữ liệu từ form động và hoàn tất việc điền biểu mẫu.")
             ],

@@ -1,21 +1,17 @@
 from langchain_core.tools import tool
 import json
-import re
 import tempfile
 import urllib.parse
 from pathlib import Path
-from typing import Annotated, TypedDict
 
 import fitz  # PyMuPDF
 import requests
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import tool
-from langgraph.graph import END, START, StateGraph
-from langgraph.graph.message import add_messages
-from langgraph.prebuilt import ToolNode
 from app.helpers.utils.common import _llm
+from scripts.process_forms import ProcessForms
 
+_process_forms = ProcessForms()
 # ─────────────────────────────────────────────────────────────
 # TOOL
 # ─────────────────────────────────────────────────────────────
@@ -174,7 +170,7 @@ Nhiệm vụ:
 2. Với mỗi trường, trả về tọa độ điền = (x1 của label + 2, y0 của label)
    tức là ngay sau phần label, để text điền không đè lên label.
  
-Trả về JSON hợp lệ duy nhất, KHÔNG markdown, KHÔNG giải thích:
+Trả về JSON hợp lệ duy nhất, KHÔNG markdown, KHÔNG giải thích, ví dụ:
 {
   "fields": [
     {
@@ -206,6 +202,10 @@ async def extract_form_fields(pdf_path: str) -> str:
        fields: [{field_id, label, x, y}]}
     """
     try:
+        try:
+            pdf_path = pdf_path.encode('latin-1').decode('unicode_escape').encode('latin-1').decode('utf-8')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            pass 
         doc = fitz.open(pdf_path)
         all_spans = []
  
@@ -258,6 +258,60 @@ async def extract_form_fields(pdf_path: str) -> str:
 # Tool điền PDF dùng field_positions từ extract_form_fields
 # ─────────────────────────────────────────────────────────────
  
+# @tool
+# async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
+#     """
+#     Điền giá trị vào PDF.
+
+#     Args:
+#         pdf_path:     Đường dẫn PDF gốc.
+#         field_values: {field_id: {"value": "...", "x": float, "y": float}}
+#                       – tọa độ lấy từ kết quả extract_form_fields.
+#         font_path:    Đường dẫn .ttf hỗ trợ tiếng Việt.
+#     """
+#     try:
+#         doc = fitz.open(pdf_path)
+#         page = doc[0]
+#         filled, not_found = [], []
+
+#         for field_id, info in field_values.items():
+#             value = info.get("value", "")
+#             x = info.get("x")
+#             y = info.get("y")
+
+#             if not value or x is None or y is None:
+#                 not_found.append(field_id)
+#                 continue
+
+#             insert_kwargs = dict(
+#                 point=fitz.Point(x, y + 10),
+#                 text=str(value),
+#                 fontsize=9,
+#                 color=(0, 0, 0),
+#             )
+#             if font_path:
+#                 insert_kwargs["fontfile"] = font_path
+#                 insert_kwargs["fontname"] = "DejaVu"
+
+#             page.insert_text(**insert_kwargs)
+#             filled.append(field_id)
+
+#         base = Path(pdf_path)
+#         output_path = str(base.parent / f"{base.stem}_filled.pdf")
+#         doc.save(output_path, deflate=True)
+#         doc.close()
+
+#         return json.dumps({
+#             "success": True,
+#             "output_path": output_path,
+#             "filled": filled,
+#             "not_found": not_found,
+#             "message": f"Đã điền {len(filled)} trường. Lưu tại: {output_path}",
+#         }, ensure_ascii=False)
+
+#     except Exception as exc:
+#         return json.dumps({"success": False, "error": str(exc)})
+
 @tool
 async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
     """
@@ -297,16 +351,20 @@ async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = F
             filled.append(field_id)
 
         base = Path(pdf_path)
-        output_path = str(base.parent / f"{base.stem}_filled.pdf")
+        output_path = f"/tmp/{base.stem}_filled.pdf"
         doc.save(output_path, deflate=True)
         doc.close()
 
+        pdf_url = _process_forms.gen_url_file(output_path)
+
+        Path(output_path).unlink(missing_ok=True)
+
         return json.dumps({
             "success": True,
-            "output_path": output_path,
+            "pdf_url": pdf_url,
             "filled": filled,
             "not_found": not_found,
-            "message": f"Đã điền {len(filled)} trường. Lưu tại: {output_path}",
+            "message": f"Đã điền {len(filled)} trường.",
         }, ensure_ascii=False)
 
     except Exception as exc:
@@ -315,28 +373,28 @@ async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = F
 # TOOL 4: Render preview PNG từng trang
 # ─────────────────────────────────────────────────────────────
 
-@tool
-async def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
-    """
-    Render các trang của PDF thành ảnh PNG để người dùng kiểm tra trước khi nộp.
-    Trả về JSON: {success, preview_paths, total_pages, message}
-    """
-    try:
-        doc = fitz.open(pdf_path)
-        out_dir = Path(pdf_path).parent / "previews"
-        out_dir.mkdir(exist_ok=True)
-        mat = fitz.Matrix(dpi / 72, dpi / 72)
-        paths = []
-        for i, page in enumerate(doc):
-            p = out_dir / f"page_{i+1:02d}.png"
-            page.get_pixmap(matrix=mat, alpha=False).save(str(p))
-            paths.append(str(p))
-        doc.close()
-        return json.dumps({
-            "success": True,
-            "preview_paths": paths,
-            "total_pages": len(paths),
-            "message": f"Preview {len(paths)} trang tại: {out_dir}",
-        }, ensure_ascii=False)
-    except Exception as exc:
-        return json.dumps({"success": False, "error": str(exc)})
+# @tool
+# async def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
+#     """
+#     Render các trang của PDF thành ảnh PNG để người dùng kiểm tra trước khi nộp.
+#     Trả về JSON: {success, preview_paths, total_pages, message}
+#     """
+#     try:
+#         doc = fitz.open(pdf_path)
+#         out_dir = Path(pdf_path).parent / "previews"
+#         out_dir.mkdir(exist_ok=True)
+#         mat = fitz.Matrix(dpi / 72, dpi / 72)
+#         paths = []
+#         for i, page in enumerate(doc):
+#             p = out_dir / f"page_{i+1:02d}.png"
+#             page.get_pixmap(matrix=mat, alpha=False).save(str(p))
+#             paths.append(str(p))
+#         doc.close()
+#         return json.dumps({
+#             "success": True,
+#             "preview_paths": paths,
+#             "total_pages": len(paths),
+#             "message": f"Preview {len(paths)} trang tại: {out_dir}",
+#         }, ensure_ascii=False)
+#     except Exception as exc:
+#         return json.dumps({"success": False, "error": str(exc)})

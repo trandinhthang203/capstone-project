@@ -1,7 +1,7 @@
 # graph.py
 from langgraph.graph import StateGraph, END
 from app.agents.base.state import AgentState
-from app.agents.supervisor.supervisor_node import supervisor_node
+from app.agents.supervisor.supervisor_node import supervisor_node, intent_node
 from app.agents.qa.qa_node import qa_node
 from app.agents.memory.checkpointer import get_checkpointer
 from app.agents.memory.store import get_store
@@ -21,6 +21,7 @@ async def create_workflow():
     store = await get_store()
 
     workflow = StateGraph(AgentState)
+    workflow.add_node("intent", intent_node)
     workflow.add_node("supervisor", supervisor_node)
     workflow.add_node("qa", qa_node)
     workflow.add_node("forms", forms_node)
@@ -28,7 +29,6 @@ async def create_workflow():
     workflow.add_node("location", location_node)
     workflow.add_conditional_edges("forms", should_continue, {"tools": "tools", END: END})
     workflow.add_edge("tools", "forms")
-    workflow.set_entry_point("supervisor")
-    workflow.add_edge("qa", END)
+    workflow.set_entry_point("intent")
 
     return workflow.compile(checkpointer=checkpointer, store=store)

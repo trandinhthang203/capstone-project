@@ -52,6 +52,10 @@ class AgentState(TypedDict, total=False):
     user_id: str
     summary: str
 
+    intent: str         
+    domain: str     
+    intent_confidence: float
+
     procedures: list[str]
     resolved_procedures: list
     pipeline: list[str]

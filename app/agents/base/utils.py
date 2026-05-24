@@ -72,3 +72,14 @@ def extract_forms_url(rows, columns) -> list[dict]:
         })
     
     return forms
+
+def _default_reply(intent: str) -> str:
+    if intent == "unclear":
+        return (
+            "Tôi chưa hiểu rõ câu hỏi của bạn. "
+            "Bạn có thể mô tả cụ thể hơn về thủ tục hoặc giấy tờ bạn cần hỗ trợ không?"
+        )
+    return (
+        "Xin chào! Tôi chuyên hỗ trợ các thủ tục hành chính. "
+        "Bạn cần tư vấn về lĩnh vực nào?"
+    )

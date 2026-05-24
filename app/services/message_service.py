@@ -105,14 +105,14 @@ class MessageService(object):
 
         interrupt_payload = self._extract_interrupt_payload(result)
         if interrupt_payload:
-            self._save_message(
-                session_id=data.idchatsession,
-                content="Vui lòng điền thông tin để tiếp tục.",
-                isfromuser=False,
-                msgtype="dynamic_form",
-                metadata=interrupt_payload
-            )
-            self._set_session_status(data.idchatsession, "WAITING_FORM_INPUT")
+            # self._save_message(
+            #     session_id=data.idchatsession,
+            #     content="Vui lòng điền thông tin để tiếp tục.",
+            #     isfromuser=False,
+            #     msgtype="dynamic_form",
+            #     metadata=interrupt_payload
+            # )
+            # self._set_session_status(data.idchatsession, "WAITING_FORM_INPUT")
 
             yield f"data: {json.dumps({'type': 'progress', 'data': interrupt_payload}, ensure_ascii=False)}\n\n"
             return
@@ -131,16 +131,16 @@ class MessageService(object):
 
 
     async def submit_dynamic_form_stream(self, data: DynamicFormSubmitRequest):
-        self._save_message(
-            session_id=data.idchatsession,
-            content="Người dùng đã gửi dữ liệu form.",
-            isfromuser=True,
-            msgtype="dynamic_form_submission",
-            metadata={
-                "request_id": data.request_id,
-                "values": data.values
-            }
-        )
+        # self._save_message(
+        #     session_id=data.idchatsession,
+        #     content="Người dùng đã gửi dữ liệu form.",
+        #     isfromuser=True,
+        #     msgtype="dynamic_form_submission",
+        #     metadata={
+        #         "request_id": data.request_id,
+        #         "values": data.values
+        #     }
+        # )
         self._set_session_status(data.idchatsession, "RUNNING")
         self._build_config(data.idchatsession)
 
@@ -169,14 +169,18 @@ class MessageService(object):
 
             yield f"data: {json.dumps({'type': 'progress', 'data': interrupt_payload}, ensure_ascii=False)}\n\n"
             return
-
+        
+        filled_pdf_url = result.get("filled_pdf_url")
         full_response = result.get("final_response", "") or "Hoàn tất xử lý biểu mẫu."
         self._save_message(
             session_id=data.idchatsession,
             content=full_response,
             isfromuser=False,
-            msgtype="text"
+            msgtype="text",
+            metadata={"filled_pdf_url": filled_pdf_url} if filled_pdf_url else None
         )
         self._set_session_status(data.idchatsession, "DONE")
 
-        yield f"data: {json.dumps({'type': 'result', 'message': full_response}, ensure_ascii=False)}\n\n"
+        # yield f"data: {json.dumps({'type': 'result', 'message': full_response, 'data': filled_pdf_url}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'type': 'result', 'node': 'forms', 'message': full_response}, ensure_ascii=False)}\n\n"
+
