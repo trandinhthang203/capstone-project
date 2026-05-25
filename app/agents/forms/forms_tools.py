@@ -252,65 +252,6 @@ async def extract_form_fields(pdf_path: str) -> str:
     except Exception as exc:
         import traceback
         return json.dumps({"success": False, "error": str(exc), "traceback": traceback.format_exc()})
- 
- 
-# ─────────────────────────────────────────────────────────────
-# Tool điền PDF dùng field_positions từ extract_form_fields
-# ─────────────────────────────────────────────────────────────
- 
-# @tool
-# async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
-#     """
-#     Điền giá trị vào PDF.
-
-#     Args:
-#         pdf_path:     Đường dẫn PDF gốc.
-#         field_values: {field_id: {"value": "...", "x": float, "y": float}}
-#                       – tọa độ lấy từ kết quả extract_form_fields.
-#         font_path:    Đường dẫn .ttf hỗ trợ tiếng Việt.
-#     """
-#     try:
-#         doc = fitz.open(pdf_path)
-#         page = doc[0]
-#         filled, not_found = [], []
-
-#         for field_id, info in field_values.items():
-#             value = info.get("value", "")
-#             x = info.get("x")
-#             y = info.get("y")
-
-#             if not value or x is None or y is None:
-#                 not_found.append(field_id)
-#                 continue
-
-#             insert_kwargs = dict(
-#                 point=fitz.Point(x, y + 10),
-#                 text=str(value),
-#                 fontsize=9,
-#                 color=(0, 0, 0),
-#             )
-#             if font_path:
-#                 insert_kwargs["fontfile"] = font_path
-#                 insert_kwargs["fontname"] = "DejaVu"
-
-#             page.insert_text(**insert_kwargs)
-#             filled.append(field_id)
-
-#         base = Path(pdf_path)
-#         output_path = str(base.parent / f"{base.stem}_filled.pdf")
-#         doc.save(output_path, deflate=True)
-#         doc.close()
-
-#         return json.dumps({
-#             "success": True,
-#             "output_path": output_path,
-#             "filled": filled,
-#             "not_found": not_found,
-#             "message": f"Đã điền {len(filled)} trường. Lưu tại: {output_path}",
-#         }, ensure_ascii=False)
-
-#     except Exception as exc:
-#         return json.dumps({"success": False, "error": str(exc)})
 
 @tool
 async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:

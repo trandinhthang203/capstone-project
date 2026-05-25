@@ -77,13 +77,6 @@ async def forms_node(state: AgentState) -> dict:
         filled_payload = json.loads(filled_raw)
         pdf_url = filled_payload.get("pdf_url")
 
-        # await emit(StreamEvent(
-        #     type="result",
-        #     node="forms",
-        #     message="Đã điền xong biểu mẫu.",
-        #     data={"filled_pdf_url": pdf_url}
-        # ))
-
         return {
             "submitted_form_values": submitted_values,
             "filled_pdf_url": pdf_url,

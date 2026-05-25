@@ -105,15 +105,6 @@ class MessageService(object):
 
         interrupt_payload = self._extract_interrupt_payload(result)
         if interrupt_payload:
-            # self._save_message(
-            #     session_id=data.idchatsession,
-            #     content="Vui lòng điền thông tin để tiếp tục.",
-            #     isfromuser=False,
-            #     msgtype="dynamic_form",
-            #     metadata=interrupt_payload
-            # )
-            # self._set_session_status(data.idchatsession, "WAITING_FORM_INPUT")
-
             yield f"data: {json.dumps({'type': 'progress', 'data': interrupt_payload}, ensure_ascii=False)}\n\n"
             return
 
@@ -131,16 +122,6 @@ class MessageService(object):
 
 
     async def submit_dynamic_form_stream(self, data: DynamicFormSubmitRequest):
-        # self._save_message(
-        #     session_id=data.idchatsession,
-        #     content="Người dùng đã gửi dữ liệu form.",
-        #     isfromuser=True,
-        #     msgtype="dynamic_form_submission",
-        #     metadata={
-        #         "request_id": data.request_id,
-        #         "values": data.values
-        #     }
-        # )
         self._set_session_status(data.idchatsession, "RUNNING")
         self._build_config(data.idchatsession)
 

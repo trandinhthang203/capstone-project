@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -10,6 +10,7 @@ router = APIRouter()
 
 @router.post("/", response_model=ChatMessageResponse)
 async def create_message(
+    request: Request,
     data: ChatMessageCreate,
     db: Session = Depends(get_db)
 ):
@@ -19,12 +20,13 @@ async def create_message(
 
 @router.post("/stream")
 async def create_message_stream(
+    request: Request,
     data: ChatMessageCreate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     service = MessageService(db, current_user.iduser)
-    await service.initialize()
+    service.app = request.app.state.workflow
 
     return StreamingResponse(
         service.create_message_stream(data),
@@ -37,12 +39,13 @@ async def create_message_stream(
 
 @router.post("/forms/submit")
 async def submit_dynamic_form_stream(
+    request: Request,
     data: DynamicFormSubmitRequest,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     service = MessageService(db, current_user.iduser)
-    await service.initialize()
+    service.app = request.app.state.workflow
 
     return StreamingResponse(
         service.submit_dynamic_form_stream(data),

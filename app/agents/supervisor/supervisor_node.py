@@ -18,7 +18,7 @@ from app.agents.supervisor.helper import _parse_intent_response, _validate_domai
 async def intent_node(
     state: AgentState,
 ) -> Command[Literal["supervisor", "qa"]]:
-
+    messages = state["messages"]
     user_input = state["user_input"]
 
     await emit(StreamEvent(
@@ -28,7 +28,7 @@ async def intent_node(
     ))
 
     prompt = supervisor_prompt["INTENT_PROMPT"].format(query=user_input)
-    raw = await get_response_llm(prompt, []) 
+    raw = await get_response_llm(prompt, messages) 
     data = _parse_intent_response(raw)
 
     intent: str = data.get("intent", "unclear")
@@ -103,7 +103,7 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     await emit(StreamEvent(
         type="result",
         node="supervisor",
-        message=f"Đã tìm thấy: {procedures}\nCác bước tiếp theo: {data.get('pipeline', ['qa'])}",
+        message=f"Đã tìm thấy: {', '.join(procedures)}",
         data={"procedures": procedures}
     ))
 
