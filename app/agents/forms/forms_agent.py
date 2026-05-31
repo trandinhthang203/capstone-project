@@ -81,7 +81,7 @@ async def forms_node(state: AgentState) -> dict:
             "submitted_form_values": submitted_values,
             "filled_pdf_url": pdf_url,
             "dynamic_form_payload": None,
-            "final_response": f"Tôi đã điền xong biểu mẫu cho bạn.[Mẫu tại đây]{pdf_url})",
+            "final_response": f"Tôi đã điền xong biểu mẫu cho bạn. [Mẫu tại đây]({pdf_url})",
             "messages": [
                 AIMessage(content="Tôi đã nhận dữ liệu từ form động và hoàn tất việc điền biểu mẫu.")
             ],

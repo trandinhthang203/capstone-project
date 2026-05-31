@@ -56,5 +56,3 @@ async def submit_dynamic_form_stream(
         }
     )
 
-
-# Tôi đang dùng React.
