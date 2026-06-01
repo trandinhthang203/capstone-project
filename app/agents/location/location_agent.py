@@ -76,6 +76,8 @@ def build_user_prompt(qa_answer: str, user_profile: dict) -> str:
 Thông tin người dùng:
 - Địa chỉ: {user_profile.get("address", "")}
 - Tỉnh/thành: {user_profile.get("province", "")}
+- Quận: {user_profile.get("district", "")}
+- Đường: {user_profile.get("ward", "")}
 
 Hãy tìm địa điểm thực hiện thủ tục và tính đường đi cho người dùng."""
 
@@ -118,11 +120,11 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     current_agent = "location"
     next_agent = get_next_agent(state["pipeline"], current_agent)
 
-    qa_answer    = state["final_response"]   # output từ qa_node
+    qa_answer    = state["final_response"]   
+    user_id    = state["user_id"]  
+    logging.info(f"[location_agent] User id: {user_id}")
 
-    with next(get_db()) as db:
-        user_profile = UserService.get_profile_for_chatbot(2)
-
+    user_profile = UserService.get_profile_for_chatbot(user_id)
     logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
     await emit(StreamEvent(

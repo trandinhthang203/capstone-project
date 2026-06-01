@@ -93,7 +93,8 @@ class MessageService(object):
 
         state : AgentState = {
             "messages": [HumanMessage(content=data.msgcontent)],
-            "user_input": data.msgcontent
+            "user_input": data.msgcontent,
+            "user_id": self.user_id
         }
 
         graph_task = asyncio.create_task(self.app.ainvoke(state, self.config))
