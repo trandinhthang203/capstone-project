@@ -124,7 +124,12 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     user_id    = state["user_id"]  
     logging.info(f"[location_agent] User id: {user_id}")
 
-    user_profile = UserService.get_profile_for_chatbot(user_id)
+
+    with next(get_db()) as db:
+        user_service = UserService(db)
+        user_profile = user_service.get_profile_for_chatbot(user_id)
+
+
     logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
     await emit(StreamEvent(
