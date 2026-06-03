@@ -31,14 +31,14 @@
         "1. Đối với nhà giáo đang hưởng lương hưu": [
             {
                 "Tên giấy tờ": "Bản chính Tờ khai đề nghị hưởng trợ cấp",
-                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\huu_tri\\mau_01_ND_14.pdf",
+                "Mẫu đơn, tờ khai": "https://proceduces-forms.s3.ap-southeast-2.amazonaws.com/mau_01_ND_14.pdf",
                 "Số lượng": "Bản chính: 1Bản sao: 0"
             }
         ],
         "2. Đối với nhà giáo đủ điều kiện hưởng trợ cấp, chưa được giải quyết chế độ mà từ trần từ ngày 01 tháng 01 năm 2012 trở về sau, hồ sơ bao gồm": [
             {
                 "Tên giấy tờ": "a) Bản chính Tờ khai đề nghị hưởng trợ cấp của thân nhân",
-                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\huu_tri\\Mẫu số 02 _ NĐ 14.pdf",
+                "Mẫu đơn, tờ khai": "https://proceduces-forms.s3.ap-southeast-2.amazonaws.com/Mẫusố02_NĐ14.pdf",
                 "Số lượng": "Bản chính: 1Bản sao: 0"
             },
             {
@@ -48,7 +48,7 @@
             },
             {
                 "Tên giấy tờ": "c) Bản chính Văn bản ủy quyền (mẫu số 03) (trường hợp chỉ có một thân nhân thì không cần văn bản ủy quyền này).",
-                "Mẫu đơn, tờ khai": "D:\\capstone-project\\forms\\huu_tri\\Mẫu số 03 _ NĐ 14.pdf",
+                "Mẫu đơn, tờ khai": "https://proceduces-forms.s3.ap-southeast-2.amazonaws.com/Mẫusố03_NĐ14.pdf",
                 "Số lượng": "Bản chính: 1Bản sao: 0"
             }
         ]
