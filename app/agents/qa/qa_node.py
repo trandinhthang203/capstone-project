@@ -97,7 +97,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     await emit(StreamEvent(
         type="result", 
         node="qa",
-        message=f"Đã tìm thấy thông tin: {answer}",
+        message= answer,
         data={"answer": answer},
     ))
 

@@ -7,52 +7,6 @@ GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 _http_client = httpx.AsyncClient(timeout=10.0)
 
 
-# @tool
-# async def search_agency_place(query: str) -> dict:
-#     """
-#     Tìm địa điểm cơ quan nhà nước trên Google Maps theo tên + tỉnh/thành hoặc xã phường.
-#     Trả về: name, address, lat, lng, place_id.
-#     Dùng khi cần tìm địa chỉ thực tế của cơ quan thực hiện thủ tục.
-
-#     Args:
-#         query: Tên cơ quan kèm tỉnh/thành hoặc xã phường, ví dụ:
-#                "Phòng cảnh sát quản lý hành chính trật tự xã hội Đà Nẵng"
-#     """
-#     resp = await _http_client.post(
-#         "https://places.googleapis.com/v1/places:searchText",
-#         headers={
-#             "Content-Type": "application/json",
-#             "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
-#             "X-Goog-FieldMask": (
-#                 "places.displayName,"
-#                 "places.formattedAddress,"
-#                 "places.location,"
-#                 "places.id"
-#             ),
-#         },
-#         json={
-#             "textQuery": query,
-#             "languageCode": "vi",
-#             "regionCode": "VN",
-#         },
-#     )
-#     data = resp.json()
-#     places = data.get("places", [])
-
-#     if not places:
-#         logging.warning(f"[search_agency_place] No result for query='{query}': {data}")
-#         return {"error": f"Không tìm thấy địa điểm cho: {query}"}
-
-#     place = places[0]
-#     return {
-#         "name": place["displayName"]["text"],
-#         "address": place["formattedAddress"],
-#         "lat": place["location"]["latitude"],
-#         "lng": place["location"]["longitude"],
-#         "place_id": place.get("id", ""),
-#     }
-
-
 @tool
 async def search_agency_place(query: str) -> dict:
     """
@@ -64,30 +18,77 @@ async def search_agency_place(query: str) -> dict:
         query: Tên cơ quan kèm tỉnh/thành hoặc xã phường, ví dụ:
                "Phòng cảnh sát quản lý hành chính trật tự xã hội Đà Nẵng"
     """
-    resp = await _http_client.get(
-        "https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
-        params={
-            "input": query,
-            "inputtype": "textquery",
-            "fields": "name,formatted_address,geometry,place_id",
-            "language": "vi",
-            "key": GOOGLE_MAPS_API_KEY,
+    resp = await _http_client.post(
+        "https://places.googleapis.com/v1/places:searchText",
+        headers={
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+            "X-Goog-FieldMask": (
+                "places.displayName,"
+                "places.formattedAddress,"
+                "places.location,"
+                "places.id"
+            ),
+        },
+        json={
+            "textQuery": query,
+            "languageCode": "vi",
+            "regionCode": "VN",
         },
     )
     data = resp.json()
+    places = data.get("places", [])
 
-    if data.get("status") != "OK":
+    if not places:
         logging.warning(f"[search_agency_place] No result for query='{query}': {data}")
         return {"error": f"Không tìm thấy địa điểm cho: {query}"}
 
-    place = data["candidates"][0]
+    place = places[0]
     return {
-        "name": place["name"],
-        "address": place["formatted_address"],
-        "lat": place["geometry"]["location"]["lat"],
-        "lng": place["geometry"]["location"]["lng"],
-        "place_id": place.get("place_id", ""),
+        "name": place["displayName"]["text"],
+        "address": place["formattedAddress"],
+        "lat": place["location"]["latitude"],
+        "lng": place["location"]["longitude"],
+        "place_id": place.get("id", ""),
     }
+
+
+# @tool
+# async def search_agency_place(query: str) -> dict:
+#     """
+#     Tìm địa điểm cơ quan nhà nước trên Google Maps theo tên + tỉnh/thành hoặc xã phường.
+#     Trả về: name, address, lat, lng, place_id.
+#     Dùng khi cần tìm địa chỉ thực tế của cơ quan thực hiện thủ tục.
+
+#     Args:
+#         query: Tên cơ quan kèm tỉnh/thành hoặc xã phường, ví dụ:
+#                "Phòng cảnh sát quản lý hành chính trật tự xã hội Đà Nẵng"
+#     """
+#     resp = await _http_client.get(
+#         "https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+#         params={
+#             "input": query,
+#             "inputtype": "textquery",
+#             "fields": "name,formatted_address,geometry,place_id",
+#             "language": "vi",
+#             "key": GOOGLE_MAPS_API_KEY,
+#         },
+#     )
+#     data = resp.json()
+
+#     if data.get("status") != "OK":
+#         logging.warning(f"[search_agency_place] No result for query='{query}': {data}")
+#         return {"error": f"Không tìm thấy địa điểm cho: {query}"}
+
+#     place = data["candidates"][0]
+#     return {
+#         "name": place["name"],
+#         "address": place["formatted_address"],
+#         "lat": place["geometry"]["location"]["lat"],
+#         "lng": place["geometry"]["location"]["lng"],
+#         "place_id": place.get("place_id", ""),
+#     }
+
 
 @tool
 async def geocode_user_address(address: str) -> dict:
