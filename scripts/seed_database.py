@@ -6,34 +6,46 @@ from scripts.models.basis import Can_Cu_Phap_Ly
 from scripts.models.method import Cach_Thuc_Thuc_Hien
 import os
 from app.helpers.utils.common import read_yaml, read_json
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from datetime import datetime
+
+def parse_date(date_str):
+    if not date_str:
+        return None
+    for fmt in ("%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 class Seed_Database:
     def __init__(self, db: Session):
         self.db = db
         self.config = read_yaml()
 
-    def _build_procedures(self, procedure: dict) -> Thu_Tuc:
-        return Thu_Tuc(
-            ma_thu_tuc=procedure["Mã thủ tục:"],
-            link_tham_khao=procedure["reference"],
-            ten_thu_tuc=procedure["Tên thủ tục:"],
-            cap_thuc_hien=procedure["Cấp thực hiện:"],
-            so_quyet_dinh=procedure["Số quyết định:"],
-            loai_thu_tuc=procedure["Loại thủ tục:"],
-            linh_vuc=procedure["Lĩnh vực:"],
-            trinh_tu_thuc_hien=procedure["Trình tự thực hiện:"],
-            doi_tuong_thuc_hien=procedure["Đối tượng thực hiện:"],
-            co_quan_thuc_hien=procedure["Cơ quan thực hiện:"],
-            co_quan_co_tham_quyen=procedure["Cơ quan có thẩm quyền:"],
-            dia_chi_tiep_nhan_hs=procedure["Địa chỉ tiếp nhận HS:"],
-            co_quan_duoc_uy_quyen=procedure["Cơ quan được ủy quyền:"],
-            co_quan_phoi_hop=procedure["Cơ quan phối hợp:"],
-            ket_qua_thuc_hien=procedure["Kết quả thực hiện:"],
-            yeu_cau_dieu_kien=procedure["Yêu cầu, điều kiện thực hiện:"],
-            tu_khoa=procedure["Từ khóa:"],
-            mo_ta=procedure["Mô tả:"],
-        )
+    def _build_procedures(self, procedure: dict) -> dict:
+        return {
+            "ma_thu_tuc":               procedure["Mã thủ tục:"],
+            "link_tham_khao":           procedure["reference"],
+            "ten_thu_tuc":              procedure["Tên thủ tục:"],
+            "cap_thuc_hien":            procedure["Cấp thực hiện:"],
+            "so_quyet_dinh":            procedure["Số quyết định:"],
+            "loai_thu_tuc":             procedure["Loại thủ tục:"],
+            "linh_vuc":                 procedure["Lĩnh vực:"],
+            "trinh_tu_thuc_hien":       procedure["Trình tự thực hiện:"],
+            "doi_tuong_thuc_hien":      procedure["Đối tượng thực hiện:"],
+            "co_quan_thuc_hien":        procedure["Cơ quan thực hiện:"],
+            "co_quan_co_tham_quyen":    procedure["Cơ quan có thẩm quyền:"],
+            "dia_chi_tiep_nhan_hs":     procedure["Địa chỉ tiếp nhận HS:"],
+            "co_quan_duoc_uy_quyen":    procedure["Cơ quan được ủy quyền:"],
+            "co_quan_phoi_hop":         procedure["Cơ quan phối hợp:"],
+            "ket_qua_thuc_hien":        procedure["Kết quả thực hiện:"],
+            "yeu_cau_dieu_kien":        procedure["Yêu cầu, điều kiện thực hiện:"],
+            "tu_khoa":                  procedure["Từ khóa:"],
+            "mo_ta":                    procedure["Mô tả:"],
+        }
 
     def _build_methods(self, procedure: dict) -> list[Cach_Thuc_Thuc_Hien]:
         ma = procedure["Mã thủ tục:"]
@@ -68,7 +80,7 @@ class Seed_Database:
             Can_Cu_Phap_Ly(
                 so_ky_hieu=b["Số ký hiệu"],
                 trich_yeu=b["Trích yếu"],
-                ngay_ban_hanh=b["Ngày ban hành"],
+                ngay_ban_hanh=parse_date(b["Ngày ban hành"]) ,
                 co_quan_ban_hanh=b["Cơ quan ban hành"],
                 ma_thu_tuc=ma,
             )
@@ -77,7 +89,7 @@ class Seed_Database:
 
     def import_data(self):
         base_dir = self.config.process_forms.proceduces_processed
-        files = [f for f in os.listdir("data/processed") if f.endswith(".json")]
+        files = [f for f in os.listdir("data/processed/viec_lam") if f.endswith(".json")]
 
         for filename in files:
             print(filename)
@@ -85,14 +97,27 @@ class Seed_Database:
             ma = procedure["Mã thủ tục:"]
 
             try:
-                self.db.add(self._build_procedures(procedure))
+                # Upsert thu_tuc
+                thu_tuc_data = self._build_procedures(procedure)
+                stmt = pg_insert(Thu_Tuc).values(**thu_tuc_data)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["ma_thu_tuc"],
+                    set_={k: v for k, v in thu_tuc_data.items() if k != "ma_thu_tuc"}
+                )
+                self.db.execute(stmt)
+
+                # Xóa các bản ghi con cũ (vì cascade delete không tự chạy với upsert)
+                self.db.query(Cach_Thuc_Thuc_Hien).filter_by(ma_thu_tuc=ma).delete()
+                self.db.query(Thanh_Phan_Ho_So).filter_by(ma_thu_tuc=ma).delete()
+                self.db.query(Can_Cu_Phap_Ly).filter_by(ma_thu_tuc=ma).delete()
+
+                # Thêm lại bản ghi con mới
                 self.db.add_all(self._build_methods(procedure))
                 self.db.add_all(self._build_components(procedure))
                 self.db.add_all(self._build_basis(procedure))
 
                 self.db.commit()
-                print(f"Đã thêm thủ tục: {ma}")
-
+                print(f"Đã thêm/cập nhật thủ tục: {ma}")
 
             except Exception as e:
                 self.db.rollback()
