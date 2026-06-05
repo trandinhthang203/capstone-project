@@ -32,9 +32,12 @@ from pathlib import Path
 #     write_in_json(tts, "thu_tuc.json")
 
 
+import re
+
 def _parse_intent_response(raw: str) -> dict:
     try:
-        return json.loads(raw)
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        return json.loads(cleaned)
     except json.JSONDecodeError:
         logging.warning(f"[intent_node] JSON parse failed: {raw!r}")
         return {

@@ -2,24 +2,29 @@ import yaml
 from box import ConfigBox
 import os
 import json
-# from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from langchain.messages import HumanMessage, SystemMessage, AnyMessage
 import asyncio
 
+
 load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"D:\capstone-project\location-498221-9b453abda182.json"
 # GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-_llm = ChatGroq(
-    api_key=GROQ_API_KEY,
-    model="openai/gpt-oss-120b",
-    temperature=0,
+
+_llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    project="location-498221",
+    location="us-central1", 
+    temperature=0, 
     max_tokens=None,
     timeout=None,
     max_retries=5,
 )
+
+# print(model.invoke("kể 1 câu chuyện hài"))
 
 async def get_response_llm(prompt: str, messages: list[AnyMessage]) -> str:
     response = await asyncio.to_thread(

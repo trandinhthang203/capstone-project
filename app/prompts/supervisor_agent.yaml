@@ -13,12 +13,12 @@ INTENT_PROMPT: |
   - "chitchat" : chào hỏi, hỏi thăm, câu hỏi không liên quan đến thủ tục hành chính
   - "unclear"  : quá ngắn, mơ hồ, không đủ ngữ cảnh để phân loại
 
-  ## Các lĩnh vực hợp lệ — chỉ được dùng đúng tên này:
+  ## Các lĩnh vực hợp lệ (domain) — chỉ được dùng đúng tên này:
   - co_con_nho       : Có con nhỏ (khai sinh, tiêm chủng, trợ cấp trẻ em, nhập học...)
   - hoc_tap          : Học tập (tuyển sinh, học bổng, xác nhận sinh viên, bằng cấp...)
   - viec_lam         : Việc làm (bảo hiểm thất nghiệp, hợp đồng lao động, BHXH...)
-  - cu_tru           : Cư trú và giấy tờ tùy thân (CCCD, hộ khẩu, đăng ký tạm trú...)
-  - hon_nhan         : Hôn nhân và gia đình (đăng ký kết hôn, ly hôn, nhận con nuôi...)
+  - cu_tru_va_giay_to_tuy_than           : Cư trú và giấy tờ tùy thân (CCCD, hộ khẩu, đăng ký tạm trú...)
+  - hon_nhan_va_gia_dinh         : Hôn nhân và gia đình (đăng ký kết hôn, ly hôn, nhận con nuôi...)
   - dien_luc_nha_dat : Điện lực, nhà ở, đất đai (sổ đỏ, sổ hồng, điện nước, xây dựng...)
   - suc_khoe         : Sức khỏe và y tế (BHYT, giấy khám sức khỏe, viện phí...)
   - phuong_tien      : Phương tiện và người lái (đăng ký xe, bằng lái, đăng kiểm...)
@@ -34,7 +34,7 @@ INTENT_PROMPT: |
   Output: {{"intent": "legal", "domain": "dien_luc_nha_dat", "confidence": 0.96}}
 
   Input: "Làm sao để đăng ký kết hôn?"
-  Output: {{"intent": "legal", "domain": "hon_nhan", "confidence": 0.98}}
+  Output: {{"intent": "legal", "domain": "hon_nhan_va_gia_dinh", "confidence": 0.98}}
 
   Input: "Tôi muốn hỏi về bằng lái xe"
   Output: {{"intent": "legal", "domain": "phuong_tien", "confidence": 0.95}}
@@ -45,7 +45,7 @@ INTENT_PROMPT: |
   ## Câu hỏi người dùng:
   {query}
 
-  Chỉ trả về JSON, không giải thích thêm.
+  Trả về JSON thuần túy, không dùng markdown code block, không có ```json, không giải thích gì thêm.
 
 SUPERVISOR_PROMPT: |
   Bạn là supervisor của hệ thống hỗ trợ thủ tục hành chính Việt Nam.

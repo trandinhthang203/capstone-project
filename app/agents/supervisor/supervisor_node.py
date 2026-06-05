@@ -95,6 +95,9 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     )
 
     response = await get_response_llm(prompt, messages)
+    logging.info(
+        f"[supervisor_node] response={response}"
+    )
     data = json.loads(response)
 
     procedures = data.get("procedures", [])
