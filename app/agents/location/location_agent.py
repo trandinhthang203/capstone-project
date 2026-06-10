@@ -24,43 +24,37 @@ from urllib.parse import quote
 import asyncio
 import json
 
-from app.agents.location.location_tools import search_agency_place, geocode_user_address, get_directions
+from app.agents.location.location_tools import search_agency_place, get_directions
 from app.services.user_service import UserService
 from app.db.session import get_db
+from app.helpers.utils.common import _llm  
 
 # ── Constants ────────────────────────────────────────────────────────────────
 MAX_ITER = 3   # Giới hạn vòng lặp tool-call, tránh loop vô hạn
 
 # ── Tool registry ─────────────────────────────────────────────────────────────
-TOOLS = [search_agency_place, geocode_user_address, get_directions]
+TOOLS = [search_agency_place, get_directions]
 TOOL_REGISTRY = {t.name: t for t in TOOLS}
 
 # ── LLM với tools đã bind ─────────────────────────────────────────────────────
-from app.helpers.utils.common import _llm  
-
 _llm_with_tools = _llm.bind_tools(TOOLS)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 def build_system_prompt() -> str:
     return """Bạn là agent chuyên tìm địa điểm thực hiện thủ tục hành chính.
 
 Nhiệm vụ: Từ thông tin thủ tục và địa chỉ người dùng, tìm đường đến cơ quan có thẩm quyền.
 
 Quy tắc sử dụng tool:
-1. Gọi search_agency_place và geocode_user_address ĐỒNG THỜI (parallel) trong cùng một lượt.
-2. Sau khi có tọa độ cả hai → gọi get_directions.
-3. Không gọi get_directions trước khi có đủ tọa độ.
+1. Gọi search_agency_place để lấy địa chỉ cơ quan.
+2. Sau khi có địa chỉ cơ quan → gọi get_directions với địa chỉ người dùng và địa chỉ cơ quan.
+3. Không gọi get_directions trước khi có địa chỉ cơ quan từ search_agency_place.
 4. Nếu search_agency_place trả về lỗi → thử lại với query ngắn gọn hơn.
-5. Khi đã có đủ kết quả từ cả 3 tools → trả về kết quả tổng hợp dạng JSON:
+5. Khi đã có đủ kết quả từ cả 2 tools → trả về kết quả tổng hợp dạng JSON:
 {
   "agency_name": "...",
   "agency_address": "...",
-  "agency_lat": 0.0,
-  "agency_lng": 0.0,
   "user_address": "...",
-  "user_lat": 0.0,
-  "user_lng": 0.0,
   "distance": "...",
   "duration": "...",
   "polyline": "...",
@@ -111,7 +105,11 @@ async def invoke_llm_with_tools(messages: list) -> AIMessage:
 
 
 def build_map_url(user_address: str, agency_address: str) -> str:
-    return f"https://www.google.com/maps/dir/{quote(user_address)}/{quote(agency_address)}"
+    return (
+        f"https://maps.mapvina.com/directions"
+        f"?origin={quote(user_address)}"
+        f"&destination={quote(agency_address)}"
+    )
 
 
 # ── Main Agent Node ───────────────────────────────────────────────────────────

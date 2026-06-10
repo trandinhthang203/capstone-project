@@ -12,6 +12,8 @@ from app.helpers.utils.exception import CustomException
 from app.agents.qa.qa_tools import build_query_plan, build_where_clause, TABLE_ALIASES
 from langchain.messages import AIMessage
 from langsmith import traceable
+from app.agents.supervisor.constants import NO_PROCEDURE_ANSWERS
+import random
 
 
 @traceable
@@ -51,6 +53,23 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         node="qa",
         message="Đang tìm thông tin cho thủ tục..."
     ))
+
+    if not procedure_ids:
+        answer = random.choice(NO_PROCEDURE_ANSWERS)
+
+        await emit(StreamEvent(
+            type="result", 
+            node="qa",
+            message=answer
+        ))
+
+        return Command(
+            goto=next_agent,
+            update={
+                "final_response": answer,
+                "messages": [AIMessage(content=answer)],
+            }
+        )
 
     try:
         case = SupervisorOutput(

@@ -73,6 +73,9 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
     messages = state["messages"]
     user_input = state["user_input"]
     domain = state.get("domain")
+    logging.info(
+        f"[supervisor_node] domain={domain}"
+    )
 
     await emit(StreamEvent(
         type="progress", 
@@ -89,26 +92,39 @@ async def supervisor_node(state: AgentState) -> Command[Literal["qa"]]:
         else list(name_ids.keys())
     )
 
+    logging.info(
+        f"[supervisor_node] procedure_names={procedure_names}"
+    )
+
     prompt = supervisor_prompt["SUPERVISOR_PROMPT_V2"].format(
         query=user_input,
         procedures="\n".join(f"- {name}" for name in procedure_names),
     )
 
     response = await get_response_llm(prompt, messages)
+    data = _parse_intent_response(response)
+
     logging.info(
         f"[supervisor_node] response={response}"
     )
-    data = json.loads(response)
 
     procedures = data.get("procedures", [])
-    procedure_ids = [name_ids[proc] for proc in procedures if proc in name_ids]
-
-    await emit(StreamEvent(
-        type="result",
-        node="supervisor",
-        message=f"Đã tìm thấy: {', '.join(procedures)}",
-        data={"procedures": procedures}
-    ))
+    if procedures:
+        await emit(StreamEvent(
+            type="result",
+            node="supervisor",
+            message=f"Đã tìm thấy: {', '.join(procedures)}",
+            data={"procedures": procedures}
+        ))
+        procedure_ids = [name_ids[proc] for proc in procedures if proc in name_ids]
+    else:
+        await emit(StreamEvent(
+            type="result",
+            node="supervisor",
+            message=f"Không xác định được thủ tục...",
+            data={"procedures": procedures}
+        ))
+        procedure_ids = []
 
     return Command(
         goto=data["pipeline"][0],
