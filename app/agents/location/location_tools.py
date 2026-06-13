@@ -148,7 +148,7 @@ async def get_directions(
         "duration": leg["duration"]["text"],
         "start_address": leg.get("start_address", ""),
         "end_address": leg.get("end_address", ""),
-        "polyline": data["routes"][0].get("overview_polyline", {}).get("points", ""),  # fix: lấy .points
+        "polyline": data["routes"][0].get("overview_polyline", {}).get("points", ""), 
         "steps": [
             {
                 "instruction": s.get("html_instructions", ""),

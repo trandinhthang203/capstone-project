@@ -44,9 +44,15 @@ def _parse_intent_response(raw: str) -> dict:
             "intent": "unclear",
             "domain": None,
             "confidence": 0.0,
-            "chitchat_reply": None,
         }
-
+def _parse_location_response(raw: str) -> dict | None:
+    try:
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        logging.warning(f"[location_agent] JSON parse failed: {raw!r}")
+        return None
+    
 def _validate_domain(domain: str | None) -> str | None:
     if domain and domain.lower() in VALID_DOMAINS:
         return domain.lower()

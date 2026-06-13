@@ -1,17 +1,3 @@
-"""
-location_agent.py
-─────────────────
-Agent thực sự: LLM tự quyết định gọi tool nào, thứ tự nào.
-Sử dụng ChatGroq (LangChain) thay vì Anthropic native API.
-
-Flow:
-  1. Build prompt với đủ context (qa answer + user profile)
-  2. LLM nhận tools → tự sinh tool_calls (search + geocode song song, rồi directions)
-  3. Thực thi tất cả tool_calls song song bằng asyncio.gather
-  4. Nếu LLM chưa có đủ data → vòng lặp tiếp (tối đa MAX_ITER lần)
-  5. emit StreamEvent → frontend
-"""
-
 from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import get_next_agent, emit
 from app.helpers.utils.logger import logging
@@ -23,20 +9,17 @@ from typing import Literal
 from urllib.parse import quote
 import asyncio
 import json
-
+from app.agents.supervisor.helper import _parse_location_response
 from app.agents.location.location_tools import search_agency_place, get_directions
 from app.services.user_service import UserService
 from app.db.session import get_db
 from app.helpers.utils.common import _llm  
+import random
 
-# ── Constants ────────────────────────────────────────────────────────────────
-MAX_ITER = 3   # Giới hạn vòng lặp tool-call, tránh loop vô hạn
-
-# ── Tool registry ─────────────────────────────────────────────────────────────
+MAX_ITER = 5
 TOOLS = [search_agency_place, get_directions]
 TOOL_REGISTRY = {t.name: t for t in TOOLS}
 
-# ── LLM với tools đã bind ─────────────────────────────────────────────────────
 _llm_with_tools = _llm.bind_tools(TOOLS)
 
 
@@ -50,16 +33,11 @@ Quy tắc sử dụng tool:
 2. Sau khi có địa chỉ cơ quan → gọi get_directions với địa chỉ người dùng và địa chỉ cơ quan.
 3. Không gọi get_directions trước khi có địa chỉ cơ quan từ search_agency_place.
 4. Nếu search_agency_place trả về lỗi → thử lại với query ngắn gọn hơn.
-5. Khi đã có đủ kết quả từ cả 2 tools → trả về kết quả tổng hợp dạng JSON:
+5. Khi đã có đủ kết quả từ get_directions → trả về JSON theo đúng format sau, không giải thích, không thêm bất kỳ text nào ngoài JSON:
 {
-  "agency_name": "...",
-  "agency_address": "...",
-  "user_address": "...",
-  "distance": "...",
-  "duration": "...",
-  "polyline": "...",
-  "steps": [...],
-  "map_url": "https://www.google.com/maps/dir/..."
+  "start_address": "...",
+  "end_address": "...",
+  "directions_message": "Đoạn hướng dẫn đường đi dựa vào kết quả get_directions"
 }"""
 
 
@@ -79,7 +57,6 @@ Hãy tìm địa điểm thực hiện thủ tục và tính đường đi cho n
 async def execute_tool_calls_parallel(tool_calls: list) -> list[dict]:
     """Thực thi tất cả tool calls song song, trả về list dict chứa id và kết quả."""
     async def run_one(tc):
-        # LangChain tool_calls format: {"name": ..., "args": ..., "id": ...}
         tool_fn = TOOL_REGISTRY.get(tc["name"])
         if not tool_fn:
             return {
@@ -95,64 +72,65 @@ async def execute_tool_calls_parallel(tool_calls: list) -> list[dict]:
 
     return await asyncio.gather(*[run_one(tc) for tc in tool_calls])
 
-
 async def invoke_llm_with_tools(messages: list) -> AIMessage:
-    """Gọi LLM với tools đã bind, wrap trong asyncio.to_thread vì ChatGroq là sync."""
-    return await asyncio.to_thread(
-        _llm_with_tools.invoke,
-        [SystemMessage(content=build_system_prompt()), *messages],
-    )
+    """Gọi LLM với retry khi gặp rate limit (429)."""
+    for attempt in range(MAX_ITER):
+        try:
+            return await asyncio.to_thread(
+                _llm_with_tools.invoke,
+                [SystemMessage(content=build_system_prompt()), *messages],
+            )
+        except Exception as e:
+            is_rate_limit = "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e)
+
+            if is_rate_limit and attempt < MAX_ITER - 1:
+                wait = (2 ** attempt) + random.uniform(0, 1)  
+                logging.warning(
+                    f"[location_agent] Rate limit hit (attempt {attempt + 1}/{MAX_ITER}), "
+                    f"retrying in {wait:.1f}s..."
+                )
+                await asyncio.sleep(wait)
+            else:
+                raise
 
 
-def build_map_url(user_address: str, agency_address: str) -> str:
-    return (
-        f"https://maps.mapvina.com/directions"
-        f"?origin={quote(user_address)}"
-        f"&destination={quote(agency_address)}"
-    )
-
-
-# ── Main Agent Node ───────────────────────────────────────────────────────────
 @traceable
 async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     current_agent = "location"
     next_agent = get_next_agent(state["pipeline"], current_agent)
 
-    qa_answer    = state["final_response"]   
-    user_id    = state["user_id"]  
+    qa_answer = state["final_response"]   
+    user_id   = state["user_id"]  
     logging.info(f"[location_agent] User id: {user_id}")
-
 
     with next(get_db()) as db:
         user_service = UserService(db)
         user_profile = user_service.get_profile_for_chatbot(user_id)
 
-
     logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
     await emit(StreamEvent(
-        type="progress", node="location",
+        type="progress", 
+        node="location",
         message="Đang xác định địa điểm thực hiện thủ tục..."
     ))
 
-    # ── Agentic loop ──────────────────────────────────────────────────────────
     messages = [HumanMessage(content=build_user_prompt(qa_answer, user_profile))]
     final_result = None
 
     for iteration in range(MAX_ITER):
         logging.info(f"[location_agent] Iteration {iteration + 1}/{MAX_ITER}")
 
-        response: AIMessage = await invoke_llm_with_tools(messages)
-        messages.append(response)
+        response = await invoke_llm_with_tools(messages)
+        logging.info(f"[location_agent] Response location {response}")
 
-        # ── Kiểm tra có tool_calls không ─────────────────────────────────────
-        # LangChain: response.tool_calls là list[dict] hoặc []
+        messages.append(response)
+        content_response = response.content
         tool_calls = response.tool_calls or []
 
         if not tool_calls:
-            # LLM đã có đủ data, không gọi tool nữa → parse JSON từ content
             try:
-                final_result = json.loads(response.content)
+                final_result = _parse_location_response(content_response["text"])
                 logging.info(f"[location_agent] Got final result on iteration {iteration + 1}")
             except (json.JSONDecodeError, TypeError):
                 logging.warning(
@@ -161,65 +139,45 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
                 )
             break
 
-        # ── Thực thi tool calls song song ────────────────────────────────────
         logging.info(
             f"[location_agent] Executing tools parallel: "
             f"{[tc['name'] for tc in tool_calls]}"
         )
 
         tool_results = await execute_tool_calls_parallel(tool_calls)
-
-        # Append ToolMessage vào history để LLM đọc ở vòng tiếp theo
-        # LangChain yêu cầu ToolMessage với tool_call_id tương ứng
         messages.extend([
-            ToolMessage(
-                content=r["content"],
-                tool_call_id=r["id"],
-            )
+            ToolMessage(content=r["content"], tool_call_id=r["id"])
             for r in tool_results
         ])
 
-    # ── Fallback nếu loop kết thúc mà không có kết quả ───────────────────────
     if not final_result:
         logging.error("[location_agent] Failed to get final result after max iterations")
         final_result = {
             "error": "Không thể xác định địa điểm",
-            "map_url": build_map_url(
-                user_profile.get("address", ""),
-                f"cơ quan hành chính {user_profile.get('province', '')}",
-            ),
+            "directions_message": "Không thể xác định địa điểm thực hiện thủ tục.",
+            "start_address": user_profile.get("address", ""),
+            "end_address": "",
         }
-    else:
-        # Đảm bảo map_url luôn có
-        if "map_url" not in final_result:
-            final_result["map_url"] = build_map_url(
-                final_result.get("user_address", user_profile.get("address", "")),
-                final_result.get("agency_address", ""),
-            )
 
-    # ── Emit kết quả ─────────────────────────────────────────────────────────
+    summary = final_result.get("directions_message", "Không thể tạo hướng dẫn đường đi.")
+
     await emit(StreamEvent(
         type="result",
         node="location",
-        message=(
-            f"Địa điểm: {final_result.get('agency_name', 'N/A')} — "
-            f"Khoảng cách: {final_result.get('distance', 'N/A')}, "
-            f"Thời gian: {final_result.get('duration', 'N/A')}"
-        ),
-        data={"location": final_result},
+        message=summary,
+        data={
+            "location": {
+                **final_result,
+                "origin": final_result.get("start_address", ""),
+                "destination": final_result.get("end_address", ""),
+            }
+        },
     ))
-
-    summary = (
-        f"Địa điểm thực hiện: {final_result.get('agency_name')}, "
-        f"{final_result.get('agency_address')}. "
-        f"Từ địa chỉ của bạn khoảng {final_result.get('distance')}, "
-        f"mất khoảng {final_result.get('duration')}."
-    )
 
     return Command(
         goto=next_agent,
         update={
-            "location_result": final_result,
+            "final_response": summary,
             "messages": [AIMessage(content=summary)],
         },
     )

@@ -28,88 +28,123 @@
         <div id="map"></div>
 
         <script>
-            const originLatLng = [106.62, 10.76];
-            const destinationLatLng = [106.7, 10.8];
+    // Thay 2 dòng tọa độ cứng bằng hàm geocode
+    async function getCoords(address) {
+        const url = `https://maps.mapvina.com/api/v2/place/autocomplete/json?input=${encodeURIComponent(address)}&key=YOUR_KEY&size=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.status !== "OK" || !data.predictions.length) {
+            throw new Error(`Không tìm thấy: ${address}`);
+        }
+        
+        // Autocomplete trả về description, dùng place_id để lấy tọa độ
+        // Hoặc dùng Geocode API nếu có
+        const place = data.predictions[0];
+        console.log("Tìm thấy:", place.description);
+        return place; // trả về place_id để dùng tiếp
+    }
 
-            var map = new mapvinagl.Map({
-                container: 'map',
-                style: 'https://maps.mapvina.com/styles/v2/streets.json?key=public_key',
-                center: { "lat": 10.762622, "lng": 106.660172 },
-                zoom: 11
+    const originAddress = "06 Phan Văn Đạt, Liên Chiểu, Đà Nẵng";
+    const destinationAddress = "Ủy ban nhân dân Quận Liên Chiểu, Đà Nẵng";
+
+    // Dùng Directions API truyền thẳng địa chỉ (API backend đã hỗ trợ)
+    async function initMap() {
+        var map = new mapvinagl.Map({
+            container: 'map',
+            style: 'https://maps.mapvina.com/styles/v2/streets.json?key=add1781064692a6dff9ab9e1815234e640',
+            center: { lat: 16.07, lng: 108.15 },
+            zoom: 11
+        });
+
+        map.on('load', async () => {
+            // Directions API nhận thẳng địa chỉ chuỗi
+            const url = `https://maps.mapvina.com/route/v2/directions/json`
+                + `?origin=${encodeURIComponent(originAddress)}`
+                + `&destination=${encodeURIComponent(destinationAddress)}`
+                + `&key=add1781064692a6dff9ab9e1815234e640`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.status !== "OK" || !data.routes.length) {
+                console.error("Không tìm được đường:", data);
+                return;
+            }
+
+            const leg = data.routes[0].legs[0];
+            console.log("Khoảng cách:", leg.distance.text);
+            console.log("Thời gian:", leg.duration.text);
+
+            // Lấy tọa độ start/end để đặt marker và căn map
+            const startLng = leg.start_location.lat; // API trả ngược lat/lng
+            const startLat = leg.start_location.lng;
+            const endLng = leg.end_location.lat;
+            const endLat = leg.end_location.lng;
+
+            // Marker điểm đầu
+            new mapvinagl.Marker({ color: '#3bb2d0' })
+                .setLngLat([startLng, startLat])
+                .addTo(map);
+
+            // Marker điểm cuối
+            new mapvinagl.Marker({ color: '#e74c3c' })
+                .setLngLat([endLng, endLat])
+                .addTo(map);
+
+            // Vẽ polyline từ overview_polyline
+            // Decode encoded polyline → dùng thư viện @mapbox/polyline
+            const encoded = data.routes[0].overview_polyline.points;
+            const decoded = decodePolyline(encoded); // hàm bên dưới
+
+            map.addSource('route', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: { type: 'LineString', coordinates: decoded }
+                }
             });
 
-            map.on('load', () => {
-                // add marker for origin
-                const originMarker = new mapvinagl.Marker({ color: '#3bb2d0' });
-                originMarker.setLngLat(originLatLng);
-                originMarker.addTo(map);
-
-                // add marker for destination
-                const destinationMarker = new mapvinagl.Marker({ color: '#8a8bc9' });
-                destinationMarker.setLngLat(destinationLatLng);
-                destinationMarker.addTo(map);
-
-                // Fetch route from MapVina Routing API
-                const coordinates = [originLatLng, destinationLatLng];
-                const coordsString = coordinates.map(c => c.join(',')).join(';');
-                const url = `https://maps.mapvina.com/route/v1/car/${coordsString}?overview=full&geometries=geojson&key=public_key`;
-
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.routes && data.routes.length > 0) {
-                            const route = data.routes[0].geometry;
-                            map.addSource('route', {
-                                'type': 'geojson',
-                                'data': {
-                                    'type': 'Feature',
-                                    'properties': {},
-                                    'geometry': route
-                                }
-                            });
-
-                            // Add a line casing
-                            map.addLayer({
-                                'id': 'route-casing',
-                                'type': 'line',
-                                'source': 'route',
-                                'layout': {
-                                    'line-join': 'round',
-                                    'line-cap': 'round'
-                                },
-                                'paint': {
-                                    'line-color': '#2d5f99',
-                                    'line-width': 8
-                                }
-                            });
-
-                            // Add the actual route line
-                            map.addLayer({
-                                'id': 'route-line',
-                                'type': 'line',
-                                'source': 'route',
-                                'layout': {
-                                    'line-join': 'round',
-                                    'line-cap': 'round'
-                                },
-                                'paint': {
-                                    'line-color': '#4882c5',
-                                    'line-width': 4
-                                }
-                            });
-
-                            // Fit map to route bounds
-                            const bounds = coordinates.reduce(function(bounds, coord) {
-                                return bounds.extend(coord);
-                            }, new mapvinagl.LngLatBounds(coordinates[0], coordinates[0]));
-
-                            map.fitBounds(bounds, {
-                                padding: 50
-                            });
-                        }
-                    });
+            map.addLayer({
+                id: 'route-casing',
+                type: 'line',
+                source: 'route',
+                paint: { 'line-color': '#2d5f99', 'line-width': 8 }
             });
-        </script>
+
+            map.addLayer({
+                id: 'route-line',
+                type: 'line',
+                source: 'route',
+                paint: { 'line-color': '#4882c5', 'line-width': 4 }
+            });
+
+            // Fit map
+            map.fitBounds([
+                [startLng, startLat],
+                [endLng, endLat]
+            ], { padding: 50 });
+        });
+    }
+
+    // Decode Google Encoded Polyline
+    function decodePolyline(encoded) {
+        let index = 0, lat = 0, lng = 0, coords = [];
+        while (index < encoded.length) {
+            let b, shift = 0, result = 0;
+            do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+            lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+            shift = 0; result = 0;
+            do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+            lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+            coords.push([lng / 1e5, lat / 1e5]);
+        }
+        return coords;
+    }
+
+    initMap();
+</script>
 
     </body>
 
