@@ -1,42 +1,40 @@
 import json
+import re
+from pathlib import Path
+from typing import Any
+
 from app.agents.supervisor.constants import VALID_DOMAINS
 from app.helpers.utils.logger import logging
-import json
-import os
-from pathlib import Path
-
-# from scripts.models.procedure import Thu_Tuc
-# from scripts.models.basis import Can_Cu_Phap_Ly
-# from scripts.models.component import Thanh_Phan_Ho_So
-# from scripts.models.method import Cach_Thuc_Thuc_Hien
-# from app.db.session import get_db
-# from typing import List
-# import json
-
-# def get_name_id():
-#     with next(get_db()) as db:
-#         tts = db.query(Thu_Tuc).all()
-
-#     return tts
-
-# def write_in_json(tts: List[Thu_Tuc], file_path: str):
-#     result = {}
-#     for tt in tts:
-#         result[tt.ten_thu_tuc] = tt.ma_thu_tuc
-
-#     with open(file_path, "w", encoding="utf-8") as file:
-#         json.dump(result, file, ensure_ascii=False, indent=2)
-
-# if __name__ == "__main__":
-#     tts = get_name_id()
-#     write_in_json(tts, "thu_tuc.json")
 
 
-import re
+def _normalize_model_output(raw: Any) -> str:
+    if raw is None:
+        return ""
+    if isinstance(raw, str):
+        return raw.strip()
+    if isinstance(raw, dict):
+        text = raw.get("text")
+        if isinstance(text, str):
+            return text.strip()
+        return json.dumps(raw, ensure_ascii=False)
+    if isinstance(raw, list):
+        chunks: list[str] = []
+        for item in raw:
+            if isinstance(item, str):
+                chunks.append(item)
+            elif isinstance(item, dict):
+                text = item.get("text")
+                if isinstance(text, str) and text.strip():
+                    chunks.append(text.strip())
+        if chunks:
+            return "\n".join(chunks).strip()
+        return json.dumps(raw, ensure_ascii=False)
+    return str(raw).strip()
 
-def _parse_intent_response(raw: str) -> dict:
+
+def _parse_intent_response(raw: Any) -> dict:
     try:
-        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", _normalize_model_output(raw)).strip()
         return json.loads(cleaned)
     except json.JSONDecodeError:
         logging.warning(f"[intent_node] JSON parse failed: {raw!r}")
@@ -45,18 +43,22 @@ def _parse_intent_response(raw: str) -> dict:
             "domain": None,
             "confidence": 0.0,
         }
-def _parse_location_response(raw: str) -> dict | None:
+
+
+def _parse_location_response(raw: Any) -> dict | None:
     try:
-        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", _normalize_model_output(raw)).strip()
         return json.loads(cleaned)
     except json.JSONDecodeError:
         logging.warning(f"[location_agent] JSON parse failed: {raw!r}")
         return None
-    
+
+
 def _validate_domain(domain: str | None) -> str | None:
     if domain and domain.lower() in VALID_DOMAINS:
         return domain.lower()
     return None
+
 
 def collect_thu_tuc(processed_dir: str, output_file: str = "ket_qua.json"):
     """
@@ -107,9 +109,3 @@ def collect_thu_tuc(processed_dir: str, output_file: str = "ket_qua.json"):
 
     print(f"\nXong! Kết quả đã lưu vào: {output_path.resolve()}")
     return result
-
-
-# if __name__ == "__main__":
-#     processed_dir = "data/processed"
-#     output_file = "file.json"
-#     collect_thu_tuc(processed_dir, output_file)
