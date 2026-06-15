@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, Any, Literal
 from datetime import datetime
+from typing import Any, Literal, Optional
 from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class ChatMessageCreate(BaseModel):
@@ -18,6 +19,7 @@ class DynamicFormField(BaseModel):
     placeholder: Optional[str] = None
     x: Optional[float] = None
     y: Optional[float] = None
+    page: Optional[int] = 0
 
 
 class DynamicFormPayload(BaseModel):
@@ -26,6 +28,7 @@ class DynamicFormPayload(BaseModel):
     title: str
     description: Optional[str] = None
     submit_label: str = "Tiếp tục"
+    pdf_path: Optional[str] = None
     fields: list[DynamicFormField]
 
 
@@ -41,15 +44,12 @@ class ChatMessageResponse(BaseModel):
     msgcontent: str
     isfromuser: bool
     sentat: Optional[datetime] = None
-
-    # NEW
     msgtype: str = "text"
     meta_data: Optional[dict] = None
 
     model_config = {"from_attributes": True}
 
 
-# Schema nhận tin nhắn từ user gửi lên API
 class UserMessageRequest(BaseModel):
     idchatsession: UUID
-    message:       str
+    message: str

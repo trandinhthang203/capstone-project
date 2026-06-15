@@ -30,6 +30,8 @@ Nhiệm vụ:
 3. Sau khi có địa chỉ cơ quan, dùng get_directions để tính đường đi từ địa chỉ người dùng.
 
 Quy tắc bắt buộc:
+- Khi gọi search_agency_place, tham số `query` PHẢI là tên cơ quan ghép với tên xã/phường, quận/huyện hoặc tỉnh/thành
+  của người dùng. Không dùng tên cơ quan chung chung như "Ủy ban nhân dân cấp quận" mà phải là "Ủy ban nhân dân quận Liên Chiểu, Đà Nẵng".
 - Không gọi get_directions nếu chưa có địa chỉ cơ quan rõ ràng.
 - Nếu thiếu địa chỉ người dùng hoặc không tính được đường đi, vẫn phải trả về JSON hợp lệ và nêu rõ lỗi ngắn gọn.
 - Chỉ trả về JSON, không thêm giải thích bên ngoài JSON.
@@ -45,9 +47,8 @@ Cách tạo directions_message từ kết quả get_directions:
 
 JSON output:
 {
-  "agency_name": "",
-  "start_address": "",
-  "end_address": "",
+  "start_address": "", -> Địa chỉ của người dùng
+  "end_address": "",  -> Thông tin cơ quan trả về từ search_agency_place
   "distance": "",
   "duration": "",
   "directions_message": "",
@@ -65,19 +66,27 @@ def _compose_user_address(user_profile: dict[str, Any]) -> str:
 
 def build_user_prompt(qa_answer: str, user_profile: dict[str, Any]) -> str:
     full_address = _compose_user_address(user_profile)
+    province = user_profile.get("province", "")
+    district = user_profile.get("district", "")
+    ward = user_profile.get("ward", "")
+
     return f"""Thông tin thủ tục từ hệ thống QA:
 {qa_answer}
 
 Thông tin người dùng:
 - Địa chỉ đầy đủ: {full_address}
-- Tỉnh/thành: {user_profile.get("province", "")}
-- Quận/huyện: {user_profile.get("district", "")}
-- Phường/xã: {user_profile.get("ward", "")}
+- Tỉnh/thành: {province}
+- Quận/huyện: {district}
+- Phường/xã: {ward}
 
 Yêu cầu:
-- Tìm đúng cơ quan tiếp nhận hồ sơ gần đúng với thông tin thủ tục ở trên.
-- Ưu tiên dùng tỉnh/thành, quận/huyện, phường/xã làm gợi ý khi gọi search_agency_place.
-- Sau khi có địa chỉ cơ quan thì tính đường đi cho người dùng.
+- Xác định tên cơ quan tiếp nhận hồ sơ từ thông tin thủ tục (ví dụ: "Ủy ban nhân dân cấp quận", "Chi cục Thuế", ...).
+- Khi gọi search_agency_place, tham số `query` phải ghép tên cơ quan với địa bàn cụ thể của người dùng.
+  Ví dụ: nếu cơ quan là "Ủy ban nhân dân cấp quận" và người dùng ở quận "{district}", tỉnh "{province}"
+  thì query = "Ủy ban nhân dân {district}, {province}"
+  Ví dụ khác: "Chi cục Thuế {district}, {province}" hoặc "Phòng Tư pháp {district}, {province}"
+- Truyền province="{province}", district="{district}", ward="{ward}" vào search_agency_place để tăng độ chính xác.
+- Sau khi có địa chỉ cơ quan, gọi get_directions để tính đường đi từ địa chỉ người dùng.
 """
 
 

@@ -1,91 +1,190 @@
 import json
-from langsmith import traceable
-from langgraph.types import interrupt
-from langchain_core.messages import SystemMessage, AIMessage
+from typing import Any
 
-from app.agents.forms.forms_tools import (
-    select_form_url,
-    load_pdf_from_url,
-    extract_form_fields,
-    fill_form_fields
-)
+from langchain_core.messages import AIMessage
+from langgraph.types import interrupt
+from langsmith import traceable
+
 from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import emit
-from app.helpers.utils.common import _llm
-from app.agents.forms.helper import _is_last_message_from_tool, _find_last_tool_payload, _build_dynamic_form_payload
+from app.agents.forms.forms_tools import (
+    extract_form_fields,
+    fill_form_fields,
+    load_pdf_from_url,
+    select_form_url,
+)
+from app.agents.forms.helper import _build_dynamic_form_payload
 
 TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields]
-llm_with_tools = _llm.bind_tools(TOOLS)
 
-SYSTEM_PROMPT = """Bạn là Forms Agent – trợ lý điền mẫu đơn hành chính tự động.
 
-## Quy trình bắt buộc
-1. Gọi `select_form_url` với `pdf_urls` lấy từ state và yêu cầu người dùng.
-2. Gọi `load_pdf_from_url` với pdf_url đã xác định.
-3. Gọi `extract_form_fields` với pdf_path vừa nhận.
-4. Khi đã có danh sách field, KHÔNG hỏi người dùng bằng văn bản tự do.
-   Hệ thống sẽ tạm dừng để UI hiển thị form động.
-5. Sau khi hệ thống nhận dữ liệu từ UI, tiếp tục điền form bằng `fill_form_fields`.
-6. Trả về kết quả hoàn tất.
-"""
+def _loads_json(raw: Any) -> dict:
+    if isinstance(raw, dict):
+        return raw
+    if raw is None:
+        return {}
+    try:
+        return json.loads(raw)
+    except Exception:
+        return {}
+
 
 @traceable
 async def forms_node(state: AgentState) -> dict:
-    msgs = list(state["messages"])
+    user_input = state.get("user_input", "")
+    pdf_urls = state.get("pdf_urls", []) or []
 
-    if not any(isinstance(m, SystemMessage) for m in msgs):
-        pdf_urls = state.get("pdf_urls", [])
-        system_with_context = (
-            SYSTEM_PROMPT
-            + "\n\n## Danh sách biểu mẫu hiện có (pdf_urls)\n"
-            + json.dumps(pdf_urls, ensure_ascii=False, indent=2)
-        )
-        msgs = [SystemMessage(content=system_with_context), *msgs]
-
-    # 1) Nếu tool extract_form_fields vừa chạy xong -> interrupt để UI render form động
-    if _is_last_message_from_tool(msgs, "extract_form_fields"):
-        extract_payload = _find_last_tool_payload(msgs, "extract_form_fields") or {}
-        load_payload = _find_last_tool_payload(msgs, "load_pdf_from_url") or {}
-
-        fields = extract_payload.get("fields", [])
-        pdf_path = load_payload.get("pdf_path")
-
-        form_payload = _build_dynamic_form_payload(fields, pdf_path)
-
-        await emit(StreamEvent(
+    await emit(
+        StreamEvent(
             type="progress",
             node="forms",
-            message="Đã trích xuất xong các trường, đang chờ người dùng nhập form..."
-        ))
+            message="Đang xác định biểu mẫu cần điền...",
+        )
+    )
 
-        submitted_values = interrupt(form_payload)
+    selected_raw = await select_form_url.ainvoke(
+        {
+            "pdf_urls": pdf_urls,
+            "user_input": user_input,
+        }
+    )
+    selected_payload = _loads_json(selected_raw)
+    selected_status = selected_payload.get("status")
 
-        field_values = {}
-        for f in fields:
-            value = submitted_values.get(f["field_id"])
-            if value is not None and str(value).strip():
-                field_values[f["field_id"]] = {
-                    "value": str(value).strip(),
-                    "x": f["x"],
-                    "y": f["y"],
-                }
+    if selected_status == "not_found":
+        answer = selected_payload.get("message") or "Tôi chưa tìm thấy biểu mẫu phù hợp để điền."
+        await emit(StreamEvent(type="result", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
 
-        filled_raw = await fill_form_fields.ainvoke({
-            "pdf_path": pdf_path,
-            "field_values": field_values
-        })
-        filled_payload = json.loads(filled_raw)
-        pdf_url = filled_payload.get("pdf_url")
+    if selected_status == "ambiguous":
+        candidates = selected_payload.get("candidates") or []
+        lines = [selected_payload.get("question") or "Có nhiều biểu mẫu phù hợp, vui lòng chọn rõ mẫu cần điền:"]
+        for item in candidates[:5]:
+            name = item.get("form_name") or item.get("filename_decoded") or item.get("url") or "Biểu mẫu"
+            url = item.get("url")
+            lines.append(f"- {name}: {url}" if url else f"- {name}")
+        answer = "\n".join(lines)
+        await emit(StreamEvent(type="result", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
 
-        return {
-            "submitted_form_values": submitted_values,
-            "filled_pdf_url": pdf_url,
-            "dynamic_form_payload": None,
-            "final_response": f"Tôi đã điền xong biểu mẫu cho bạn. [Mẫu tại đây]({pdf_url})",
-            "messages": [
-                AIMessage(content="Tôi đã nhận dữ liệu từ form động và hoàn tất việc điền biểu mẫu.")
-            ],
+    if selected_status == "error" or not selected_payload.get("selected_url"):
+        answer = f"Có lỗi khi xác định biểu mẫu: {selected_payload.get('error', 'không rõ nguyên nhân')}"
+        await emit(StreamEvent(type="error", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
+
+    pdf_url = selected_payload["selected_url"]
+    form_name = selected_payload.get("form_name") or "biểu mẫu"
+
+    await emit(
+        StreamEvent(
+            type="progress",
+            node="forms",
+            message=f"Đã chọn {form_name}, đang tải file PDF...",
+        )
+    )
+
+    load_raw = await load_pdf_from_url.ainvoke({"pdf_url": pdf_url})
+    load_payload = _loads_json(load_raw)
+    if not load_payload.get("success"):
+        answer = f"Không thể tải biểu mẫu PDF: {load_payload.get('error', 'không rõ nguyên nhân')}"
+        await emit(StreamEvent(type="error", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
+
+    pdf_path = load_payload.get("pdf_path")
+
+    await emit(
+        StreamEvent(
+            type="progress",
+            node="forms",
+            message="Đang trích xuất các trường thông tin từ biểu mẫu...",
+        )
+    )
+
+    extract_raw = await extract_form_fields.ainvoke({"pdf_path": pdf_path})
+    extract_payload = _loads_json(extract_raw)
+    if not extract_payload.get("success"):
+        answer = f"Không thể trích xuất trường thông tin từ biểu mẫu: {extract_payload.get('error', 'không rõ nguyên nhân')}"
+        await emit(StreamEvent(type="error", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
+
+    fields = extract_payload.get("fields", []) or []
+    if not fields:
+        answer = "Tôi không tìm thấy trường nào có thể điền tự động trong biểu mẫu này."
+        await emit(StreamEvent(type="result", node="forms", message=answer))
+        return {"final_response": answer, "messages": [AIMessage(content=answer)]}
+
+    form_payload = _build_dynamic_form_payload(fields, pdf_path)
+
+    await emit(
+        StreamEvent(
+            type="progress",
+            node="forms",
+            message="Đã trích xuất xong các trường, đang chờ người dùng nhập form...",
+        )
+    )
+
+    submitted_values = interrupt(form_payload) or {}
+    if not isinstance(submitted_values, dict):
+        submitted_values = {}
+
+    field_values = {}
+    for field in fields:
+        raw_value = submitted_values.get(field["field_id"])
+        value = str(raw_value).strip() if raw_value is not None else ""
+        if not value:
+            continue
+        field_values[field["field_id"]] = {
+            "value": value,
+            "x": field.get("x"),
+            "y": field.get("y"),
+            "page": field.get("page", 0),
         }
 
-    # 2) Chưa tới bước interrupt thì vẫn chạy như cũ
-    return {"messages": [llm_with_tools.invoke(msgs)]}
+    await emit(
+        StreamEvent(
+            type="progress",
+            node="forms",
+            message="Đã nhận dữ liệu từ form, đang điền vào PDF...",
+        )
+    )
+
+    filled_raw = await fill_form_fields.ainvoke(
+        {
+            "pdf_path": pdf_path,
+            "field_values": field_values,
+        }
+    )
+    filled_payload = _loads_json(filled_raw)
+    if not filled_payload.get("success"):
+        answer = f"Đã nhận dữ liệu nhưng chưa thể điền biểu mẫu: {filled_payload.get('error', 'không rõ nguyên nhân')}"
+        await emit(StreamEvent(type="error", node="forms", message=answer))
+        return {
+            "submitted_form_values": submitted_values,
+            "dynamic_form_payload": None,
+            "final_response": answer,
+            "messages": [AIMessage(content=answer)],
+        }
+
+    filled_pdf_url = filled_payload.get("pdf_url")
+    final_response = (
+        f"Tôi đã điền xong biểu mẫu cho bạn. [Mẫu tại đây]({filled_pdf_url})"
+        if filled_pdf_url
+        else "Tôi đã điền xong biểu mẫu, nhưng hiện chưa tạo được liên kết tải file."
+    )
+
+    await emit(
+        StreamEvent(
+            type="result",
+            node="forms",
+            message=final_response,
+            data={"filled_pdf_url": filled_pdf_url},
+        )
+    )
+
+    return {
+        "submitted_form_values": submitted_values,
+        "filled_pdf_url": filled_pdf_url,
+        "dynamic_form_payload": None,
+        "final_response": final_response,
+        "messages": [AIMessage(content="Tôi đã nhận dữ liệu từ form động và hoàn tất việc điền biểu mẫu.")],
+    }

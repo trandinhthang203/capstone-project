@@ -57,7 +57,7 @@ async def _get_json(url: str, params: dict) -> dict:
 
 
 @tool
-async def search_agency_place(query: str, province: str = "", district: str = "", ward: str = "") -> dict:
+async def search_agency_place(query: str) -> dict:
     """
     Tìm địa điểm cơ quan nhà nước trên bản đồ theo tên cơ quan và gợi ý khu vực.
 
@@ -70,11 +70,11 @@ async def search_agency_place(query: str, province: str = "", district: str = ""
     if not query or not query.strip():
         return {"error": "Thiếu tên cơ quan cần tìm"}
 
-    query_used = _build_query(query, province=province, district=district, ward=ward)
+    # query_used = _build_query(query, province=province, district=district, ward=ward)
     data = await _get_json(
         "https://maps.mapvina.com/api/v2/place/autocomplete/json",
         params={
-            "input": query_used,
+            "input": query,
             "key": GOOGLE_MAPS_API_KEY,
             "size": 5,
         },
@@ -85,19 +85,16 @@ async def search_agency_place(query: str, province: str = "", district: str = ""
 
     predictions = [p for p in data.get("predictions", []) if p.get("description")]
     if data.get("status") != "OK" or not predictions:
-        logging.warning(f"[search_agency_place] No result for query='{query_used}': {data}")
+        logging.warning(f"[search_agency_place] No result for query='{query}': {data}")
         return {
-            "error": f"Không tìm thấy địa điểm phù hợp cho: {query_used}",
-            "query_used": query_used,
+            "error": f"Không tìm thấy địa điểm phù hợp cho: {query}",
+            "query_used": query,
         }
 
     place = predictions[0]
     return {
-        "name": place.get("name", ""),
-        "address": place.get("description", ""),
-        "place_id": place.get("place_id", ""),
-        "reference": place.get("reference", ""),
-        "query_used": query_used,
+        "end_address": place.get("description", ""),
+        "query_used": query,
     }
 
 
@@ -111,8 +108,8 @@ async def get_directions(
     Tính đường đi từ địa chỉ người dùng đến địa chỉ cơ quan.
 
     Args:
-        origin_address: Địa chỉ điểm xuất phát.
-        dest_address: Địa chỉ đích.
+        origin_address: Địa chỉ điểm xuất phát: là địa chỉ của người dùng .
+        dest_address: Địa chỉ đích: là địa chỉ của cơ quan.
         mode: driving, motorcycling, walking, truck.
     """
     origin_address = (origin_address or "").strip()
