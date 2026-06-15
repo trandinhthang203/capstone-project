@@ -10,20 +10,17 @@ import asyncio
 
 load_dotenv()
 # GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"D:\capstone-project\location-498221-9b453abda182.json"
-# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"D:\capstone-project\location-498221-9b453abda182.json"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 _llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
-    project="location-498221",
-    location="us-central1", 
+    google_api_key=GEMINI_API_KEY,
     temperature=0, 
     max_tokens=None,
     timeout=None,
     max_retries=5,
 )
-
 # print(model.invoke("kể 1 câu chuyện hài"))
 
 async def get_response_llm(prompt: str, messages: list[AnyMessage]) -> str:

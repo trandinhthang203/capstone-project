@@ -1,151 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>OnlyOffice Editor</title>
+</head>
+<body>
 
-    <head>
-        <meta charset="utf-8" />
-        <title>Direction between two points</title>
-        <meta property="og:description" content="Example routing between two points using plugin MapVina GL Directions." />
-        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-        <script src="https://unpkg.com/mapvina-gl@1.1.0/dist/mapvina-gl.js"></script>
-        <link href="https://unpkg.com/mapvina-gl@1.1.0/dist/mapvina-gl.css" rel="stylesheet" />
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-            }
+<!-- Vùng chứa editor -->
+<div id="ds-frame">Đang tải editor...</div>
 
-            #map {
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 100%;
-            }
-        </style>
-    </head>
+<!-- Bước 1: Load SDK -->
+<script src="https://docspace-l4ew3k.onlyoffice.com/static/scripts/sdk/2.2.0/api.js"></script>
 
-    <body>
-
-        <div id="map"></div>
-
-        <script>
-    // Thay 2 dòng tọa độ cứng bằng hàm geocode
-    async function getCoords(address) {
-        const url = `https://maps.mapvina.com/api/v2/place/autocomplete/json?input=${encodeURIComponent(address)}&key=YOUR_KEY&size=1`;
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (data.status !== "OK" || !data.predictions.length) {
-            throw new Error(`Không tìm thấy: ${address}`);
-        }
-        
-        // Autocomplete trả về description, dùng place_id để lấy tọa độ
-        // Hoặc dùng Geocode API nếu có
-        const place = data.predictions[0];
-        console.log("Tìm thấy:", place.description);
-        return place; // trả về place_id để dùng tiếp
+<!-- Bước 2: Khởi tạo editor -->
+<script>
+  var docSpace = DocSpace.initEditor({
+    frameId: "ds-frame",
+    src: "https://docspace-l4ew3k.onlyoffice.com",
+    width: "100%",
+    height: "700px",
+    fileId: "ID_FILE_CỦA_BẠN",   // <-- thay bằng ID file thực tế
+    // token: "JWT_TOKEN",        // <-- nếu file private thì cần token
+    events: {
+      onAppReady: function () {
+        console.log("Editor đã sẵn sàng!");
+      },
+      onAppError: function (err) {
+        console.error("Lỗi:", err);
+      }
     }
-
-    const originAddress = "06 Phan Văn Đạt, Liên Chiểu, Đà Nẵng";
-    const destinationAddress = "Ủy ban nhân dân Quận Liên Chiểu, Đà Nẵng";
-
-    // Dùng Directions API truyền thẳng địa chỉ (API backend đã hỗ trợ)
-    async function initMap() {
-        var map = new mapvinagl.Map({
-            container: 'map',
-            style: 'https://maps.mapvina.com/styles/v2/streets.json?key=add1781064692a6dff9ab9e1815234e640',
-            center: { lat: 16.07, lng: 108.15 },
-            zoom: 11
-        });
-
-        map.on('load', async () => {
-            // Directions API nhận thẳng địa chỉ chuỗi
-            const url = `https://maps.mapvina.com/route/v2/directions/json`
-                + `?origin=${encodeURIComponent(originAddress)}`
-                + `&destination=${encodeURIComponent(destinationAddress)}`
-                + `&key=add1781064692a6dff9ab9e1815234e640`;
-
-            const res = await fetch(url);
-            const data = await res.json();
-
-            if (data.status !== "OK" || !data.routes.length) {
-                console.error("Không tìm được đường:", data);
-                return;
-            }
-
-            const leg = data.routes[0].legs[0];
-            console.log("Khoảng cách:", leg.distance.text);
-            console.log("Thời gian:", leg.duration.text);
-
-            // Lấy tọa độ start/end để đặt marker và căn map
-            const startLng = leg.start_location.lat; // API trả ngược lat/lng
-            const startLat = leg.start_location.lng;
-            const endLng = leg.end_location.lat;
-            const endLat = leg.end_location.lng;
-
-            // Marker điểm đầu
-            new mapvinagl.Marker({ color: '#3bb2d0' })
-                .setLngLat([startLng, startLat])
-                .addTo(map);
-
-            // Marker điểm cuối
-            new mapvinagl.Marker({ color: '#e74c3c' })
-                .setLngLat([endLng, endLat])
-                .addTo(map);
-
-            // Vẽ polyline từ overview_polyline
-            // Decode encoded polyline → dùng thư viện @mapbox/polyline
-            const encoded = data.routes[0].overview_polyline.points;
-            const decoded = decodePolyline(encoded); // hàm bên dưới
-
-            map.addSource('route', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    properties: {},
-                    geometry: { type: 'LineString', coordinates: decoded }
-                }
-            });
-
-            map.addLayer({
-                id: 'route-casing',
-                type: 'line',
-                source: 'route',
-                paint: { 'line-color': '#2d5f99', 'line-width': 8 }
-            });
-
-            map.addLayer({
-                id: 'route-line',
-                type: 'line',
-                source: 'route',
-                paint: { 'line-color': '#4882c5', 'line-width': 4 }
-            });
-
-            // Fit map
-            map.fitBounds([
-                [startLng, startLat],
-                [endLng, endLat]
-            ], { padding: 50 });
-        });
-    }
-
-    // Decode Google Encoded Polyline
-    function decodePolyline(encoded) {
-        let index = 0, lat = 0, lng = 0, coords = [];
-        while (index < encoded.length) {
-            let b, shift = 0, result = 0;
-            do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-            lat += (result & 1) ? ~(result >> 1) : (result >> 1);
-            shift = 0; result = 0;
-            do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-            lng += (result & 1) ? ~(result >> 1) : (result >> 1);
-            coords.push([lng / 1e5, lat / 1e5]);
-        }
-        return coords;
-    }
-
-    initMap();
+  });
 </script>
 
-    </body>
-
+</body>
 </html>
