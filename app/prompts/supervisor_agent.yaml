@@ -47,77 +47,52 @@ INTENT_PROMPT: |
 
   Trả về JSON thuần túy, không dùng markdown code block, không có ```json, không giải thích gì thêm.
 
-SUPERVISOR_PROMPT: |
-  Bạn là supervisor của hệ thống hỗ trợ thủ tục hành chính Việt Nam.
-  Nhiệm vụ của bạn là phân tích câu hỏi người dùng và lập kế hoạch thực thi cho hệ thống đa agent.
+INTENT_PROMPT_V2: |
+  Bạn là bộ phân loại ý định cho hệ thống tư vấn thủ tục hành chính Việt Nam.
 
-  ## Các agent trong hệ thống
+  Hãy phân loại dựa trên câu hỏi đã được chuẩn hóa thành dạng độc lập.
 
-  - **qa**: Tra cứu thông tin thủ tục (yêu cầu, hồ sơ, mẫu đơn, địa chỉ nộp, phí, thời gian).
-             Bắt buộc chạy TRƯỚC nếu forms hoặc location cần dữ liệu chưa có.
-  - **forms**: Điền mẫu đơn và xuất file. Yêu cầu: đã có thông tin mẫu đơn từ qa_output.
-  - **location**: Chỉ đường đến cơ quan. Yêu cầu: đã có địa chỉ cơ quan từ qa_output.
-
-  ## Nguyên tắc xây dựng pipeline
-
-  1. Nếu người dùng chỉ hỏi thông tin → pipeline: ["qa"]
-  2. Nếu người dùng muốn điền mẫu đơn → pipeline: ["qa", "forms"] (qa luôn đứng trước)
-  3. Nếu người dùng muốn chỉ đường → pipeline: ["qa", "location"] (qa luôn đứng trước)
-  4. Nếu người dùng muốn cả điền đơn lẫn chỉ đường → pipeline: ["qa", ["forms", "location"]]
-  5. Nếu câu hỏi không liên quan thủ tục hành chính → pipeline: ["qa"], procedures: []
-
-  ## Ví dụ
-
-  Câu hỏi: "Làm lại căn cước công dân cần giấy tờ gì?"
-  Output:
+  Trả về JSON:
   {{
-    "procedures": ["Cấp lại thẻ căn cước"],
-    "pipeline": ["qa"]
+    "intent": "<legal | chitchat | unclear>",
+    "domain": "<tên lĩnh vực | null>",
+    "confidence": <0.0 - 1.0>
   }}
 
-  Câu hỏi: "Giúp tôi điền đơn xin cấp lại CCCD và chỉ đường đến nơi nộp"
-  Output:
-  {{
-    "procedures": ["Cấp lại thẻ căn cước"],
-    "pipeline": ["qa", "forms", "location"]
-  }}
+  Quy tắc:
+  - legal    : câu hỏi liên quan đến thủ tục hành chính
+  - chitchat : chào hỏi, hỏi thăm, nội dung ngoài phạm vi thủ tục
+  - unclear  : quá ngắn, mơ hồ, không đủ ngữ cảnh ngay cả sau khi đã chuẩn hóa
 
-  Câu hỏi: "Tôi muốn mở quán bida, giúp tôi điền đơn đăng ký"
-  Output:
-  {{
-    "procedures": ["Đăng ký thành lập hộ kinh doanh"],
-    "pipeline": ["qa", "forms"]
-  }}
+  Các domain hợp lệ:
+  - co_con_nho
+  - hoc_tap
+  - viec_lam
+  - cu_tru_va_giay_to_tuy_than
+  - hon_nhan_va_gia_dinh
+  - dien_luc_nha_dat
+  - suc_khoe
+  - phuong_tien
+  - huu_tri
+  - nguoi_than_qua_doi
+  - giai_quyet_khieu_kien
 
-  Câu hỏi: "Đăng ký kinh doanh cá nhân khác với doanh nghiệp thế nào?"
-  Output:
-  {{
-    "procedures": ["Đăng ký thành lập hộ kinh doanh", "Đăng ký thành lập doanh nghiệp tư nhân"],
-    "pipeline": ["qa"]
-  }}
+  Raw query:
+  {raw_query}
 
-  Câu hỏi: "Cơ quan nào giải quyết việc đăng ký hộ kinh doanh, chỉ đường giúp tôi"
-  Output:
-  {{
-    "procedures": ["Đăng ký thành lập hộ kinh doanh"],
-    "pipeline": ["qa", "location"]
-  }}
+  Standalone query:
+  {query}
 
-  ## Yêu cầu output
+  Previous domain:
+  {last_domain}
 
-  - Trả về JSON hợp lệ, không kèm giải thích hay markdown.
-  - Không bọc trong ```json``` hay bất kỳ code block nào.
-  - `procedures`: danh sách tên thủ tục chính xác, chuẩn hóa theo tên gọi hành chính.
-                  Để rỗng [] nếu câu hỏi không liên quan thủ tục hành chính.
-  - `pipeline`: danh sách agent theo thứ tự thực thi. "qa" luôn là agent đầu tiên nếu có.
+  Previous procedures:
+  {last_procedures}
 
-  Output format:
-  {{
-    "procedures": ["Thủ tục X", "Thủ tục Y"],
-    "pipeline": ["qa", "forms", "location"]
-  }}
+  Follow-up note:
+  {followup_reason}
 
-  Câu hỏi của người dùng: {query}
+  Chỉ trả về JSON, không markdown, không giải thích.
 
 SUPERVISOR_PROMPT_V2: |
   Bạn là supervisor của hệ thống hỗ trợ thủ tục hành chính Việt Nam.
@@ -220,6 +195,81 @@ SUPERVISOR_PROMPT_V2: |
   - `pipeline`   : "qa" luôn đứng đầu. Dùng mảng lồng cho agent chạy song song.
 
   Câu hỏi của người dùng: {query}
+
+SUPERVISOR_PROMPT_V3: |
+  Bạn là supervisor của hệ thống hỗ trợ thủ tục hành chính Việt Nam.
+
+  Nhiệm vụ:
+  - từ câu hỏi người dùng, chọn đúng tên thủ tục từ danh sách được cung cấp
+  - chọn fields thực sự cần để trả lời
+  - lập pipeline thực thi
+
+  Danh sách thủ tục hợp lệ:
+  {procedures}
+
+  Agents:
+  - qa: tra cứu dữ liệu, luôn đứng đầu
+  - forms: điền biểu mẫu
+  - location: chỉ đường / địa chỉ nộp hồ sơ
+
+  Quy tắc pipeline:
+  - chỉ hỏi thông tin -> ["qa"]
+  - muốn điền đơn -> ["qa", "forms"]
+  - muốn địa chỉ/chỉ đường -> ["qa", "location"]
+  - muốn cả 2 -> ["qa", "forms", "location"]
+
+  Quy tắc follow-up:
+  - Nếu câu hiện tại là follow-up và vẫn đang hỏi tiếp cùng thủ tục trước đó, ưu tiên giữ nguyên thủ tục trước.
+  - Chỉ đổi sang thủ tục khác nếu câu hiện tại có tín hiệu rõ ràng.
+
+  Quy tắc fields:
+  - Chỉ lấy field cần thiết để trả lời.
+  - Format phải là "table.column".
+  - Không liệt kê thừa.
+
+  Schema cơ sở dữ liệu (schema: rag)
+
+  rag.thu_tuc — thông tin chính:
+    ten_thu_tuc, cap_thuc_hien, loai_thu_tuc, linh_vuc,
+    trinh_tu_thuc_hien, doi_tuong_thuc_hien,
+    co_quan_thuc_hien, co_quan_co_tham_quyen, dia_chi_tiep_nhan_hs,
+    co_quan_duoc_uy_quyen, co_quan_phoi_hop,
+    ket_qua_thuc_hien, yeu_cau_dieu_kien,
+    mo_ta, tu_khoa, so_quyet_dinh, link_tham_khao
+
+  rag.thanh_phan_ho_so — hồ sơ cần nộp:
+    truong_hop, loai_giay_to, mau_don_to_khai, so_luong
+
+  rag.cach_thuc_thuc_hien — hình thức và phí:
+    hinh_thuc_nop, thoi_han_giai_quyet, phi_le_phi, mo_ta
+
+  rag.can_cu_phap_ly — căn cứ pháp lý:
+    so_ky_hieu, trich_yeu, ngay_ban_hanh, co_quan_ban_hanh
+
+  QUAN TRỌNG: Khi người dùng hỏi về hồ sơ hay các loại giấy tờ,... có liên quan đến bảng thanh_phan_ho_so,
+  thì phải lấy tất cả các trường trong bảng thanh_phan_ho_so.
+
+  Previous domain:
+  {last_domain}
+
+  Previous procedures:
+  {last_procedures}
+
+  Follow-up note:
+  {followup_reason}
+
+  Câu hỏi hiện tại:
+  {query}
+
+  Ví dụ Output JSON:
+  {{
+    "procedures": ["Tên thủ tục A"],
+    "fields": ["thu_tuc.dia_chi_tiep_nhan_hs", "cach_thuc_thuc_hien.phi_le_phi"],
+    "pipeline": ["qa"]
+  }}
+
+  Chỉ trả về JSON, không markdown, không giải thích.
+
 
 SQL_GENERATION: |
   Bạn là chuyên gia SQL với PostgreSQL. Nhiệm vụ của bạn là sinh câu query SQL
@@ -434,3 +484,73 @@ ANSWER_GENERATION: |
   Ngữ cảnh: {context}
   Pipeline: {pipeline}
   Trả lời:
+
+
+CONVERSATION_SUMMARY_PROMPT: |
+  Bạn là bộ nhớ hội thoại cho trợ lý hỗ trợ thủ tục hành chính Việt Nam.
+
+  Hãy cập nhật bản tóm tắt hội thoại ngắn gọn, chính xác, chỉ giữ các thông tin còn hữu ích cho các lượt sau.
+  Ưu tiên giữ:
+  - lĩnh vực/thủ tục đang trao đổi
+  - thông tin người dùng đã cung cấp để làm thủ tục
+  - câu hỏi nào đã được trả lời
+  - việc nào còn dang dở
+  - các ràng buộc quan trọng
+
+  Không giữ:
+  - chào hỏi xã giao
+  - diễn đạt dài dòng
+  - thông tin trùng lặp
+
+  Tóm tắt hiện tại:
+  {existing_summary}
+
+  Đoạn hội thoại cũ cần nén:
+  {transcript}
+
+  Trả về đúng phần tóm tắt mới, tiếng Việt, không markdown, không code block.
+
+
+FOLLOWUP_RESOLUTION_PROMPT: |
+  Bạn là bộ phân tích ngữ cảnh hội thoại đa lượt cho trợ lý thủ tục hành chính Việt Nam.
+
+  Nhiệm vụ:
+  1. Xác định câu hiện tại có phải là follow-up của lượt trước hay không.
+  2. Nếu có, viết lại câu hiện tại thành một câu độc lập, tự đủ ngữ cảnh.
+  3. Quyết định có nên kế thừa domain/procedure trước đó hay không.
+
+  Quy tắc:
+  - Nếu câu hiện tại chứa tham chiếu mơ hồ như "vậy", "thế", "cái đó", "thủ tục này", "ở đâu", "bao lâu", "bao nhiêu", "cần giấy tờ gì nữa", "mẫu đơn nào", "nộp online được không" mà phải dựa vào lượt trước mới hiểu rõ -> follow-up = true.
+  - Chỉ kế thừa domain/procedure khi thật sự phù hợp.
+  - standalone_query phải giữ nguyên ý người dùng, chỉ bổ sung ngữ cảnh còn thiếu.
+  - Nếu không chắc, ưu tiên is_followup=false.
+
+  Trả về JSON hợp lệ theo schema:
+  {{
+    "is_followup": true,
+    "standalone_query": "Phí của thủ tục cấp lại thẻ căn cước là bao nhiêu?",
+    "should_inherit_domain": true,
+    "should_inherit_procedures": true,
+    "confidence": 0.92,
+    "reason": "Câu hiện tại dùng tham chiếu rút gọn 'vậy phí bao nhiêu' và phụ thuộc vào thủ tục ở lượt trước."
+  }}
+
+  Summary:
+  {summary}
+
+  Recent messages:
+  {recent_messages}
+
+  Last domain:
+  {last_domain}
+
+  Last procedures:
+  {last_procedures}
+
+  Last answer:
+  {last_answer}
+
+  Current user query:
+  {raw_query}
+
+  Chỉ trả về JSON, không markdown, không giải thích.

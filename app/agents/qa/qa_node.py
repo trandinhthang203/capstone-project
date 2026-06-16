@@ -15,7 +15,6 @@ from langsmith import traceable
 from app.agents.supervisor.constants import NO_PROCEDURE_ANSWERS
 import random
 
-
 @traceable
 async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__end__"]]:
     intent = state.get("intent", "chitchat")
@@ -43,7 +42,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     pipeline = state["pipeline"]
     next_agent = get_next_agent(pipeline, current_agent) 
     messages = state["messages"]
-    user_input = state["user_input"]
+    user_input = state.get("resolved_user_input") or state["user_input"]
     logging.info(f"[qa_node] user_input: {user_input}")
 
     procedure_ids = state["procedures"]
@@ -68,8 +67,12 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
             update={
                 "final_response": answer,
                 "messages": [AIMessage(content=answer)],
+                "last_answer": answer,
+                "last_domain": state.get("domain"),
+                "last_procedures": procedure_ids,
             }
         )
+
 
     try:
         case = SupervisorOutput(
@@ -94,10 +97,14 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         raise 
 
     context = format_context(rows, columns)
-    
-    pdf_urls: list[dict] = []
-    if "forms" in pipeline:
-        pdf_urls = extract_forms_url(rows, columns)
+    pdf_urls = extract_forms_url(rows, columns)
+
+    existing_pdf_urls: list[dict] = state.get("pdf_urls") or []
+    existing_keys = {item["loai_giay_to"] for item in existing_pdf_urls}
+    merged_pdf_urls = existing_pdf_urls + [
+        item for item in pdf_urls
+        if item["loai_giay_to"] not in existing_keys
+    ]
     
     await emit(StreamEvent(
         type="progress", 
@@ -110,13 +117,20 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         context=context,
         pipeline=pipeline
     )
-    answer = await get_response_llm(answer_prompt, messages)
+
+    answer = await get_response_llm(
+        prompt=answer_prompt,
+        messages=messages,
+        summary=state.get("conversation_summary", ""),
+        max_messages=6,
+    )
+
     logging.info(f"[qa_node] Next agent: {next_agent}")
 
     await emit(StreamEvent(
         type="result", 
         node="qa",
-        message= answer,
+        message=answer,
         data={"answer": answer},
     ))
 
@@ -125,6 +139,9 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
         update={
             "final_response": answer,
             "messages": [AIMessage(content=answer)],
-            "pdf_urls" : pdf_urls
+            "pdf_urls": merged_pdf_urls,
+            "last_answer": answer,
+            "last_domain": state.get("domain"),
+            "last_procedures": procedure_ids,
         }
     )
