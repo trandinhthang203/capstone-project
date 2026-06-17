@@ -160,27 +160,37 @@ async def load_pdf_from_url(pdf_url: str) -> str:
 # ─────────────────────────────────────────────────────────────
  
 SYSTEM_PROMPT_EXTRAC = """Bạn là chuyên gia phân tích mẫu đơn hành chính Việt Nam.
- 
+
 Bạn nhận được danh sách các text span trích xuất từ PDF, mỗi span gồm:
+  - page: số trang, bắt đầu từ 0
   - text: nội dung văn bản
   - bbox: (x0, y0, x1, y1) – tọa độ trong PDF (gốc trên-trái)
- 
+
 Nhiệm vụ:
-1. Xác định các trường cần điền (label kèm dấu ":" hoặc dấu "…", "_", "/")
-2. Với mỗi trường, trả về tọa độ điền = (x1 của label + 2, y0 của label)
-   tức là ngay sau phần label, để text điền không đè lên label.
- 
+1. Xác định các trường cần điền (label kèm dấu ":" hoặc vùng gạch dưới / dấu chấm / ô trống).
+2. Với mỗi trường, BẮT BUỘC trả về:
+   - field_id
+   - label
+   - page
+   - x
+   - y
+3. page phải đúng theo span chứa label.
+4. x là vị trí bắt đầu điền, thường là x1 của label + 2.
+5. y là dòng cơ sở để điền text ngang hàng với label.
+
 Trả về JSON hợp lệ duy nhất, KHÔNG markdown, KHÔNG giải thích, ví dụ:
 {
   "fields": [
     {
       "field_id": "ho_ten",
       "label": "Họ, chữ đệm và tên khai sinh",
+      "page": 0,
       "x": 212.0,
       "y": 100.2
     }
   ]
 }"""
+
  
  
 # ─────────────────────────────────────────────────────────────
@@ -253,42 +263,136 @@ async def extract_form_fields(pdf_path: str) -> str:
         import traceback
         return json.dumps({"success": False, "error": str(exc), "traceback": traceback.format_exc()})
 
+
+# @tool
+# async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
+#     """
+#     Điền giá trị vào PDF.
+
+#     Args:
+#         pdf_path:     Đường dẫn PDF gốc.
+#         field_values: {field_id: {"value": "...", "x": float, "y": float}}
+#                       – tọa độ lấy từ kết quả extract_form_fields.
+#         font_path:    Đường dẫn .ttf hỗ trợ tiếng Việt.
+#     """
+#     try:
+#         doc = fitz.open(pdf_path)
+#         page = doc[0]
+#         filled, not_found = [], []
+
+#         for field_id, info in field_values.items():
+#             value = info.get("value", "")
+#             x = info.get("x")
+#             y = info.get("y")
+
+#             if not value or x is None or y is None:
+#                 not_found.append(field_id)
+#                 continue
+
+#             insert_kwargs = dict(
+#                 point=fitz.Point(x, y + 10),
+#                 text=str(value),
+#                 fontsize=9,
+#                 color=(0, 0, 0),
+#             )
+#             if font_path:
+#                 insert_kwargs["fontfile"] = font_path
+#                 insert_kwargs["fontname"] = "DejaVu"
+
+#             page.insert_text(**insert_kwargs)
+#             filled.append(field_id)
+
+#         base = Path(pdf_path)
+#         output_path = f"/tmp/{base.stem}_filled.pdf"
+#         doc.save(output_path, deflate=True)
+#         doc.close()
+
+#         pdf_url = _process_forms.gen_url_file(output_path)
+
+#         Path(output_path).unlink(missing_ok=True)
+
+#         return json.dumps({
+#             "success": True,
+#             "pdf_url": pdf_url,
+#             "filled": filled,
+#             "not_found": not_found,
+#             "message": f"Đã điền {len(filled)} trường.",
+#         }, ensure_ascii=False)
+
+#     except Exception as exc:
+#         return json.dumps({"success": False, "error": str(exc)})
+
 @tool
 async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
     """
-    Điền giá trị vào PDF.
+    Điền giá trị vào PDF nhiều trang.
 
-    Args:
-        pdf_path:     Đường dẫn PDF gốc.
-        field_values: {field_id: {"value": "...", "x": float, "y": float}}
-                      – tọa độ lấy từ kết quả extract_form_fields.
-        font_path:    Đường dẫn .ttf hỗ trợ tiếng Việt.
+    field_values:
+    {
+      "field_id": {
+        "value": "...",
+        "x": 123.4,
+        "y": 456.7,
+        "page": 0
+      }
+    }
     """
     try:
         doc = fitz.open(pdf_path)
-        page = doc[0]
+        total_pages = len(doc)
+        resolved_font = font_path
+
         filled, not_found = [], []
 
         for field_id, info in field_values.items():
-            value = info.get("value", "")
+            value = str(info.get("value", "")).strip()
             x = info.get("x")
             y = info.get("y")
+            page_no = int(info.get("page", 0) or 0)
 
             if not value or x is None or y is None:
                 not_found.append(field_id)
                 continue
 
-            insert_kwargs = dict(
-                point=fitz.Point(x, y + 10),
-                text=str(value),
-                fontsize=9,
-                color=(0, 0, 0),
-            )
-            if font_path:
-                insert_kwargs["fontfile"] = font_path
-                insert_kwargs["fontname"] = "DejaVu"
+            if page_no < 0 or page_no >= total_pages:
+                not_found.append(field_id)
+                continue
 
-            page.insert_text(**insert_kwargs)
+            page = doc[page_no]
+
+            rect = fitz.Rect(
+                float(x),
+                max(0, float(y) - 2),
+                page.rect.width - 24,
+                float(y) + 14,
+            )
+
+            textbox_kwargs = {
+                "rect": rect,
+                "buffer": value,
+                "fontsize": 9,
+                "color": (0, 0, 0),
+                "align": 0,
+            }
+
+            if resolved_font:
+                textbox_kwargs["fontfile"] = resolved_font
+                textbox_kwargs["fontname"] = "FormFont"
+
+            rc = page.insert_textbox(**textbox_kwargs)
+
+            if rc < 0:
+                text_kwargs = {
+                    "point": fitz.Point(float(x), float(y) + 8),
+                    "text": value,
+                    "fontsize": 9,
+                    "color": (0, 0, 0),
+                }
+                if resolved_font:
+                    text_kwargs["fontfile"] = resolved_font
+                    text_kwargs["fontname"] = "FormFont"
+                page.insert_text(**text_kwargs)
+
             filled.append(field_id)
 
         base = Path(pdf_path)
@@ -297,19 +401,23 @@ async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = F
         doc.close()
 
         pdf_url = _process_forms.gen_url_file(output_path)
-
         Path(output_path).unlink(missing_ok=True)
 
-        return json.dumps({
-            "success": True,
-            "pdf_url": pdf_url,
-            "filled": filled,
-            "not_found": not_found,
-            "message": f"Đã điền {len(filled)} trường.",
-        }, ensure_ascii=False)
+        return json.dumps(
+            {
+                "success": True,
+                "pdf_url": pdf_url,
+                "filled": filled,
+                "not_found": not_found,
+                "message": f"Đã điền {len(filled)} trường.",
+            },
+            ensure_ascii=False,
+        )
 
     except Exception as exc:
         return json.dumps({"success": False, "error": str(exc)})
+
+
 # ─────────────────────────────────────────────────────────────
 # TOOL 4: Render preview PNG từng trang
 # ─────────────────────────────────────────────────────────────

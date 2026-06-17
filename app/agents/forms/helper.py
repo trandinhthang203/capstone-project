@@ -54,7 +54,9 @@ def _build_dynamic_form_payload(fields: list[dict], pdf_path: str | None) -> dic
                 "placeholder": f"Nhập {f['label'].lower()}",
                 "x": f.get("x"),
                 "y": f.get("y"),
+                "page": int(f.get("page", 0) or 0),
             }
             for f in fields
         ],
     }
+
