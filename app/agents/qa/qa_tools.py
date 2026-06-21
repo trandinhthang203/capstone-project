@@ -1,7 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
+
+from sqlalchemy import text
+
 from app.db.session import get_db
-from app.agents.base.utils import format_context
+from app.agents.base.utils import extract_forms_url, format_context
 
 
 # ─────────────────────────────────────────────
@@ -131,7 +134,7 @@ def decide_join_strategy(parsed: ParsedFields) -> dict[str, str]:
     ]
 
     # Nếu có ≥ 2 bảng phụ → tách query riêng để tránh cartesian explosion
-    if len(child_tables_needed) >= 4:
+    if len(child_tables_needed) >= 2:
         strategy["__multi_child__"] = "separate"
     else:
         for t in child_tables_needed:
@@ -306,6 +309,69 @@ def build_query_plan(supervisor_output: SupervisorOutput) -> QueryPlan:
 # ─────────────────────────────────────────────
 # Helper — hiển thị kết quả
 # ─────────────────────────────────────────────
+
+def rows_to_dicts(rows, columns) -> list[dict]:
+    return [dict(zip(columns, row)) for row in rows]
+
+
+
+def execute_query_plan(plan: QueryPlan, procedures: list[str]) -> dict:
+    """
+    Thực thi cả main query và child queries (nếu có), trả về raw rows để agent tự suy luận.
+    """
+    main_alias = TABLE_ALIASES["thu_tuc"]
+    _, main_params = build_where_clause(procedures, main_alias)
+
+    with next(get_db()) as db:
+        main_result = db.execute(text(plan.main_sql), main_params)
+        main_columns = list(main_result.keys())
+        main_rows = main_result.fetchall()
+
+        child_payloads: dict[str, dict] = {}
+        for table, sql in plan.child_sqls.items():
+            _, child_params = build_where_clause(procedures, TABLE_ALIASES[table])
+            child_result = db.execute(text(sql), child_params)
+            child_columns = list(child_result.keys())
+            child_rows = child_result.fetchall()
+            child_payloads[table] = {
+                "columns": child_columns,
+                "rows": rows_to_dicts(child_rows, child_columns),
+                "context": format_context(child_rows, child_columns),
+                "row_count": len(child_rows),
+            }
+
+    pdf_urls = extract_forms_url(main_rows, main_columns)
+    seen_form_keys = {item.get("loai_giay_to") for item in pdf_urls}
+
+    for child_payload in child_payloads.values():
+        for item in child_payload.get("rows", []):
+            loai_giay_to = item.get("loai_giay_to") or ""
+            mau_don_to_khai = item.get("mau_don_to_khai") or ""
+            if not loai_giay_to or loai_giay_to in seen_form_keys:
+                continue
+            pdf_urls.append(
+                {
+                    "loai_giay_to": loai_giay_to,
+                    "mau_don_to_khai": mau_don_to_khai,
+                }
+            )
+            seen_form_keys.add(loai_giay_to)
+
+    return {
+        "main": {
+            "columns": main_columns,
+            "rows": rows_to_dicts(main_rows, main_columns),
+            "context": format_context(main_rows, main_columns),
+            "row_count": len(main_rows),
+        },
+        "children": child_payloads,
+        "pdf_urls": pdf_urls,
+        "warnings": plan.warnings,
+        "tables_used": plan.tables_used,
+        "fields_used": plan.fields_used,
+    }
+
+
 
 def format_plan(plan: QueryPlan) -> str:
     lines = []
