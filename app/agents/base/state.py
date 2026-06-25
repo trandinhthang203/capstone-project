@@ -88,8 +88,14 @@ class AgentState(TypedDict, total=False):
     pdf_local_path: str
     filled_pdf_path: str
     final_response: Optional[str]
+    filled_pdf_url: Optional[str]
+    google_docs_url: Optional[str]
 
     # forms
+    pdf_url_selected: Optional[str]
+    form_name_selected: Optional[str]
+    forms_fill_mode: Optional[str]
+    forms_mode_choice_payload: Optional[dict[str, Any]]
     extracted_form_fields: list[dict[str, Any]]
     dynamic_form_payload: Optional[dict[str, Any]]
     submitted_form_values: Optional[dict[str, Any]]

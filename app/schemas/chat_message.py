@@ -11,12 +11,18 @@ class ChatMessageCreate(BaseModel):
     isfromuser: bool = True
 
 
+class DynamicFormOption(BaseModel):
+    value: str
+    label: str
+
+
 class DynamicFormField(BaseModel):
     field_id: str
     label: str
-    type: Literal["text", "textarea", "date", "number", "tel"] = "text"
+    type: Literal["text", "textarea", "date", "number", "tel", "select"] = "text"
     required: bool = True
     placeholder: Optional[str] = None
+    options: Optional[list[DynamicFormOption]] = None
     x: Optional[float] = None
     y: Optional[float] = None
     page: Optional[int] = 0
