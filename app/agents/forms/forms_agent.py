@@ -18,7 +18,7 @@ from app.agents.forms.forms_tools import (
 )
 from app.agents.forms.helper import _build_dynamic_form_payload
 
-TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields]
+# TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields]
 
 
 def _loads_json(raw: Any) -> dict:

@@ -12,9 +12,6 @@ from app.helpers.utils.common import _llm
 from scripts.process_forms import ProcessForms
 
 _process_forms = ProcessForms()
-# ─────────────────────────────────────────────────────────────
-# TOOL
-# ─────────────────────────────────────────────────────────────
 
 FONT_PATH = "E:/ttf/DejaVuSans.ttf"
 
@@ -155,9 +152,6 @@ async def load_pdf_from_url(pdf_url: str) -> str:
         return json.dumps({"success": False, "error": str(exc)})
 
 
-# ─────────────────────────────────────────────────────────────
-# SYSTEM PROMPT
-# ─────────────────────────────────────────────────────────────
  
 SYSTEM_PROMPT_EXTRAC = """Bạn là chuyên gia phân tích mẫu đơn hành chính Việt Nam.
 
@@ -264,64 +258,6 @@ async def extract_form_fields(pdf_path: str) -> str:
         return json.dumps({"success": False, "error": str(exc), "traceback": traceback.format_exc()})
 
 
-# @tool
-# async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
-#     """
-#     Điền giá trị vào PDF.
-
-#     Args:
-#         pdf_path:     Đường dẫn PDF gốc.
-#         field_values: {field_id: {"value": "...", "x": float, "y": float}}
-#                       – tọa độ lấy từ kết quả extract_form_fields.
-#         font_path:    Đường dẫn .ttf hỗ trợ tiếng Việt.
-#     """
-#     try:
-#         doc = fitz.open(pdf_path)
-#         page = doc[0]
-#         filled, not_found = [], []
-
-#         for field_id, info in field_values.items():
-#             value = info.get("value", "")
-#             x = info.get("x")
-#             y = info.get("y")
-
-#             if not value or x is None or y is None:
-#                 not_found.append(field_id)
-#                 continue
-
-#             insert_kwargs = dict(
-#                 point=fitz.Point(x, y + 10),
-#                 text=str(value),
-#                 fontsize=9,
-#                 color=(0, 0, 0),
-#             )
-#             if font_path:
-#                 insert_kwargs["fontfile"] = font_path
-#                 insert_kwargs["fontname"] = "DejaVu"
-
-#             page.insert_text(**insert_kwargs)
-#             filled.append(field_id)
-
-#         base = Path(pdf_path)
-#         output_path = f"/tmp/{base.stem}_filled.pdf"
-#         doc.save(output_path, deflate=True)
-#         doc.close()
-
-#         pdf_url = _process_forms.gen_url_file(output_path)
-
-#         Path(output_path).unlink(missing_ok=True)
-
-#         return json.dumps({
-#             "success": True,
-#             "pdf_url": pdf_url,
-#             "filled": filled,
-#             "not_found": not_found,
-#             "message": f"Đã điền {len(filled)} trường.",
-#         }, ensure_ascii=False)
-
-#     except Exception as exc:
-#         return json.dumps({"success": False, "error": str(exc)})
-
 @tool
 async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = FONT_PATH) -> str:
     """
@@ -416,34 +352,3 @@ async def fill_form_fields(pdf_path: str, field_values: dict, font_path: str = F
 
     except Exception as exc:
         return json.dumps({"success": False, "error": str(exc)})
-
-
-# ─────────────────────────────────────────────────────────────
-# TOOL 4: Render preview PNG từng trang
-# ─────────────────────────────────────────────────────────────
-
-# @tool
-# async def preview_filled_form(pdf_path: str, dpi: int = 120) -> str:
-#     """
-#     Render các trang của PDF thành ảnh PNG để người dùng kiểm tra trước khi nộp.
-#     Trả về JSON: {success, preview_paths, total_pages, message}
-#     """
-#     try:
-#         doc = fitz.open(pdf_path)
-#         out_dir = Path(pdf_path).parent / "previews"
-#         out_dir.mkdir(exist_ok=True)
-#         mat = fitz.Matrix(dpi / 72, dpi / 72)
-#         paths = []
-#         for i, page in enumerate(doc):
-#             p = out_dir / f"page_{i+1:02d}.png"
-#             page.get_pixmap(matrix=mat, alpha=False).save(str(p))
-#             paths.append(str(p))
-#         doc.close()
-#         return json.dumps({
-#             "success": True,
-#             "preview_paths": paths,
-#             "total_pages": len(paths),
-#             "message": f"Preview {len(paths)} trang tại: {out_dir}",
-#         }, ensure_ascii=False)
-#     except Exception as exc:
-#         return json.dumps({"success": False, "error": str(exc)})
