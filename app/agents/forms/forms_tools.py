@@ -3,13 +3,25 @@ import json
 import tempfile
 import urllib.parse
 from pathlib import Path
-
+import os
 import fitz  # PyMuPDF
 import requests
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import tool
 from app.helpers.utils.common import _llm
 from scripts.process_forms import ProcessForms
+import io
+import requests
+from dotenv import load_dotenv
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+from langchain_core.tools import tool
+ 
+load_dotenv()
+ 
+SCOPES = ["https://www.googleapis.com/auth/drive"]
+FOLDER_ID = os.environ["FOLDER_ID"]
 
 _process_forms = ProcessForms()
 
@@ -44,6 +56,23 @@ Trường hợp 2 – cần hỏi thêm:
   "question": "Bạn muốn điền mẫu đơn nào trong số sau?"
 }
 """
+
+def _get_drive_service():
+    """Khởi tạo Drive service client từ OAuth refresh token."""
+    creds = Credentials(
+        token=None,
+        refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
+        client_id=os.environ["GOOGLE_CLIENT_ID"],
+        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=SCOPES,
+    )
+    return build("drive", "v3", credentials=creds)
+ 
+ 
+class DriveUploadError(Exception):
+    """Lỗi tổng quát khi xử lý convert PDF sang Google Doc."""
+    pass
 
 
 @tool
@@ -107,6 +136,93 @@ async def select_form_url(pdf_urls: list[dict], user_input: str) -> str:
             "error": str(exc),
             "traceback": traceback.format_exc(),
         }, ensure_ascii=False)
+
+
+@tool
+async def get_google_docs_link(s3_url: str, file_name: str, user_email: str | None = None) -> str:
+    """
+    Tải PDF từ URL, upload lên Google Drive và convert thành Google Doc, sau đó cấp quyền chỉnh sửa.
+    Dùng tool này khi người dùng muốn lấy một file PDF và biến nó thành một Google Doc để họ (hoặc người khác) 
+    có thể mở và chỉnh sửa trực tiếp trên web.
+ 
+    Args:
+        s3_url:     URL công khai (hoặc có thể truy cập) của file PDF cần convert.
+        file_name:  Tên hiển thị cho Google Doc sau khi tạo.
+        user_email: Email người dùng để cấp quyền "writer" riêng. Nếu không truyền,
+                    quyền "writer" sẽ được cấp cho "anyone" (ai có link).
+ 
+    Returns:
+        JSON dạng:
+          - Thành công: {"success": true, "file_id": "...", "embed_url": "..."}
+          - Thất bại:   {"success": false, "error": "...", "traceback": "..."}
+    """
+    try:
+        drive_service = _get_drive_service()
+ 
+        # 1. Tải file PDF từ nguồn (S3/HTTP)
+        try:
+            response = requests.get(s3_url, stream=True, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise DriveUploadError(f"Không thể tải file từ S3: {e}") from e
+ 
+        file_stream = io.BytesIO(response.content)
+ 
+        # 2. Upload lên Drive và convert thành Google Doc
+        file_metadata = {
+            "name": file_name,
+            "mimeType": "application/vnd.google-apps.document",
+            "parents": [FOLDER_ID],
+        }
+        media = MediaIoBaseUpload(file_stream, mimetype="application/pdf", resumable=True)
+ 
+        try:
+            uploaded_file = (
+                drive_service.files()
+                .create(body=file_metadata, media_body=media, fields="id")
+                .execute()
+            )
+        except Exception as e:
+            raise DriveUploadError(f"Lỗi upload Drive: {e}") from e
+ 
+        file_id = uploaded_file["id"]
+ 
+        # 3. Cấp quyền edit
+        try:
+            if user_email:
+                drive_service.permissions().create(
+                    fileId=file_id,
+                    body={"role": "writer", "type": "user", "emailAddress": user_email},
+                ).execute()
+            else:
+                drive_service.permissions().create(
+                    fileId=file_id,
+                    body={"role": "writer", "type": "anyone"},
+                ).execute()
+        except Exception as e:
+            raise DriveUploadError(f"Lỗi cấp quyền: {e}") from e
+ 
+        # 4. Trả về kết quả
+        embed_url = f"https://docs.google.com/document/d/{file_id}/edit?usp=sharing"
+ 
+        return json.dumps({
+            "success": True,
+            "file_id": file_id,
+            "embed_url": embed_url,
+        }, ensure_ascii=False)
+ 
+    except DriveUploadError as exc:
+        return json.dumps({"success": False, "error": str(exc)}, ensure_ascii=False)
+    except Exception as exc:
+        import traceback
+        return json.dumps({
+            "success": False,
+            "error": str(exc),
+            "traceback": traceback.format_exc(),
+        }, ensure_ascii=False)
+
+
+    
 
 @tool
 async def load_pdf_from_url(pdf_url: str) -> str:
