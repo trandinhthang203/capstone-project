@@ -16,5 +16,9 @@ class ChatSession(Base):
 
     # Relationships
     user         = relationship("User", back_populates="chatsessions")
-    chatmessages = relationship("ChatMessage", back_populates="chatsession")
+    chatmessages = relationship(
+        "ChatMessage",
+        back_populates="chatsession",
+        cascade="all, delete-orphan",
+    )
     feedbacks    = relationship("Feedback", back_populates="chatsession")

@@ -1,0 +1,379 @@
+diff --git a/app/agents/base/state.py b/app/agents/base/state.py
+index 314a90b..b8d2207 100644
+--- a/app/agents/base/state.py
++++ b/app/agents/base/state.py
+@@ -98,4 +98,5 @@ class AgentState(TypedDict, total=False):
+     forms_mode_choice_payload: Optional[dict[str, Any]]
+     extracted_form_fields: list[dict[str, Any]]
+     dynamic_form_payload: Optional[dict[str, Any]]
++    dynamic_form_prefill_values: Optional[dict[str, Any]]
+     submitted_form_values: Optional[dict[str, Any]]
+diff --git a/app/agents/forms/forms_agent.py b/app/agents/forms/forms_agent.py
+index ae44709..d87618d 100644
+--- a/app/agents/forms/forms_agent.py
++++ b/app/agents/forms/forms_agent.py
+@@ -29,7 +29,9 @@ from app.agents.forms.forms_tools import (
+     load_pdf_from_url,
+     select_form_url,
+ )
+-from app.agents.forms.helper import _build_dynamic_form_payload
++from app.agents.forms.helper import _build_dynamic_form_payload, enrich_fields_with_profile, extract_prefill_values
++from app.db.session import get_db
++from app.services.user_service import UserService
+ 
+ TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields, get_google_docs_link]
+ 
+@@ -396,6 +398,18 @@ async def forms_extract_node(
+             update={"final_response": answer, "messages": [AIMessage(content=answer)]},
+         )
+ 
++    user_profile: dict[str, Any] = {}
++    user_id = state.get("user_id")
++    if user_id:
++        try:
++            with next(get_db()) as db:
++                user_service = UserService(db)
++                user_profile = user_service.get_profile_for_chatbot(user_id) or {}
++        except Exception:
++            user_profile = {}
++
++    fields = enrich_fields_with_profile(fields, user_profile)
++    prefill_values = extract_prefill_values(fields)
+     form_payload = _build_dynamic_form_payload(fields, pdf_path)
+ 
+     await emit(
+@@ -412,6 +426,7 @@ async def forms_extract_node(
+             "pdf_local_path": pdf_path,
+             "extracted_form_fields": fields,
+             "dynamic_form_payload": form_payload,
++            "dynamic_form_prefill_values": prefill_values,
+         },
+     )
+ 
+@@ -446,10 +461,13 @@ async def forms_fill_node(state: AgentState) -> dict:
+     pdf_path = state.get("pdf_local_path")
+     fields = state.get("extracted_form_fields", []) or []
+     submitted_values = state.get("submitted_form_values") or {}
++    prefill_values = state.get("dynamic_form_prefill_values") or {}
++    merged_values = dict(prefill_values)
++    merged_values.update(submitted_values)
+ 
+     field_values = {}
+     for field in fields:
+-        raw_value = submitted_values.get(field["field_id"])
++        raw_value = merged_values.get(field["field_id"])
+         value = str(raw_value).strip() if raw_value is not None else ""
+         if not value:
+             continue
+@@ -484,7 +502,8 @@ async def forms_fill_node(state: AgentState) -> dict:
+         return {
+             "final_response": answer,
+             "messages": [AIMessage(content=answer)],
+-            "submitted_form_values": submitted_values,
++            "submitted_form_values": merged_values,
++            "dynamic_form_prefill_values": prefill_values,
+         }
+ 
+     filled_pdf_url = filled_payload.get("pdf_url")
+@@ -504,7 +523,8 @@ async def forms_fill_node(state: AgentState) -> dict:
+     )
+ 
+     return {
+-        "submitted_form_values": submitted_values,
++        "submitted_form_values": merged_values,
++        "dynamic_form_prefill_values": prefill_values,
+         "filled_pdf_url": filled_pdf_url,
+         "final_response": final_response,
+         "messages": [AIMessage(content="Tôi đã nhận dữ liệu từ form động và hoàn tất việc điền biểu mẫu.")],
+diff --git a/app/agents/forms/helper.py b/app/agents/forms/helper.py
+index 3c56486..5a4d0ca 100644
+--- a/app/agents/forms/helper.py
++++ b/app/agents/forms/helper.py
+@@ -1,8 +1,66 @@
+ import json
++import unicodedata
+ import uuid
++from datetime import date, datetime
++from typing import Any
++
+ from langchain_core.messages import ToolMessage
+ 
+ 
++SELF_FIELD_EXCLUSION_KEYWORDS = [
++    "cha",
++    "me",
++    "mẹ",
++    "vo",
++    "vợ",
++    "chong",
++    "chồng",
++    "con",
++    "nguoi than",
++    "người thân",
++    "than nhan",
++    "thân nhân",
++    "giam ho",
++    "giám hộ",
++    "dai dien",
++    "đại diện",
++]
++
++PROFILE_LABEL_RULES: list[tuple[str, list[str]]] = [
++    ("citizenid", ["so dinh danh", "dinh danh ca nhan", "cccd", "cmnd", "can cuoc"]),
++    ("dateofbirth", ["ngay sinh", "sinh ngay", "nam sinh"]),
++    ("phonenumber", ["so dien thoai", "dien thoai", "di dong", "sdt", "mobile"]),
++    ("gender", ["gioi tinh", "nam/nu", "nam nu"]),
++    ("province", ["tinh/thanh pho", "tinh/thanh", "tinh thanh", "thanh pho", "tinh"]),
++    ("district", ["quan/huyen", "quan huyen", "quận/huyện", "huyen", "quan"]),
++    ("ward", ["phuong/xa", "phuong xa", "phường/xã", "xa", "phuong"]),
++    (
++        "address",
++        [
++            "dia chi thuong tru",
++            "noi thuong tru",
++            "cho o hien tai",
++            "noi o hien tai",
++            "dia chi lien he",
++            "dia chi",
++        ],
++    ),
++    (
++        "fullname",
++        [
++            "ho va ten",
++            "ho ten",
++            "ho, chu dem va ten",
++            "ten khai sinh",
++            "nguoi khai",
++            "nguoi yeu cau",
++            "nguoi de nghi",
++            "cong dan",
++        ],
++    ),
++]
++
++
+ def _parse_tool_json(msg: ToolMessage):
+     try:
+         return json.loads(msg.content)
+@@ -10,6 +68,7 @@ def _parse_tool_json(msg: ToolMessage):
+         return None
+ 
+ 
++
+ def _find_last_tool_payload(messages, tool_name: str):
+     for msg in reversed(messages):
+         if isinstance(msg, ToolMessage) and getattr(msg, "name", "") == tool_name:
+@@ -17,6 +76,7 @@ def _find_last_tool_payload(messages, tool_name: str):
+     return None
+ 
+ 
++
+ def _is_last_message_from_tool(messages, tool_name: str) -> bool:
+     if not messages:
+         return False
+@@ -24,6 +84,13 @@ def _is_last_message_from_tool(messages, tool_name: str) -> bool:
+     return isinstance(last, ToolMessage) and getattr(last, "name", "") == tool_name
+ 
+ 
++
++def _normalize_text(text: str) -> str:
++    ascii_text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode("ascii")
++    return " ".join(ascii_text.lower().replace("_", " ").split())
++
++
++
+ def _guess_field_type(label: str) -> str:
+     l = (label or "").lower()
+     if "ngày" in l or "tháng" in l or "năm" in l:
+@@ -37,12 +104,134 @@ def _guess_field_type(label: str) -> str:
+     return "text"
+ 
+ 
+-def _build_dynamic_form_payload(fields: list[dict], pdf_path: str | None) -> dict:
++
++def _compose_full_address(user_profile: dict[str, Any]) -> str:
++    ordered_parts: list[str] = []
++    for key in ("address", "ward", "district", "province"):
++        value = str(user_profile.get(key) or "").strip()
++        if value and value not in ordered_parts:
++            ordered_parts.append(value)
++    return ", ".join(ordered_parts)
++
++
++
++def _format_date(value: Any) -> str:
++    if value is None:
++        return ""
++    if isinstance(value, datetime):
++        return value.strftime("%d/%m/%Y")
++    if isinstance(value, date):
++        return value.strftime("%d/%m/%Y")
++
++    text = str(value).strip()
++    if not text:
++        return ""
++
++    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d"):
++        try:
++            parsed = datetime.strptime(text, fmt)
++            return parsed.strftime("%d/%m/%Y")
++        except ValueError:
++            continue
++    return text
++
++
++
++def _format_gender(value: Any) -> str:
++    raw = str(value or "").strip().lower()
++    mapping = {
++        "male": "Nam",
++        "female": "Nữ",
++        "other": "Khác",
++        "nam": "Nam",
++        "nữ": "Nữ",
++        "nu": "Nữ",
++    }
++    return mapping.get(raw, str(value or "").strip())
++
++
++
++def _is_non_self_field(label: str) -> bool:
++    normalized = _normalize_text(label)
++    explicit_self_markers = ["nguoi khai", "nguoi yeu cau", "nguoi de nghi", "cong dan", "chu don"]
++    if any(marker in normalized for marker in explicit_self_markers):
++        return False
++    return any(keyword in normalized for keyword in SELF_FIELD_EXCLUSION_KEYWORDS)
++
++
++
++def _match_profile_key(label: str) -> str | None:
++    normalized = _normalize_text(label)
++    if not normalized or _is_non_self_field(normalized):
++        return None
++
++    for profile_key, keywords in PROFILE_LABEL_RULES:
++        if any(keyword in normalized for keyword in keywords):
++            return profile_key
++    return None
++
++
++
++def _resolve_profile_value(profile_key: str, user_profile: dict[str, Any]) -> str:
++    if not user_profile:
++        return ""
++
++    if profile_key == "address":
++        return _compose_full_address(user_profile)
++    if profile_key == "dateofbirth":
++        return _format_date(user_profile.get("dateofbirth"))
++    if profile_key == "gender":
++        return _format_gender(user_profile.get("gender"))
++
++    value = user_profile.get(profile_key)
++    return str(value).strip() if value is not None else ""
++
++
++
++def enrich_fields_with_profile(fields: list[dict], user_profile: dict[str, Any] | None) -> list[dict]:
++    if not user_profile:
++        return fields
++
++    enriched_fields: list[dict] = []
++    for field in fields:
++        cloned = dict(field)
++        profile_key = _match_profile_key(str(field.get("label") or ""))
++        if profile_key:
++            value = _resolve_profile_value(profile_key, user_profile)
++            if value:
++                cloned["value"] = value
++                cloned["prefill_source"] = "user_profile"
++                cloned["prefill_key"] = profile_key
++        enriched_fields.append(cloned)
++
++    return enriched_fields
++
++
++
++def extract_prefill_values(fields: list[dict]) -> dict[str, str]:
++    prefill_values: dict[str, str] = {}
++    for field in fields:
++        value = field.get("value")
++        if value is None:
++            continue
++        text = str(value).strip()
++        if text:
++            prefill_values[str(field.get("field_id"))] = text
++    return prefill_values
++
++
++
++def _build_dynamic_form_payload(
++    fields: list[dict],
++    pdf_path: str | None,
++    user_profile: dict[str, Any] | None = None,
++) -> dict:
++    enriched_fields = enrich_fields_with_profile(fields, user_profile)
+     return {
+         "kind": "dynamic_form",
+         "request_id": str(uuid.uuid4()),
+         "title": "Vui lòng điền thông tin vào biểu mẫu",
+-        "description": "Các trường dưới đây được trích xuất tự động từ mẫu đơn.",
++        "description": "Các trường dưới đây được trích xuất tự động từ mẫu đơn. Những trường đã có dữ liệu từ hồ sơ người dùng sẽ được điền sẵn và bạn vẫn có thể chỉnh sửa.",
+         "submit_label": "Tiếp tục điền đơn",
+         "pdf_path": pdf_path,
+         "fields": [
+@@ -52,11 +241,13 @@ def _build_dynamic_form_payload(fields: list[dict], pdf_path: str | None) -> dic
+                 "type": _guess_field_type(f["label"]),
+                 "required": True,
+                 "placeholder": f"Nhập {f['label'].lower()}",
++                "value": f.get("value"),
++                "prefill_source": f.get("prefill_source"),
++                "prefill_key": f.get("prefill_key"),
+                 "x": f.get("x"),
+                 "y": f.get("y"),
+                 "page": int(f.get("page", 0) or 0),
+             }
+-            for f in fields
++            for f in enriched_fields
+         ],
+     }
+-
+diff --git a/app/schemas/chat_message.py b/app/schemas/chat_message.py
+index f6f8a57..d2726d5 100644
+--- a/app/schemas/chat_message.py
++++ b/app/schemas/chat_message.py
+@@ -22,6 +22,9 @@ class DynamicFormField(BaseModel):
+     type: Literal["text", "textarea", "date", "number", "tel", "select"] = "text"
+     required: bool = True
+     placeholder: Optional[str] = None
++    value: Optional[str] = None
++    prefill_source: Optional[str] = None
++    prefill_key: Optional[str] = None
+     options: Optional[list[DynamicFormOption]] = None
+     x: Optional[float] = None
+     y: Optional[float] = None
+diff --git a/app/services/user_service.py b/app/services/user_service.py
+index d4ec7a1..6bd22ac 100644
+--- a/app/services/user_service.py
++++ b/app/services/user_service.py
+@@ -154,11 +154,13 @@ class UserService(object):
+     def get_profile_for_chatbot(self, user_id: int) -> dict:
+         user = self.get_user_by_id(user_id)
+         return {
+-            "fullname":    user.fullname,
++            "fullname": user.fullname,
++            "citizenid": user.citizenid,
++            "phonenumber": user.phonenumber,
+             "dateofbirth": str(user.dateofbirth) if user.dateofbirth else None,
+-            "gender":      user.gender,
+-            "address":     user.address,
+-            "province":    user.province,
+-            "district":    user.district,
+-            "ward":        user.ward,
++            "gender": user.gender,
++            "address": user.address,
++            "province": user.province,
++            "district": user.district,
++            "ward": user.ward,
+         }

@@ -154,11 +154,13 @@ class UserService(object):
     def get_profile_for_chatbot(self, user_id: int) -> dict:
         user = self.get_user_by_id(user_id)
         return {
-            "fullname":    user.fullname,
+            "fullname": user.fullname,
+            "citizenid": user.citizenid,
+            "phonenumber": user.phonenumber,
             "dateofbirth": str(user.dateofbirth) if user.dateofbirth else None,
-            "gender":      user.gender,
-            "address":     user.address,
-            "province":    user.province,
-            "district":    user.district,
-            "ward":        user.ward,
+            "gender": user.gender,
+            "address": user.address,
+            "province": user.province,
+            "district": user.district,
+            "ward": user.ward,
         }

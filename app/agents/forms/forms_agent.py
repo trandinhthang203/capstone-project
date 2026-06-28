@@ -1,14 +1,3 @@
-"""
-Forms Agent – tác tử điền biểu mẫu hành chính.
-
-Luồng:
-  1. forms_node         – chọn mẫu đơn  → hỏi người dùng muốn điền theo hướng nào
-  2. forms_ask_mode_node– interrupt để người dùng chọn hướng điền (google_docs | dynamic_form)
-  3. forms_route_node   – đọc lựa chọn → rẽ nhánh
-       ├─ google_docs   → forms_google_docs_node  (convert → Google Docs link)
-       └─ dynamic_form  → forms_extract_node      → forms_wait_input_node → forms_fill_node
-"""
-
 import json
 import re
 import unicodedata
@@ -29,98 +18,15 @@ from app.agents.forms.forms_tools import (
     load_pdf_from_url,
     select_form_url,
 )
-from app.agents.forms.helper import _build_dynamic_form_payload
-
-TOOLS = [select_form_url, load_pdf_from_url, extract_form_fields, fill_form_fields, get_google_docs_link]
-
-# ──────────────────────────────────────────────────────────
-# Helpers
-# ──────────────────────────────────────────────────────────
-
-def _loads_json(raw: Any) -> dict:
-    if isinstance(raw, dict):
-        return raw
-    if raw is None:
-        return {}
-    try:
-        return json.loads(raw)
-    except Exception:
-        return {}
-
-
-def _slugify(text: str) -> str:
-    text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode("ascii")
-    text = re.sub(r"[^a-zA-Z0-9]+", "_", text).strip("_").lower()
-    return text or "field"
-
-
-def _normalize_fields(fields: list[dict]) -> list[dict]:
-    normalized = []
-    seen: dict[str, int] = {}
-
-    for idx, field in enumerate(fields, start=1):
-        label = str(field.get("label") or f"Trường {idx}").strip()
-        page = int(field.get("page", 0) or 0)
-        base_id = _slugify(field.get("field_id") or label)
-
-        seen[base_id] = seen.get(base_id, 0) + 1
-        field_id = base_id if seen[base_id] == 1 else f"{base_id}_{seen[base_id]}"
-
-        normalized.append(
-            {
-                "field_id": field_id,
-                "label": label,
-                "x": field.get("x"),
-                "y": field.get("y"),
-                "page": page,
-            }
-        )
-
-    return normalized
-
-
-def _build_mode_choice_payload(form_name: str, pdf_url: str) -> dict:
-    """Payload để hỏi người dùng chọn hướng điền, tái sử dụng cơ chế dynamic_form sẵn có."""
-    description = (
-        f"Tôi đã tìm thấy mẫu đơn **{form_name}**. "
-        "Bạn muốn điền theo hướng nào?\n\n"
-        "- **1** – Chỉnh sửa trực tiếp trên mẫu đơn\n"
-        "- **2** – Điền mẫu đơn tự động "
-    )
-
-    return {
-        "kind": "dynamic_form",
-        "request_id": str(uuid.uuid4()),
-        "title": f"Chọn cách điền cho {form_name}",
-        "description": description,
-        "submit_label": "Tiếp tục",
-        "pdf_url": pdf_url,
-        "fields": [
-            {
-                "field_id": "mode",
-                "label": "Cách điền",
-                "type": "select",
-                "required": True,
-                "placeholder": "Chọn 1 hoặc 2",
-                "options": [
-                    {"value": "google_docs", "label": "1 – Chỉnh sửa trực tiếp trên Google Docs"},
-                    {"value": "dynamic_form", "label": "2 – Điền form tự động (xuất PDF)"},
-                ],
-            }
-        ],
-    }
-
-
-def _detect_mode_from_text(text: str) -> str | None:
-    """Cố gắng nhận diện lựa chọn từ text tự do của người dùng."""
-    t = (text or "").strip().lower()
-    # Rõ ràng chọn 1 / google docs
-    if t in ("1", "1.", "1 ", "option 1") or "google" in t or "docs" in t or "link" in t:
-        return "google_docs"
-    # Rõ ràng chọn 2 / form tự động
-    if t in ("2", "2.", "2 ", "option 2") or "tự động" in t or "dynamic" in t or "pdf" in t or "điền tự" in t:
-        return "dynamic_form"
-    return None
+from app.agents.forms.helper import (
+    _build_dynamic_form_payload, 
+    _loads_json, 
+    _normalize_fields, 
+    _build_mode_choice_payload, 
+    _detect_mode_from_text
+)
+from app.db.session import get_db
+from app.services.user_service import UserService
 
 
 # ──────────────────────────────────────────────────────────
@@ -338,6 +244,7 @@ async def forms_extract_node(
 ) -> Command[Literal["forms_wait_input", "__end__"]]:
     pdf_url = state.get("pdf_url_selected") or ""
     form_name = state.get("form_name_selected") or "biểu mẫu"
+    user_id = state.get("user_id")
 
     if not pdf_url:
         answer = "Không tìm thấy URL biểu mẫu để trích xuất trường."
@@ -395,8 +302,12 @@ async def forms_extract_node(
             goto=END,
             update={"final_response": answer, "messages": [AIMessage(content=answer)]},
         )
+    
+    with next(get_db()) as db:
+        user_service = UserService(db)
+        user_profile = user_service.get_profile_for_chatbot(user_id) or {}
 
-    form_payload = _build_dynamic_form_payload(fields, pdf_path)
+    form_payload = _build_dynamic_form_payload(fields, pdf_path, user_profile)
 
     await emit(
         StreamEvent(

@@ -98,4 +98,5 @@ class AgentState(TypedDict, total=False):
     forms_mode_choice_payload: Optional[dict[str, Any]]
     extracted_form_fields: list[dict[str, Any]]
     dynamic_form_payload: Optional[dict[str, Any]]
+    dynamic_form_prefill_values: Optional[dict[str, Any]]
     submitted_form_values: Optional[dict[str, Any]]

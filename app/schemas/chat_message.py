@@ -22,6 +22,9 @@ class DynamicFormField(BaseModel):
     type: Literal["text", "textarea", "date", "number", "tel", "select"] = "text"
     required: bool = True
     placeholder: Optional[str] = None
+    value: Optional[str] = None
+    prefill_source: Optional[str] = None
+    prefill_key: Optional[str] = None
     options: Optional[list[DynamicFormOption]] = None
     x: Optional[float] = None
     y: Optional[float] = None
