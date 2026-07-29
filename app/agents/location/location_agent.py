@@ -11,6 +11,7 @@ from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import emit, get_next_agent
 from app.agents.location.location_tools import get_directions, search_agency_place
 from app.agents.supervisor.helper import _parse_location_response
+from app.agents.qa.qa_tools import fetch_location_seed_payload
 from app.db.session import get_db
 from app.helpers.utils.common import _llm
 from app.helpers.utils.logger import logging
@@ -70,7 +71,7 @@ def build_user_prompt(qa_answer: str, user_profile: dict[str, Any]) -> str:
     district = user_profile.get("district", "")
     ward = user_profile.get("ward", "")
 
-    return f"""Thông tin thủ tục từ hệ thống QA:
+    return f"""Thông tin thủ tục đã có:
 {qa_answer}
 
 Thông tin người dùng:
@@ -140,6 +141,25 @@ def _build_direction_summary(route: dict, agency_name: str = "") -> str:
             summary_parts.append("Các bước chính: " + " → ".join(top_steps))
 
     return " ".join(part for part in summary_parts if part).strip()
+
+
+def _format_location_seed_context(payload: dict) -> str:
+    rows = ((payload or {}).get("main") or {}).get("rows") or []
+    if not rows:
+        return ""
+
+    lines = ["Thông tin thủ tục được nạp trực tiếp từ cơ sở dữ liệu:"]
+    for idx, row in enumerate(rows[:3], start=1):
+        lines.append(f"- Thủ tục {idx}: {row.get('ten_thu_tuc', '')}")
+        if row.get("co_quan_thuc_hien"):
+            lines.append(f"  + Cơ quan thực hiện: {row['co_quan_thuc_hien']}")
+        if row.get("co_quan_co_tham_quyen"):
+            lines.append(f"  + Cơ quan có thẩm quyền: {row['co_quan_co_tham_quyen']}")
+        if row.get("dia_chi_tiep_nhan_hs"):
+            lines.append(f"  + Địa chỉ tiếp nhận hồ sơ: {row['dia_chi_tiep_nhan_hs']}")
+        if row.get("cap_thuc_hien"):
+            lines.append(f"  + Cấp thực hiện: {row['cap_thuc_hien']}")
+    return "\n".join(lines).strip()
 
 
 def _build_fallback_result(
@@ -271,7 +291,8 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     current_agent = "location"
     next_agent = get_next_agent(state.get("pipeline", []), current_agent)
 
-    qa_answer = state.get("final_response", "")
+    qa_answer = (state.get("final_response") or "").strip()
+    procedure_ids = state.get("procedures", []) or []
     user_id = state.get("user_id")
     logging.info(f"[location_agent] User id: {user_id}")
 
@@ -318,7 +339,43 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
             },
         )
 
-    messages = [HumanMessage(content=build_user_prompt(qa_answer, user_profile))]
+    procedure_context = qa_answer
+    if not procedure_context and procedure_ids:
+        try:
+            seed_payload = fetch_location_seed_payload(procedure_ids)
+            procedure_context = _format_location_seed_context(seed_payload)
+        except Exception as exc:
+            logging.error(f"[location_agent] Failed to hydrate direct location context: {exc}", exc_info=True)
+
+    if not procedure_context:
+        final_result = _build_fallback_result(
+            user_profile=user_profile,
+            reason="Thiếu thông tin thủ tục để xác định cơ quan tiếp nhận hồ sơ.",
+        )
+        summary = final_result["directions_message"]
+        await emit(
+            StreamEvent(
+                type="result",
+                node="location",
+                message=summary,
+                data={
+                    "location": {
+                        **final_result,
+                        "origin": final_result.get("start_address", ""),
+                        "destination": final_result.get("end_address", ""),
+                    }
+                },
+            )
+        )
+        return Command(
+            goto=next_agent,
+            update={
+                "final_response": summary,
+                "messages": [AIMessage(content=summary)],
+            },
+        )
+
+    messages = [HumanMessage(content=build_user_prompt(procedure_context, user_profile))]
     final_result: dict | None = None
     latest_route: dict | None = None
     latest_agency: dict | None = None

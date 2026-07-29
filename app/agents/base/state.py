@@ -83,6 +83,9 @@ class AgentState(TypedDict, total=False):
     context: str
     node_outputs: str
 
+    # Qdrant retrieval cache (dùng nội bộ giữa intent_node → supervisor_node)
+    _qdrant_candidates: list[str]
+
     # outputs
     pdf_urls: list
     pdf_local_path: str

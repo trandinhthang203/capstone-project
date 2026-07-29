@@ -208,15 +208,18 @@ SUPERVISOR_PROMPT_V3: |
   {procedures}
 
   Agents:
-  - qa: tra cứu dữ liệu, luôn đứng đầu
-  - forms: điền biểu mẫu
-  - location: chỉ đường / địa chỉ nộp hồ sơ
+  - qa: tra cứu dữ liệu và trả lời thông tin khi người dùng cần tư vấn
+  - forms: điền biểu mẫu, có thể chạy trực tiếp nếu đã xác định được thủ tục/mẫu phù hợp
+  - location: chỉ đường / địa chỉ nộp hồ sơ, có thể chạy trực tiếp nếu đã xác định được thủ tục/cơ quan phù hợp
 
   Quy tắc pipeline:
   - chỉ hỏi thông tin -> ["qa"]
-  - muốn điền đơn -> ["qa", "forms"]
-  - muốn địa chỉ/chỉ đường -> ["qa", "location"]
-  - muốn cả 2 -> ["qa", "forms", "location"]
+  - muốn điền đơn, và đã đủ dữ liệu để chọn biểu mẫu -> ["forms"]
+  - muốn điền đơn nhưng vẫn cần QA để làm rõ -> ["qa", "forms"]
+  - muốn địa chỉ/chỉ đường, và đã đủ dữ liệu để suy ra cơ quan tiếp nhận -> ["location"]
+  - muốn địa chỉ/chỉ đường nhưng vẫn cần QA để làm rõ -> ["qa", "location"]
+  - muốn cả điền đơn lẫn chỉ đường, và cả hai agent đều có thể chạy trực tiếp -> ["forms", "location"]
+  - nếu vẫn cần tư vấn/trích xuất thông tin trước khi hành động -> giữ qa ở đầu pipeline tương ứng
 
   Quy tắc follow-up:
   - Nếu câu hiện tại là follow-up và vẫn đang hỏi tiếp cùng thủ tục trước đó, ưu tiên giữ nguyên thủ tục trước.
@@ -246,9 +249,12 @@ SUPERVISOR_PROMPT_V3: |
   rag.can_cu_phap_ly — căn cứ pháp lý:
     so_ky_hieu, trich_yeu, ngay_ban_hanh, co_quan_ban_hanh
 
-  QUAN TRỌNG: Khi người dùng hỏi về hồ sơ hay các loại giấy tờ,... có liên quan đến bảng thanh_phan_ho_so,
+  QUAN TRỌNG: 
+  - Khi người dùng hỏi về hồ sơ hay các loại giấy tờ,... có liên quan đến bảng thanh_phan_ho_so,
   thì phải lấy tất cả các trường trong bảng thanh_phan_ho_so.
-
+  - Khi người dùng hỏi về địa chỉ nộp hồ sơ, cơ quan thực hiện, làm ở đâu, chỉ đường,...
+  thì phải lấy tất cả các như : cap_thuc_hien, dia_chi_tiep_nhan_hs, co_quan_thuc_hien, co_quan_co_tham_quyen, co_quan_duoc_uy_quyen, co_quan_phoi_hop.
+  
   Previous domain:
   {last_domain}
 

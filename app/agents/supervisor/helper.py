@@ -7,6 +7,41 @@ from app.agents.supervisor.constants import VALID_DOMAINS
 from app.helpers.utils.logger import logging
 
 
+def _normalize_pipeline(pipeline: list) -> list[str]:
+    allowed_agents = {"qa", "forms", "location"}
+    flat: list[str] = []
+    seen: set[str] = set()
+
+    for item in pipeline or ["qa"]:
+        candidates = [item] if isinstance(item, str) else item if isinstance(item, list) else []
+        for candidate in candidates:
+            if not isinstance(candidate, str):
+                continue
+            candidate = candidate.strip()
+            if candidate not in allowed_agents or candidate in seen:
+                continue
+            flat.append(candidate)
+            seen.add(candidate)
+
+    return flat or ["qa"]
+
+
+def _resolve_first_agent(pipeline: list[str], procedures: list[str]) -> str:
+    if not procedures:
+        return "qa"
+    return pipeline[0] if pipeline else "qa"
+
+
+def _format_candidates_for_llm(hits: list[dict]) -> str:
+    """Chuyển danh sách hit từ Qdrant thành chuỗi liệt kê để đưa vào prompt LLM."""
+    lines = []
+    for i, h in enumerate(hits, 1):
+        name = h.get("ten_thu_tuc", "")
+        linh_vuc = h.get("linh_vuc", "")
+        lines.append(f"{i}. {name}" + (f" (Lĩnh vực: {linh_vuc})" if linh_vuc else ""))
+    return "\n".join(lines)
+
+
 def _normalize_model_output(raw: Any) -> str:
     if raw is None:
         return ""

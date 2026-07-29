@@ -86,6 +86,8 @@ Diễn giải:
 - status=done chỉ khi câu trả lời đã đạt yêu cầu hoặc không thể lấy thêm dữ liệu hữu ích nữa.
 - Nếu needs_more_data=true thì thường nên gọi tool ở vòng tiếp theo.
 - reasoning_summary phải ngắn gọn, không lan man.
+
+QUAN TRỌNG: Nếu đã tốt, "next_action" : "finalize", ĐỂ NGUYÊN draft_answer không chỉnh sửa gì thêm, đặc biệt giữ nguyên link gốc
 """
 
 
@@ -119,9 +121,8 @@ Bản nháp câu trả lời hiện tại:
 {draft_answer}
 
 Hãy tự đánh giá bản nháp này.
-- Nếu đã tốt, có thể finalize.
+- Nếu đã tốt, có thể finalize, ĐỂ NGUYÊN draft_answer không chỉnh sửa gì thêm.
 - Nếu chưa đủ dữ liệu hoặc cần kiểm chứng, hãy tự quyết định gọi tool phù hợp.
-- Nếu chỉ cần sửa cách diễn đạt, bạn có thể tiếp tục mà không cần gọi tool.
 """
 
 
@@ -339,7 +340,13 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
             continue
 
         candidate_answer = str(review_payload.get("answer") or "").strip()
-        if candidate_answer:
+        next_action = review_payload.get("next_action", "")
+
+        # candidate_answer = str(review_payload.get("answer") or "").strip()
+        # if candidate_answer:
+        #     latest_answer = candidate_answer
+
+        if candidate_answer and next_action != "finalize":
             latest_answer = candidate_answer
 
         logging.info("[qa_node] Review payload at iter %s: %s", iteration + 1, review_payload)

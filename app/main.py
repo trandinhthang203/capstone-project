@@ -8,12 +8,16 @@ from app.db.base import Base
 from app.db.session import engine
 from app.core.config import settings
 from app.helpers.utils.exception import CustomException
+from app.helpers.utils.init_embedding import _get_client, _get_models
 from app.agents.base.graph import create_workflow
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _get_client()
+    _get_models()
     app.state.workflow = await create_workflow()
     yield
+
 
 # logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
 # Base.metadata.create_all(bind=engine)

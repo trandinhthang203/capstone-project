@@ -51,6 +51,19 @@ PROCEDURE_MATCH_COLUMN = "ma_thu_tuc"
 # Luôn SELECT ma_thu_tuc để có thể liên kết kết quả
 ALWAYS_SELECT = {"thu_tuc": {"ma_thu_tuc", "ten_thu_tuc", "link_tham_khao"}}
 
+DIRECT_FORMS_FIELDS = [
+    "thanh_phan_ho_so.loai_giay_to",
+    "thanh_phan_ho_so.mau_don_to_khai",
+]
+
+DIRECT_LOCATION_FIELDS = [
+    "thu_tuc.ten_thu_tuc",
+    "thu_tuc.co_quan_thuc_hien",
+    "thu_tuc.co_quan_co_tham_quyen",
+    "thu_tuc.dia_chi_tiep_nhan_hs",
+    "thu_tuc.cap_thuc_hien",
+]
+
 
 # ─────────────────────────────────────────────
 # Kiểu dữ liệu
@@ -371,6 +384,23 @@ def execute_query_plan(plan: QueryPlan, procedures: list[str]) -> dict:
         "fields_used": plan.fields_used,
     }
 
+
+
+def fetch_procedure_payload(procedures: list[str], fields: list[str]) -> dict:
+    case = SupervisorOutput(procedures=procedures, fields=fields)
+    plan = build_query_plan(case)
+    return execute_query_plan(plan, case.procedures)
+
+
+
+def fetch_form_pdf_urls(procedures: list[str]) -> list[dict]:
+    payload = fetch_procedure_payload(procedures, DIRECT_FORMS_FIELDS)
+    return payload.get("pdf_urls") or []
+
+
+
+def fetch_location_seed_payload(procedures: list[str]) -> dict:
+    return fetch_procedure_payload(procedures, DIRECT_LOCATION_FIELDS)
 
 
 def format_plan(plan: QueryPlan) -> str:

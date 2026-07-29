@@ -27,6 +27,7 @@ from app.agents.forms.helper import (
 )
 from app.db.session import get_db
 from app.services.user_service import UserService
+from app.agents.qa.qa_tools import fetch_form_pdf_urls
 
 
 # ──────────────────────────────────────────────────────────
@@ -40,6 +41,26 @@ async def forms_node(
     raw_user_input = state.get("user_input", "")
     resolved_user_input = state.get("resolved_user_input") or raw_user_input
     pdf_urls = state.get("pdf_urls", []) or []
+    procedure_ids = state.get("procedures", []) or []
+
+    if not pdf_urls and procedure_ids:
+        await emit(
+            StreamEvent(
+                type="progress",
+                node="forms",
+                message="Đang nạp trực tiếp danh sách biểu mẫu từ thủ tục đã xác định...",
+            )
+        )
+        try:
+            pdf_urls = fetch_form_pdf_urls(procedure_ids)
+        except Exception as exc:
+            await emit(
+                StreamEvent(
+                    type="error",
+                    node="forms",
+                    message=f"Không thể nạp biểu mẫu trực tiếp: {exc}",
+                )
+            )
 
     await emit(
         StreamEvent(
@@ -109,6 +130,7 @@ async def forms_node(
     return Command(
         goto="forms_ask_mode",
         update={
+            "pdf_urls": pdf_urls,
             "pdf_url_selected": pdf_url,
             "form_name_selected": form_name,
             "forms_mode_choice_payload": mode_choice_payload,
