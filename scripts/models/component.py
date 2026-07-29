@@ -8,7 +8,11 @@ class Thanh_Phan_Ho_So(Base):
     __table_args__ = {"schema": "rag"}
 
     ma_thanh_phan           = Column(Integer,       primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     truong_hop              = Column(Text)
+=======
+    truong_hop              = Column(VARCHAR(300))
+>>>>>>> 3651248e192715c39a28ff6372f5a139d3fcdae0
     loai_giay_to            = Column(Text)
     mau_don_to_khai         = Column(VARCHAR(500))
     so_luong                = Column(VARCHAR(50))

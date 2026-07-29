@@ -19,6 +19,7 @@
   "Gia hạn tạm trú": "1.002755",
   "Khai báo tạm vắng": "1.003677",
   "Đăng ký tạm trú": "1.004194",
+<<<<<<< HEAD
   "Xóa đăng ký tạm trú": "1.010028",
   "Thủ tục đăng ký khai sinh kết hợp đăng ký nhận cha, mẹ, con có yếu tố nước ngoài": "1.001695",
   "Liên thông thủ tục hành chính về đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế cho trẻ em dưới 6 tuổi": "2.000986",
@@ -112,4 +113,8 @@
   "Cấp giấy phép lao động cho chuyên gia khoa học công nghệ làm việc tại Việt Nam": "2.000907",
   "Cấp Giấy phép làm việc cho công dân Ô-xtơ-rây-li-a tham gia Chương trình Lao động kết hợp kỳ nghỉ tại Việt Nam": "2.001830",
   "Khai thuế thu nhập cá nhân tháng/quý đối với cá nhân có thu nhập từ tiền lương, tiền công (bao gồm cả cá nhân nhận thưởng bằng cổ phiếu từ đơn vị sử dụng lao động) thuộc diện khai thuế thu nhập cá nhân trực tiếp với cơ quan thuế": "2.002237"
+=======
+  "Đăng ký thường trú": "1.004222",
+  "Xóa đăng ký tạm trú": "1.010028"
+>>>>>>> 3651248e192715c39a28ff6372f5a139d3fcdae0
 }

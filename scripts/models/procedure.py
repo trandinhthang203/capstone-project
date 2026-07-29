@@ -20,7 +20,11 @@ class Thu_Tuc(Base):
     co_quan_co_tham_quyen   = Column(VARCHAR(200))
     dia_chi_tiep_nhan_hs    = Column(VARCHAR(300))
     co_quan_duoc_uy_quyen   = Column(VARCHAR(200))
+<<<<<<< HEAD
     co_quan_phoi_hop        = Column(VARCHAR(Text))
+=======
+    co_quan_phoi_hop        = Column(VARCHAR(200))
+>>>>>>> 3651248e192715c39a28ff6372f5a139d3fcdae0
     ket_qua_thuc_hien       = Column(Text)
     yeu_cau_dieu_kien       = Column(Text)
     tu_khoa                 = Column(VARCHAR(300))
