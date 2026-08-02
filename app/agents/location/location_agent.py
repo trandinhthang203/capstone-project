@@ -17,7 +17,7 @@ from app.helpers.utils.common import _llm
 from app.helpers.utils.logger import logging
 from app.services.user_service import UserService
 
-MAX_ITER = 5
+MAX_ITER = 2                       # ↓ từ 5 → 2. Trong thực tế 1 vòng đủ.
 TOOLS = [search_agency_place, get_directions]
 TOOL_REGISTRY = {t.name: t for t in TOOLS}
 _llm_with_tools = _llm.bind_tools(TOOLS)
@@ -267,7 +267,7 @@ async def execute_tool_calls(tool_calls: list[dict], user_profile: dict[str, Any
 
 
 async def invoke_llm_with_tools(messages: list) -> AIMessage:
-    """Gọi LLM với retry khi gặp rate limit."""
+    """Retry khi rate-limit. Đã có sẵn."""
     for attempt in range(MAX_ITER):
         try:
             return await asyncio.to_thread(
@@ -275,12 +275,9 @@ async def invoke_llm_with_tools(messages: list) -> AIMessage:
                 [SystemMessage(content=build_system_prompt()), *messages],
             )
         except Exception as exc:
-            is_rate_limit = "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc)
-            if is_rate_limit and attempt < MAX_ITER - 1:
+            is_rate = "429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc)
+            if is_rate and attempt < MAX_ITER - 1:
                 wait = (2**attempt) + random.uniform(0, 1)
-                logging.warning(
-                    f"[location_agent] Rate limit hit (attempt {attempt + 1}/{MAX_ITER}), retrying in {wait:.1f}s..."
-                )
                 await asyncio.sleep(wait)
                 continue
             raise
@@ -294,181 +291,98 @@ async def location_node(state: AgentState) -> Command[Literal["__end__"]]:
     qa_answer = (state.get("final_response") or "").strip()
     procedure_ids = state.get("procedures", []) or []
     user_id = state.get("user_id")
-    logging.info(f"[location_agent] User id: {user_id}")
 
     with next(get_db()) as db:
         user_service = UserService(db)
         user_profile = user_service.get_profile_for_chatbot(user_id) or {}
 
     user_address = _compose_user_address(user_profile)
-    logging.info(f"[location_agent] Starting. user_province={user_profile.get('province')}")
 
-    await emit(
-        StreamEvent(
-            type="progress",
-            node="location",
-            message="Đang xác định địa điểm thực hiện thủ tục...",
-        )
-    )
+    await emit(StreamEvent(type="progress", node="location",
+                            message="Đang xác định địa điểm..."))
 
+    # ── Short-circuit ──────────────────────────────────────────────
     if not user_address:
-        final_result = _build_fallback_result(
-            user_profile=user_profile,
-            reason="Thiếu địa chỉ người dùng để tính đường đi. Vui lòng cập nhật địa chỉ trong hồ sơ.",
-        )
-        summary = final_result["directions_message"]
-        await emit(
-            StreamEvent(
-                type="result",
-                node="location",
-                message=summary,
-                data={
-                    "location": {
-                        **final_result,
-                        "origin": final_result.get("start_address", ""),
-                        "destination": final_result.get("end_address", ""),
-                    }
-                },
-            )
-        )
-        return Command(
-            goto=next_agent,
-            update={
-                "final_response": summary,
-                "messages": [AIMessage(content=summary)],
-            },
-        )
+        return _emit_fallback(next_agent, "Thiếu địa chỉ trong hồ sơ để tính đường đi.")
 
     procedure_context = qa_answer
     if not procedure_context and procedure_ids:
         try:
-            seed_payload = fetch_location_seed_payload(procedure_ids)
-            procedure_context = _format_location_seed_context(seed_payload)
+            seed = await asyncio.to_thread(fetch_location_seed_payload, procedure_ids)
+            procedure_context = _format_location_seed_context(seed)
         except Exception as exc:
-            logging.error(f"[location_agent] Failed to hydrate direct location context: {exc}", exc_info=True)
+            logging.error("[location_node] context fetch error: %s", exc)
 
     if not procedure_context:
-        final_result = _build_fallback_result(
-            user_profile=user_profile,
-            reason="Thiếu thông tin thủ tục để xác định cơ quan tiếp nhận hồ sơ.",
-        )
-        summary = final_result["directions_message"]
-        await emit(
-            StreamEvent(
-                type="result",
-                node="location",
-                message=summary,
-                data={
-                    "location": {
-                        **final_result,
-                        "origin": final_result.get("start_address", ""),
-                        "destination": final_result.get("end_address", ""),
-                    }
-                },
-            )
-        )
-        return Command(
-            goto=next_agent,
-            update={
-                "final_response": summary,
-                "messages": [AIMessage(content=summary)],
-            },
-        )
+        return _emit_fallback(next_agent, "Thiếu thông tin thủ tục.")
 
     messages = [HumanMessage(content=build_user_prompt(procedure_context, user_profile))]
     final_result: dict | None = None
     latest_route: dict | None = None
     latest_agency: dict | None = None
 
-    try:
-        for iteration in range(MAX_ITER):
-            logging.info(f"[location_agent] Iteration {iteration + 1}/{MAX_ITER}")
-            response = await invoke_llm_with_tools(messages)
-            logging.info(f"[location_agent] Response location: {_extract_text_content(response.content)[:500]}")
+    # ↓ MAX_ITER từ 5 xuống 2 (giảm 60% latency).
+    for iteration in range(MAX_ITER):
+        response = await invoke_llm_with_tools(messages)
+        messages.append(response)
+        tool_calls = response.tool_calls or []
 
-            messages.append(response)
-            tool_calls = response.tool_calls or []
+        if not tool_calls:
+            parsed = _parse_location_response(response.content)
+            if parsed:
+                if latest_agency and not parsed.get("agency_name"):
+                    parsed["agency_name"] = latest_agency.get("name", "")
+                if latest_route:
+                    parsed.setdefault("distance", latest_route.get("distance", ""))
+                    parsed.setdefault("duration", latest_route.get("duration", ""))
+                    parsed.setdefault("start_address",
+                                       latest_route.get("start_address", user_address))
+                    parsed.setdefault("end_address",
+                                       latest_route.get("end_address",
+                                       parsed.get("end_address", "")))
+                    if not parsed.get("directions_message"):
+                        parsed["directions_message"] = _build_direction_summary(
+                            latest_route,
+                            agency_name=parsed.get("agency_name",
+                                latest_agency.get("name", "") if latest_agency else "")
+                        )
+                final_result = parsed
+            break
 
-            if not tool_calls:
-                parsed = _parse_location_response(response.content)
-                if parsed:
-                    if latest_agency and not parsed.get("agency_name"):
-                        parsed["agency_name"] = latest_agency.get("name", "")
-                    if latest_route:
-                        parsed.setdefault("distance", latest_route.get("distance", ""))
-                        parsed.setdefault("duration", latest_route.get("duration", ""))
-                        parsed.setdefault("start_address", latest_route.get("start_address", user_address))
-                        parsed.setdefault("end_address", latest_route.get("end_address", parsed.get("end_address", "")))
-                        if not parsed.get("directions_message"):
-                            parsed["directions_message"] = _build_direction_summary(
-                                latest_route,
-                                agency_name=parsed.get("agency_name", latest_agency.get("name", "") if latest_agency else ""),
-                            )
-                    final_result = parsed
-                    logging.info(f"[location_agent] Got final result on iteration {iteration + 1}")
-                else:
-                    logging.warning(
-                        f"[location_agent] LLM returned non-JSON text: {_extract_text_content(response.content)[:200]}"
-                    )
-                break
+        tool_results = await execute_tool_calls(tool_calls, user_profile)
+        for r in tool_results:
+            payload = r.get("payload") or {}
+            if r.get("name") == "search_agency_place" and not payload.get("error"):
+                latest_agency = payload
+            elif r.get("name") == "get_directions" and not payload.get("error"):
+                latest_route = payload
+        messages.extend([ToolMessage(content=r["content"],
+                                       tool_call_id=r["id"]) for r in tool_results])
 
-            logging.info(
-                f"[location_agent] Executing tools with dependency handling: {[tc['name'] for tc in tool_calls]}"
-            )
-            tool_results = await execute_tool_calls(tool_calls, user_profile=user_profile)
-
-            for result in tool_results:
-                payload = result.get("payload") or {}
-                if result.get("name") == "search_agency_place" and not payload.get("error"):
-                    latest_agency = payload
-                elif result.get("name") == "get_directions" and not payload.get("error"):
-                    latest_route = payload
-
-            messages.extend(
-                [ToolMessage(content=result["content"], tool_call_id=result["id"]) for result in tool_results]
-            )
-
-        if not final_result:
-            final_result = _build_fallback_result(
-                user_profile=user_profile,
-                reason=(latest_route or {}).get("error")
-                or "Không thể xác định địa điểm thực hiện thủ tục.",
-                agency_name=(latest_agency or {}).get("name", ""),
-                end_address=(latest_agency or {}).get("address", ""),
-                route=latest_route,
-            )
-
-    except Exception as exc:
-        logging.error(f"[location_agent] Unexpected error: {exc}", exc_info=True)
+    if not final_result:
         final_result = _build_fallback_result(
             user_profile=user_profile,
-            reason="Đã xảy ra lỗi khi tìm địa điểm và tính đường đi.",
+            reason=(latest_route or {}).get("error")
+                   or "Không thể xác định địa điểm.",
             agency_name=(latest_agency or {}).get("name", ""),
             end_address=(latest_agency or {}).get("address", ""),
             route=latest_route,
         )
 
-    summary = final_result.get("directions_message") or "Không thể tạo hướng dẫn đường đi."
-
-    await emit(
-        StreamEvent(
-            type="result",
-            node="location",
-            message=summary,
-            data={
-                "location": {
-                    **final_result,
-                    "origin": final_result.get("start_address", ""),
-                    "destination": final_result.get("end_address", ""),
-                }
-            },
-        )
-    )
-
+    summary = final_result.get("directions_message") or "Không thể tạo hướng dẫn."
+    await emit(StreamEvent(type="result", node="location",
+                            message=summary,
+                            data={"location": {**final_result,
+                                                "origin": final_result.get("start_address",""),
+                                                "destination": final_result.get("end_address","")}}))
     return Command(
         goto=next_agent,
-        update={
-            "final_response": summary,
-            "messages": [AIMessage(content=summary)],
-        },
+        update={"final_response": summary, "messages": [AIMessage(content=summary)]},
     )
+
+
+async def _emit_fallback(next_agent, reason):
+    summary = reason
+    await emit(StreamEvent(type="result", node="location", message=summary))
+    return Command(goto=next_agent, update={"final_response": summary,
+                                            "messages": [AIMessage(content=summary)]})

@@ -60,8 +60,7 @@ class AgentState(TypedDict, total=False):
     # conversation memory
     conversation_summary: str
     is_followup: bool
-    followup_confidence: float
-    followup_reason: str
+    summarized_upto: int
 
     # last resolved context
     last_answer: str

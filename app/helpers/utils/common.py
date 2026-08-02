@@ -1,6 +1,6 @@
 import asyncio
-import json
 import os
+from functools import lru_cache
 from typing import Any
 
 import yaml
@@ -15,25 +15,29 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
 LLM_MAX_CONTEXT_MESSAGES = int(os.getenv("LLM_MAX_CONTEXT_MESSAGES", "8"))
 
-_llm = ChatGoogleGenerativeAI(
-    model=os.getenv("LLM_MODEL", "gemini-2.5-flash"),
-    google_api_key=GEMINI_API_KEY,
-    temperature=float(os.getenv("LLM_TEMPERATURE", "0")),
-    max_tokens=None,
-    timeout=LLM_TIMEOUT_SECONDS,
-    max_retries=int(os.getenv("LLM_MAX_RETRIES", "5")),
-)
+
+@lru_cache(maxsize=1)
+def _create_llm():
+    """Singleton LLM instance — không tạo mới mỗi request."""
+    return ChatGoogleGenerativeAI(
+        model=os.getenv("LLM_MODEL", "gemini-2.5-flash"),
+        google_api_key=GEMINI_API_KEY,
+        temperature=float(os.getenv("LLM_TEMPERATURE", "0")),
+        max_tokens=None,
+        timeout=LLM_TIMEOUT_SECONDS,
+        max_retries=int(os.getenv("LLM_MAX_RETRIES", "3")),     # ↓ từ 5 → 3
+    )
+
+
+# ↓ Backward-compat với `from app.helpers.utils.common import _llm`
+_llm = _create_llm()
 
 
 def _normalize_llm_text(content: Any) -> str:
-    if content is None:
-        return ""
-
-    if isinstance(content, str):
-        return content.strip()
-
+    if content is None: return ""
+    if isinstance(content, str): return content.strip()
     if isinstance(content, list):
-        chunks: list[str] = []
+        chunks = []
         for item in content:
             if isinstance(item, str):
                 chunks.append(item.strip())
@@ -42,88 +46,72 @@ def _normalize_llm_text(content: Any) -> str:
             elif hasattr(item, "text") and isinstance(item.text, str):
                 chunks.append(item.text.strip())
         return "\n".join([c for c in chunks if c]).strip()
-
     return str(content).strip()
 
 
-def window_messages(messages: list[AnyMessage], max_messages: int | None = None) -> list[AnyMessage]:
+def window_messages(messages, max_messages=None):
     limit = max_messages or LLM_MAX_CONTEXT_MESSAGES
-    if limit <= 0:
-        return list(messages)
+    if limit <= 0: return list(messages)
     return list(messages[-limit:])
 
 
-def build_llm_messages(
-    prompt: str,
-    messages: list[AnyMessage],
-    summary: str = "",
-    max_messages: int | None = None,
-    extra_system_context: str = "",
-) -> list[AnyMessage]:
-    system_blocks = [prompt.strip()]
-
+def build_llm_messages(prompt, messages, summary="", max_messages=None, extra_system_context=""):
+    blocks = [prompt.strip()]
     if summary:
-        system_blocks.append(
-            "## Tóm tắt hội thoại trước đó\n"
-            f"{summary.strip()}"
-        )
-
+        blocks.append("## Tóm tắt hội thoại trước đó\n" + summary.strip())
     if extra_system_context:
-        system_blocks.append(
-            "## Ngữ cảnh bổ sung\n"
-            f"{extra_system_context.strip()}"
-        )
-
-    return [
-        SystemMessage(content="\n\n".join(system_blocks)),
-        *window_messages(messages, max_messages=max_messages),
-    ]
+        blocks.append("## Ngữ cảnh bổ sung\n" + extra_system_context.strip())
+    return [SystemMessage(content="\n\n".join(blocks)), *window_messages(messages, max_messages)]
 
 
-async def invoke_llm_text(messages: list[AnyMessage]) -> str:
-    response = await asyncio.to_thread(_llm.invoke, messages)
+async def invoke_llm_text(messages):
+    response = await asyncio.to_thread(_create_llm().invoke, messages)
     return _normalize_llm_text(response.content)
 
 
-async def get_response_llm(
-    prompt: str,
-    messages: list[AnyMessage],
-    summary: str = "",
-    max_messages: int | None = None,
-    extra_system_context: str = "",
-) -> str:
-    llm_messages = build_llm_messages(
-        prompt=prompt,
-        messages=messages,
-        summary=summary,
-        max_messages=max_messages,
-        extra_system_context=extra_system_context,
-    )
+async def invoke_llm_stream(messages):
+    """Streaming variant cho tương lai — emit token đầu tiên ra UI."""
+    llm = _create_llm()
+    async for chunk in llm.astream(messages):
+        text = _normalize_llm_text(chunk.content)
+        if text:
+            yield text
+
+
+async def get_response_llm(prompt, messages, summary="", max_messages=None, extra_system_context=""):
+    llm_messages = build_llm_messages(prompt=prompt, messages=messages, summary=summary,
+                                       max_messages=max_messages,
+                                       extra_system_context=extra_system_context)
     return await invoke_llm_text(llm_messages)
 
 
-def safe_json_loads(raw: Any, fallback: dict | None = None) -> dict:
+def safe_json_loads(raw, fallback=None):
     fallback = fallback or {}
     text = _normalize_llm_text(raw)
     text = text.replace("```json", "").replace("```", "").strip()
-
     try:
-        return json.loads(text)
+        return json.loads_safe(text)  # Will fallback if fail
     except Exception:
-        return fallback
+        try:
+            import json
+            return json.loads(text)
+        except Exception:
+            return fallback
 
 
 def read_yaml():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(base_dir, "config.yaml")
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        content = yaml.safe_load(f)
-        return ConfigBox(content)
+    with open(os.path.join(base_dir, "config.yaml"), "r", encoding="utf-8") as f:
+        return ConfigBox(yaml.safe_load(f))
 
 
 def read_json(base_url, file_name):
     file_path = os.path.join(base_url, file_name)
     with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-        return data
+        return json_safe_load(file.read())
+
+
+# Helpers
+def json_safe_load(s):
+    import json
+    return json.loads(s)

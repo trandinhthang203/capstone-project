@@ -47,6 +47,38 @@ INTENT_PROMPT: |
 
   Trả về JSON thuần túy, không dùng markdown code block, không có ```json, không giải thích gì thêm.
 
+
+INTENT_SUPERVISOR_PROMPT_V1: |
+  Bạn là router thông minh cho hệ thống tư vấn thủ tục hành chính Việt Nam.
+  Nhiệm vụ DUY NHẤT: phân tích câu hỏi và trả về JSON hợp lệ.
+
+  ## Input
+  - Câu hỏi hiện tại: {query}
+  - Câu hỏi gốc (chưa resolve followup): {raw_query}
+  - Thủ tục turn trước: {last_procedures}
+
+  ## Output JSON DUY NHẤT (không giải thích thêm):
+  {{
+    "intent": "legal" | "chitchat" | "unclear",
+    "confidence": 0.0-1.0,
+    "procedures": ["Tên thủ tục A", "..."],
+    "fields": ["thu_tuc.ten_thu_tuc", "thu_tuc.trinh_tu_thuc_hien", ...],
+    "pipeline": ["qa"] | ["qa", "forms"] | ["qa", "location"] | ...
+  }}
+
+  ## Quy tắc
+  - intent="legal" nếu câu hỏi liên quan thủ tục hành chính (cấp/đổi giấy tờ, đăng ký, nộp hồ sơ…)
+  - intent="chitchat" nếu là câu chào hỏi, cảm ơn, không hỏi gì
+  - intent="unclear" nếu mơ hồ hoàn toàn
+  - procedures: chỉ list tên thủ tục phù hợp; bỏ trống [] nếu unclear
+  - fields: chọn các cột cần thiết cho câu trả lời (prefer mặc định: trinh_tu_thuc_hien, doi_tuong_thuc_hien, co_quan_thuc_hien, ket_qua_thuc_hien, yeu_cau_dieu_kien, dia_chi_tiep_nhan_hs)
+  - pipeline: chỉ thêm "forms" nếu người dùng rõ ràng muốn điền biểu mẫu; thêm "location" nếu hỏi về nơi nộp/đường đi. Mặc định ["qa"].
+
+  ## Quan trọng
+  - CHỈ trả JSON, không giải thích bên ngoài.
+  - Nếu không chắc, để confidence thấp (<0.6).
+
+
 INTENT_PROMPT_V2: |
   Bạn là bộ phân loại ý định cho hệ thống tư vấn thủ tục hành chính Việt Nam.
 
@@ -546,9 +578,6 @@ FOLLOWUP_RESOLUTION_PROMPT: |
 
   Recent messages:
   {recent_messages}
-
-  Last domain:
-  {last_domain}
 
   Last procedures:
   {last_procedures}
