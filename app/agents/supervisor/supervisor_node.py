@@ -15,8 +15,8 @@ from app.helpers.utils.common import get_response_llm, read_json
 from app.helpers.utils.logger import logging
 import asyncio
 
-RETRIEVE_TOP_K = 8          # ↓ từ 15 → 8 (giảm ~50% thời gian Qdrant)
-DEFAULT_QA_FIELDS = [       # field mặc định — bỏ qua lần LLM supervisor nếu chỉ cần QA
+RETRIEVE_TOP_K = 8         
+DEFAULT_QA_FIELDS = [      
     "thu_tuc.ten_thu_tuc", "thu_tuc.trinh_tu_thuc_hien",
     "thu_tuc.doi_tuong_thuc_hien", "thu_tuc.co_quan_thuc_hien",
     "thu_tuc.ket_qua_thuc_hien", "thu_tuc.yeu_cau_dieu_kien",
@@ -70,37 +70,35 @@ async def context_node(state: AgentState) -> Command[Literal["intent_router"]]:
         },
     )
 
-
 @traceable
 async def intent_router_node(state: AgentState) -> Command[Literal["qa"]]:
-    """
-    GỘP intent + supervisor thành 1 LLM call duy nhất:
-      intent (legal/chitchat/unclear) + procedure selection + fields.
-    Retrieval Qdrant + LLM chạy song song (gather).
-    """
     messages = state["messages"]
     raw_user_input = state["user_input"]
     resolved_user_input = state.get("resolved_user_input") or raw_user_input
     summary = state.get("conversation_summary", "")
 
     await emit(StreamEvent(type="progress", node="supervisor",
+                            message="Đang tra cứu thủ tục liên quan..."))
+
+    # Retrieval
+    try:
+        candidate_hits = await retrieve_procedures(resolved_user_input, top_k=RETRIEVE_TOP_K)
+    except Exception as exc:
+        logging.error("[intent_router] Qdrant error: %s", exc, exc_info=True)
+        candidate_hits = []
+
+    candidate_names = [h["ten_thu_tuc"] for h in candidate_hits]
+    procedures_block = "\n".join(f"- {name}" for name in candidate_names) or "[]"
+
+    await emit(StreamEvent(type="progress", node="supervisor",
                             message="Đang phân tích câu hỏi..."))
 
-    # ── (A) Retrieval song song với (B) LLM call có chờ ½ kết quả.
-    # Thực tế: retrieval thường nhanh (~0.8s) nên gather với LLM để tiết kiệm.
-    async def _retrieve():
-        try:
-            return await retrieve_procedures(resolved_user_input, top_k=RETRIEVE_TOP_K)
-        except Exception as exc:
-            logging.error("[intent_router] Qdrant error: %s", exc, exc_info=True)
-            return []
-
-    retrieve_task = asyncio.create_task(_retrieve())
-
-    # ── (B) Prompt hợp nhất ─ intent + procedure in one ───────────────
-    prompt = supervisor_prompt["INTENT_SUPERVISOR_PROMPT_V1"].format(
+    # Prompt hợp nhất kèm danh sách candidate vừa retrieve
+    prompt = supervisor_prompt["SUPERVISOR_PROMPT_V3"].format(
         query=resolved_user_input,
         raw_query=raw_user_input,
+        procedures=procedures_block,
+        last_domain=state.get("domain", "") or "[]",
         last_procedures=", ".join(state.get("procedure_names", []))
                           if state.get("procedure_names") else "[]",
     )
@@ -119,7 +117,6 @@ async def intent_router_node(state: AgentState) -> Command[Literal["qa"]]:
     fields = data.get("fields", []) or DEFAULT_QA_FIELDS
     pipeline = _normalize_pipeline(data.get("pipeline", ["qa"]))
 
-    # Followup fallback
     if confidence < CONFIDENCE_THRESHOLD:
         if state.get("is_followup"):
             intent = "legal"
@@ -127,15 +124,12 @@ async def intent_router_node(state: AgentState) -> Command[Literal["qa"]]:
         else:
             intent = "unclear"
 
-    # Fallback kế thừa procedure khi followup
     if intent == "legal" and not procedures and state.get("is_followup"):
         procedures = state.get("procedure_names", [])
 
-    candidate_hits = await retrieve_task
-    candidate_names = [h["ten_thu_tuc"] for h in candidate_hits]
-
-    # Cross-check LLM có "bịa" tên thủ tục không có trong Qdrant không
-    if procedures and candidate_names:
+    # Safety net: chỉ giữ lại thủ tục thực sự nằm trong candidate đã
+    # retrieve (hoặc thủ tục turn trước, cho followup) — phòng LLM vẫn bịa
+    if procedures:
         valid_names = set(candidate_names) | set(state.get("procedure_names", []))
         procedures = [p for p in procedures if p in valid_names]
 
@@ -152,7 +146,6 @@ async def intent_router_node(state: AgentState) -> Command[Literal["qa"]]:
         goto="qa",
         update={
             "intent": intent,
-            "intent_confidence": confidence,
             "procedures": procedure_ids,
             "procedure_names": procedures,
             "pipeline": pipeline,

@@ -64,15 +64,12 @@ class AgentState(TypedDict, total=False):
 
     # last resolved context
     last_answer: str
-    last_domain: Optional[str]
     last_procedures: list[str]
     procedure_names: list[str]
 
     # classifier / routing
     intent: str
-    domain: str
-    intent_confidence: float
-
+    
     procedures: list[str]
     resolved_procedures: list
     pipeline: list[str]
