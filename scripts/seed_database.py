@@ -4,9 +4,10 @@ from scripts.models.procedure import Thu_Tuc
 from scripts.models.component import Thanh_Phan_Ho_So
 from scripts.models.basis import Can_Cu_Phap_Ly
 from scripts.models.method import Cach_Thuc_Thuc_Hien
-import os
+from pathlib import Path
 from app.helpers.utils.common import read_yaml, read_json
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import text
 
 from datetime import datetime
 
@@ -88,12 +89,27 @@ class Seed_Database:
         ]
 
     def import_data(self):
-        base_dir = self.config.process_forms.proceduces_processed
-        files = [f for f in os.listdir("data/processed/viec_lam") if f.endswith(".json")]
+        # Đồng bộ schema hiện có với model. Đây là phép nới kiểu dữ liệu, không
+        # cắt hoặc làm mất nội dung đã lưu trong cột.
+        self.db.execute(text(
+            "ALTER TABLE rag.thanh_phan_ho_so "
+            "ALTER COLUMN truong_hop TYPE TEXT"
+        ))
+        self.db.execute(text(
+            "ALTER TABLE rag.cach_thuc_thuc_hien "
+            "ALTER COLUMN thoi_han_giai_quyet TYPE TEXT"
+        ))
+        self.db.commit()
 
-        for filename in files:
-            print(filename)
-            procedure = read_json(base_dir, filename)
+        # Import JSON của tất cả lĩnh vực thay vì chỉ data/processed/viec_lam.
+        processed_dir = Path(__file__).resolve().parents[1] / "data" / "processed"
+        files = sorted(processed_dir.glob("*/*.json"))
+
+        print(f"Tìm thấy {len(files)} thủ tục trong {processed_dir}")
+
+        for file_path in files:
+            print(file_path.relative_to(processed_dir))
+            procedure = read_json(file_path.parent, file_path.name)
             ma = procedure["Mã thủ tục:"]
 
             try:

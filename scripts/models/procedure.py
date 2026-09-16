@@ -1,6 +1,9 @@
 from sqlalchemy import Column, Text, String, VARCHAR
 from sqlalchemy.orm import relationship
 from app.db.base import Base
+from scripts.models.method import Cach_Thuc_Thuc_Hien
+from scripts.models.component import Thanh_Phan_Ho_So
+from scripts.models.basis import Can_Cu_Phap_Ly
 
 class Thu_Tuc(Base):
     __tablename__ = "thu_tuc"
@@ -20,11 +23,8 @@ class Thu_Tuc(Base):
     co_quan_co_tham_quyen   = Column(VARCHAR(200))
     dia_chi_tiep_nhan_hs    = Column(VARCHAR(300))
     co_quan_duoc_uy_quyen   = Column(VARCHAR(200))
-<<<<<<< HEAD
     co_quan_phoi_hop        = Column(VARCHAR(Text))
-=======
-    co_quan_phoi_hop        = Column(VARCHAR(200))
->>>>>>> 3651248e192715c39a28ff6372f5a139d3fcdae0
+    # co_quan_phoi_hop        = Column(VARCHAR(200))
     ket_qua_thuc_hien       = Column(Text)
     yeu_cau_dieu_kien       = Column(Text)
     tu_khoa                 = Column(VARCHAR(300))

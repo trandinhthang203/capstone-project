@@ -1,7 +1,9 @@
 from functools import lru_cache
 from typing import Literal
 
+# pyrefly: ignore [missing-import]
 from langgraph.types import Command
+# pyrefly: ignore [missing-import]
 from langsmith import traceable
 
 from app.agents.base.state import AgentState, StreamEvent
@@ -50,23 +52,20 @@ async def context_node(state: AgentState) -> Command[Literal["intent_router"]]:
         messages=messages,
         summary=state.get("conversation_summary", ""),
         last_procedures=state.get("procedure_names", []),
-        last_answer=state.get("last_answer", ""),
     )
-    (summary, new_summarized_upto), followup = await asyncio.gather(summary_coro, followup_coro)
+    (summary, new_summarized_upto), resolved = await asyncio.gather(summary_coro, followup_coro)
 
-    resolved = followup.get("standalone_query") or raw_user_input
     logging.info(
-        "[context_node] is_followup=%s confidence=%s resolved=%s",
-        followup.get("is_followup"), followup.get("confidence"), resolved,
+        "[context_node] resolved_query=%s",
+        resolved,
     )
 
     return Command(
-        goto="intent_router",              
+        goto="intent_router",
         update={
             "conversation_summary": summary,
             "summarized_upto": new_summarized_upto,
             "resolved_user_input": resolved,
-            "is_followup": bool(followup.get("is_followup", False)),
         },
     )
 
@@ -118,14 +117,7 @@ async def intent_router_node(state: AgentState) -> Command[Literal["qa"]]:
     pipeline = _normalize_pipeline(data.get("pipeline", ["qa"]))
 
     if confidence < CONFIDENCE_THRESHOLD:
-        if state.get("is_followup"):
-            intent = "legal"
-            confidence = max(confidence, 0.75)
-        else:
-            intent = "unclear"
-
-    if intent == "legal" and not procedures and state.get("is_followup"):
-        procedures = state.get("procedure_names", [])
+        intent = "unclear"
 
     # Safety net: chỉ giữ lại thủ tục thực sự nằm trong candidate đã
     # retrieve (hoặc thủ tục turn trước, cho followup) — phòng LLM vẫn bịa

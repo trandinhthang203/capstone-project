@@ -2,7 +2,8 @@ name: Build & Deploy
 
 on:
   push:
-    branches: [main]
+    # branches: [main]
+    branches: [feature/build_agent]
 
 env:
   IMAGE_NAME: thangtd203/dvc-agents
@@ -65,12 +66,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/app
-            cat > .env << 'ENVEOF'
-            ${{ secrets.ENV_FILE }}
-            ENVEOF
+            mkdir -p ~/app && cd ~/app
+            echo "${{ secrets.ENV_FILE }}" > .env
             echo "IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}" >> .env
             docker-compose pull
-            docker rm -f backend || true
-            docker-compose up -d --remove-orphans
+            docker-compose up -d --remove-orphans --force-recreate
             docker image prune -f

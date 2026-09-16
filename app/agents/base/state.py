@@ -54,48 +54,28 @@ class AgentState(TypedDict, total=False):
     user_input: str
     resolved_user_input: str
     messages: Annotated[list, add_messages]
-    session_id: str
     user_id: str
 
     # conversation memory
     conversation_summary: str
-    is_followup: bool
     summarized_upto: int
 
-    # last resolved context
+    # previous turn context
     last_answer: str
-    last_procedures: list[str]
     procedure_names: list[str]
 
-    # classifier / routing
+    # routing / supervisor -> qa
     intent: str
-    
     procedures: list[str]
-    resolved_procedures: list
     pipeline: list[str]
     fields: list[str]
-    current_agent: str
-    next_agent: str
-    context: str
-    node_outputs: str
 
-    # Qdrant retrieval cache (dùng nội bộ giữa intent_node → supervisor_node)
-    _qdrant_candidates: list[str]
-
-    # outputs
+    # shared data between qa -> forms
     pdf_urls: list
-    pdf_local_path: str
-    filled_pdf_path: str
+
+    # final outputs
     final_response: Optional[str]
     filled_pdf_url: Optional[str]
-    google_docs_url: Optional[str]
 
-    # forms
-    pdf_url_selected: Optional[str]
-    form_name_selected: Optional[str]
-    forms_fill_mode: Optional[str]
-    forms_mode_choice_payload: Optional[dict[str, Any]]
-    extracted_form_fields: list[dict[str, Any]]
-    dynamic_form_payload: Optional[dict[str, Any]]
-    dynamic_form_prefill_values: Optional[dict[str, Any]]
-    submitted_form_values: Optional[dict[str, Any]]
+    # optional: nếu bạn muốn typing sạch với supervisor/qa hiện tại
+    domain: Optional[str]

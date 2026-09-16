@@ -36,6 +36,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
 load_dotenv(ROOT / ".env")
@@ -60,7 +61,9 @@ def _init_resources():
         return
 
     try:
+        # pyrefly: ignore [missing-import]
         from qdrant_client import QdrantClient
+        # pyrefly: ignore [missing-import]
         from fastembed import TextEmbedding, SparseTextEmbedding
     except ImportError as e:
         print(f"[ERROR] Thiếu thư viện: {e}")
@@ -122,6 +125,7 @@ def hybrid_search(query_text: str, top_k: int = 15) -> list[str]:
     """
     Thực hiện hybrid search và trả về danh sách `ma_so` của kết quả.
     """
+    # pyrefly: ignore [missing-import]
     from qdrant_client import models as qm
 
     dense_vec = list(_dense_model.embed([query_text]))[0]
