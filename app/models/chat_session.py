@@ -1,24 +1,16 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, DateTime, ForeignKey, String, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
-
 class ChatSession(Base):
-    __tablename__ = "chatsession"
-
-    idchatsession = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    iduser        = Column(Integer, ForeignKey("User.iduser"), nullable=False)
-    status        = Column(String(20), nullable=False, default="Open")
-    createddate   = Column(DateTime, server_default=func.now())
-    endeddate     = Column(DateTime, nullable=True)
-
-    # Relationships
-    user         = relationship("User", back_populates="chatsessions")
-    chatmessages = relationship(
-        "ChatMessage",
-        back_populates="chatsession",
-        cascade="all, delete-orphan",
-    )
-    feedbacks    = relationship("Feedback", back_populates="chatsession")
+    __tablename__ = "sessions"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    title = Column(String)
+    metadata_ = Column("metadata", JSONB)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    user = relationship("User", back_populates="sessions")
+    messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatMessage.created_at")
