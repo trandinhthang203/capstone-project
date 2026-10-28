@@ -9,7 +9,8 @@ from langgraph.graph import END
 from langgraph.types import Command, interrupt
 from langsmith import traceable
 
-from app.agents.base.state import AgentState, StreamEvent
+from app.agents.base.state import StreamEvent
+from app.agents.forms.state import FormsState
 from app.agents.base.utils import emit
 from app.agents.forms.forms_tools import (
     extract_form_fields,
@@ -36,7 +37,7 @@ from app.agents.qa.qa_tools import fetch_form_pdf_urls
 
 @traceable
 async def forms_node(
-    state: AgentState,
+    state: FormsState,
 ) -> Command[Literal["forms_ask_mode", "__end__"]]:
     raw_user_input = state.get("user_input", "")
     resolved_user_input = state.get("resolved_user_input") or raw_user_input
@@ -144,7 +145,7 @@ async def forms_node(
 
 @traceable
 async def forms_ask_mode_node(
-    state: AgentState,
+    state: FormsState,
 ) -> Command[Literal["forms_route"]]:
     mode_choice_payload = state.get("forms_mode_choice_payload")
     # interrupt trả nguyên payload lên frontend, chờ người dùng submit {"mode": "google_docs"|"dynamic_form"}
@@ -176,7 +177,7 @@ async def forms_ask_mode_node(
 
 @traceable
 async def forms_route_node(
-    state: AgentState,
+    state: FormsState,
 ) -> Command[Literal["forms_google_docs", "forms_extract", "__end__"]]:
     mode = state.get("forms_fill_mode", "dynamic_form")
 
@@ -201,7 +202,7 @@ async def forms_route_node(
 # ──────────────────────────────────────────────────────────
 
 @traceable
-async def forms_google_docs_node(state: AgentState) -> dict:
+async def forms_google_docs_node(state: FormsState) -> dict:
     pdf_url = state.get("pdf_url_selected") or ""
     form_name = state.get("form_name_selected") or "Biểu mẫu"
 
@@ -262,7 +263,7 @@ async def forms_google_docs_node(state: AgentState) -> dict:
 
 @traceable
 async def forms_extract_node(
-    state: AgentState,
+    state: FormsState,
 ) -> Command[Literal["forms_wait_input", "__end__"]]:
     pdf_url = state.get("pdf_url_selected") or ""
     form_name = state.get("form_name_selected") or "biểu mẫu"
@@ -354,7 +355,7 @@ async def forms_extract_node(
 # ──────────────────────────────────────────────────────────
 
 @traceable
-async def forms_wait_input_node(state: AgentState) -> Command[Literal["forms_fill"]]:
+async def forms_wait_input_node(state: FormsState) -> Command[Literal["forms_fill"]]:
     form_payload = state.get("dynamic_form_payload")
     submitted_values = interrupt(form_payload) or {}
 
@@ -375,7 +376,7 @@ async def forms_wait_input_node(state: AgentState) -> Command[Literal["forms_fil
 # ──────────────────────────────────────────────────────────
 
 @traceable
-async def forms_fill_node(state: AgentState) -> dict:
+async def forms_fill_node(state: FormsState) -> dict:
     pdf_path = state.get("pdf_local_path")
     fields = state.get("extracted_form_fields", []) or []
     submitted_values = state.get("submitted_form_values") or {}

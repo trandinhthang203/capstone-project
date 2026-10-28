@@ -26,24 +26,27 @@ QA_DEFAULT_FIELDS = [
 def _compact_payload(payload: dict, max_rows_per_table: int = 6) -> str:
     """
     Rút gọn payload DB về dạng ngắn gọn để đưa vào prompt LLM.
-    Giảm ~70% token so với json.dumps toàn bộ rows.
+    - Không cắt ngắn string để tránh mất thông tin.
+    - Bao gồm pdf_urls để LLM có thể tham chiếu link biểu mẫu.
     """
-    def short_row(r: dict) -> dict:
-        return {k: (v if isinstance(v, (int, float)) or not v else str(v)[:300])
-                for k, v in r.items() if v not in (None, "", [], {})}
+    def clean_row(r: dict) -> dict:
+        """Lọc bỏ các field rỗng, giữ nguyên toàn bộ nội dung string."""
+        return {k: v for k, v in r.items() if v not in (None, "", [], {})}
 
     main_rows = payload.get("main", {}).get("rows", []) or []
     children = payload.get("children", {}) or {}
+    pdf_urls = payload.get("pdf_urls", []) or []
     out = {
         "procedures": [
-            {k: short_row(r).get(k) for k in ("ma_thu_tuc", "ten_thu_tuc", "trinh_tu_thuc_hien",
-                                                "co_quan_thuc_hien", "dia_chi_tiep_nhan_hs",
-                                                "yeu_cau_dieu_kien", "ket_qua_thuc_hien")}
+            {k: clean_row(r).get(k) for k in ("ma_thu_tuc", "ten_thu_tuc", "trinh_tu_thuc_hien",
+                                               "co_quan_thuc_hien", "dia_chi_tiep_nhan_hs",
+                                               "yeu_cau_dieu_kien", "ket_qua_thuc_hien")}
             for r in main_rows[:max_rows_per_table]
         ],
-        "forms": [short_row(r) for r in (children.get("thanh_phan_ho_so", {}).get("rows", []) or [])[:max_rows_per_table]],
-        "process": [short_row(r) for r in (children.get("cach_thuc_thuc_hien", {}).get("rows", []) or [])[:max_rows_per_table]],
-        "legal_basis": [short_row(r) for r in (children.get("can_cu_phap_ly", {}).get("rows", []) or [])[:3]],
+        "forms": [clean_row(r) for r in (children.get("thanh_phan_ho_so", {}).get("rows", []) or [])[:max_rows_per_table]],
+        "process": [clean_row(r) for r in (children.get("cach_thuc_thuc_hien", {}).get("rows", []) or [])[:max_rows_per_table]],
+        "legal_basis": [clean_row(r) for r in (children.get("can_cu_phap_ly", {}).get("rows", []) or [])[:3]],
+        "pdf_urls": pdf_urls,
     }
     return json.dumps(out, ensure_ascii=False)
 
@@ -79,6 +82,15 @@ async def _run_initial_query_async(procedure_ids: list[str], default_fields: lis
 
     def _sync():
         plan = build_query_plan(case)
-        return execute_query_plan(plan, case.procedures)
+        print("[qa] Main SQL:")
+        print(plan.main_sql)
+        for table, sql in plan.child_sqls.items():
+            print(f"[qa] Child SQL ({table}):")
+            print(sql)
+
+        result = execute_query_plan(plan, case.procedures)
+        print("[qa] SQL query result:")
+        print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
+        return result
 
     return await asyncio.to_thread(_sync)

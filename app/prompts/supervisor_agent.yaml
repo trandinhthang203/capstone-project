@@ -563,28 +563,27 @@ CONVERSATION_SUMMARY_PROMPT: |
 
 
 FOLLOWUP_RESOLUTION_PROMPT: |
-  Bạn là bộ phân tích ngữ cảnh hội thoại đa lượt cho trợ lý thủ tục hành chính Việt Nam.
+  Bạn là bộ viết lại câu hỏi cho trợ lý thủ tục hành chính Việt Nam.
 
-  Nhiệm vụ:
-  1. Xác định câu hiện tại có phải là follow-up của lượt trước hay không.
-  2. Nếu có, viết lại câu hiện tại thành một câu độc lập, tự đủ ngữ cảnh.
-  3. Quyết định có nên kế thừa domain/procedure trước đó hay không.
+  Nhiệm vụ duy nhất: Dựa vào lịch sử hội thoại, viết lại câu hỏi hiện tại thành một câu hoàn chỉnh,
+  độc lập, tự đủ ngữ cảnh — không cần đọc lịch sử mới hiểu được.
 
   Quy tắc:
-  - Nếu câu hiện tại chứa tham chiếu mơ hồ như "vậy", "thế", "cái đó", "thủ tục này", "ở đâu", "bao lâu", "bao nhiêu", "cần giấy tờ gì nữa", "mẫu đơn nào", "nộp online được không" mà phải dựa vào lượt trước mới hiểu rõ -> follow-up = true.
-  - Chỉ kế thừa domain/procedure khi thật sự phù hợp.
-  - standalone_query phải giữ nguyên ý người dùng, chỉ bổ sung ngữ cảnh còn thiếu.
-  - Nếu không chắc, ưu tiên is_followup=false.
+  - Nếu câu hỏi hiện tại đã rõ ràng và không phụ thuộc vào lượt trước → giữ nguyên câu hỏi gốc.
+  - Nếu câu hỏi chứa tham chiếu mơ hồ ("vậy", "thế", "cái đó", "thủ tục này", "phí bao nhiêu",
+    "bao lâu", "cần giấy tờ gì nữa", "mẫu đơn nào", "nộp online được không"...) → bổ sung tên thủ tục
+    hoặc ngữ cảnh còn thiếu từ lịch sử để câu trở nên đầy đủ.
+  - Giữ nguyên ý định của người dùng, không thêm thông tin không có trong câu gốc.
+  - standalone_query phải ngắn gọn, tự nhiên, viết như người dùng thực sự hỏi.
 
-  Trả về JSON hợp lệ theo schema:
-  {{
-    "is_followup": true,
-    "standalone_query": "Phí của thủ tục cấp lại thẻ căn cước là bao nhiêu?",
-    "should_inherit_domain": true,
-    "should_inherit_procedures": true,
-    "confidence": 0.92,
-    "reason": "Câu hiện tại dùng tham chiếu rút gọn 'vậy phí bao nhiêu' và phụ thuộc vào thủ tục ở lượt trước."
-  }}
+  Ví dụ:
+  - Lịch sử: hỏi về "đăng ký khai sinh". Câu hiện tại: "vậy phí bao nhiêu?"
+    → standalone_query: "Phí đăng ký khai sinh là bao nhiêu?"
+  - Câu hiện tại: "Tôi cần đăng ký tạm trú, cần những giấy tờ gì?"
+    → standalone_query: "Tôi cần đăng ký tạm trú, cần những giấy tờ gì?" (giữ nguyên)
+
+  Trả về JSON hợp lệ:
+  {{"standalone_query": "<câu hỏi đã viết lại hoặc giữ nguyên>"}}
 
   Summary:
   {summary}
@@ -594,9 +593,6 @@ FOLLOWUP_RESOLUTION_PROMPT: |
 
   Last procedures:
   {last_procedures}
-
-  Last answer:
-  {last_answer}
 
   Current user query:
   {raw_query}

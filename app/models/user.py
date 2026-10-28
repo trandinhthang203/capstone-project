@@ -1,28 +1,19 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, func
+import uuid
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
-
 class User(Base):
-    __tablename__ = "User"
-
-    iduser      = Column(Integer, primary_key=True, autoincrement=True)
-    idrole      = Column(Integer, ForeignKey("role.idrole"), nullable=False, default=2)
-    fullname    = Column(String(100), nullable=False)
-    citizenid   = Column(String(12), nullable=False, unique=True)
-    password    = Column(String(255), nullable=False)
-    phonenumber = Column(String(15), nullable=True)
-    dateofbirth = Column(Date, nullable=True)
-    gender      = Column(String(10), default="Other")
-    address     = Column(String(255), nullable=True)
-    province    = Column(String(100), nullable=True)
-    district    = Column(String(100), nullable=True)
-    ward        = Column(String(100), nullable=True)
-    avatarurl   = Column(String(500), nullable=True)
-    status      = Column(String(20), nullable=False, default="Active")
-    createdat   = Column(DateTime, server_default=func.now())
-    lastlogin   = Column(DateTime, nullable=True)
-
-    # Relationships
-    role         = relationship("Role", back_populates="users")
-    chatsessions = relationship("ChatSession", back_populates="user")
+    __tablename__ = "users"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
+    full_name = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True, index=True)
+    phone = Column(String)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="true")
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    role = relationship("Role", back_populates="users")
+    procedures = relationship("ProcedureGroup", back_populates="user")
+    sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")

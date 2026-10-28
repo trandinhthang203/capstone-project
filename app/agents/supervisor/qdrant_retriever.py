@@ -13,6 +13,7 @@ _RETRIEVE_CACHE: TTLCache = TTLCache(maxsize=256, ttl=300)
 
 
 def _search_sync(query: str, top_k: int = 8, linh_vuc: str | None = None) -> list[dict[str, Any]]:
+    # pyrefly: ignore [missing-import]
     from qdrant_client import models as qm
 
     client = _get_client()

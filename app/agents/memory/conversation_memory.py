@@ -57,28 +57,20 @@ def _sync_invoke(prompt):
     return asyncio.run(invoke_llm_text([HumanMessage(content=prompt)]))
 
 
-async def resolve_followup(raw_query, messages, summary, last_procedures, last_answer):
+async def resolve_followup(raw_query, messages, summary, last_procedures) -> str:
+    """Viết lại câu hỏi thành câu độc lập, tự đủ ngữ cảnh.
+    Trả về standalone_query (str). Nếu câu đã rõ, trả về nguyên câu gốc.
+    """
     if len(messages) < 2 and not summary and not last_procedures:
-        return {
-            "is_followup": False, 
-            "standalone_query": raw_query,
-            "confidence": 0.0, 
-            "reason": "No prior context",
-        }
+        return raw_query
     prior = messages[:-1] if messages else []
     recent = format_messages_for_prompt(prior, max_messages=CHAT_MEMORY_RECENT_MESSAGES)
     prompt = supervisor_prompt["FOLLOWUP_RESOLUTION_PROMPT"].format(
-        raw_query=raw_query, 
+        raw_query=raw_query,
         summary=summary or "Chưa có tóm tắt",
         recent_messages=recent or "Không có",
         last_procedures=", ".join(last_procedures) if last_procedures else "[]",
-        last_answer=last_answer or "Chưa có câu trả lời trước đó",
     )
     raw_text = await invoke_llm_text([HumanMessage(content=prompt)])
-    parsed = safe_json_loads(raw_text, fallback={
-        "is_followup": False, 
-        "standalone_query": raw_query,
-        "confidence": 0.0, 
-        "reason": "fallback",
-    })
-    return parsed
+    parsed = safe_json_loads(raw_text, fallback={"standalone_query": raw_query})
+    return parsed.get("standalone_query") or raw_query

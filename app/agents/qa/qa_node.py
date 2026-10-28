@@ -3,11 +3,16 @@ import json
 import random
 from typing import Any, Literal
 
+# pyrefly: ignore [missing-import]
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+# pyrefly: ignore [missing-import]
 from langchain_core.tools import tool
+# pyrefly: ignore [missing-import]
 from langgraph.graph import END
+# pyrefly: ignore [missing-import]
 from langgraph.types import Command
-from langsmith import traceable
+# pyrefly: ignore [missing-import]
+from langsmith import traceablea    
 
 from app.agents.base.state import AgentState, StreamEvent, SupervisorOutput
 from app.agents.base.utils import _default_reply, emit, get_next_agent
@@ -46,10 +51,9 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
                 "final_response": answer,
                 "messages": [AIMessage(content=answer)],
                 "last_answer": answer,
-                "last_domain": state.get("domain"),
-                "last_procedures": procedure_ids,
             },
         )
+
 
     await emit(StreamEvent(type="progress", node="qa", message="Đang truy vấn dữ liệu thủ tục..."))
 
@@ -75,6 +79,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
     merged_pdf_urls = dedup
 
     compact_ctx = _compact_payload(initial_payload)
+    ## lấy context ở đây compact_ctx lưu vào cột context file ragas_fixed.csv
 
     await emit(StreamEvent(type="progress", node="qa", message="Đang tạo câu trả lời..."))
 
@@ -102,6 +107,7 @@ async def qa_node(state: AgentState) -> Command[Literal["forms", "location", "__
             "messages": [AIMessage(content=final_answer)],
             "pdf_urls": merged_pdf_urls,
             "last_answer": final_answer,
-            "last_procedures": procedure_ids,
         },
     )
+
+
