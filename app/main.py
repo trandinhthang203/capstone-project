@@ -13,9 +13,9 @@ from app.agents.base.graph import create_workflow
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _get_client()
-    _get_models()
-    app.state.workflow = await create_workflow()
+    # _get_client()
+    # _get_models()
+    # app.state.workflow = await create_workflow()
     yield
 
 

@@ -12,7 +12,7 @@ from langgraph.graph import END
 # pyrefly: ignore [missing-import]
 from langgraph.types import Command
 # pyrefly: ignore [missing-import]
-from langsmith import traceablea    
+from langsmith import traceable
 
 from app.agents.base.state import AgentState, StreamEvent, SupervisorOutput
 from app.agents.base.utils import _default_reply, emit, get_next_agent

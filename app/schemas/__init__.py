@@ -1,7 +1,7 @@
 from app.schemas.role import RoleCreate, RoleUpdate, RoleResponse
 from app.schemas.user import (
-    UserCreate, UserUpdate, UserResponse,
-    UserLogin, UserLoginResponse
+    PasswordChange, UserCreate, UserRegister, UserUpdate, UserResponse,
+    UserLoginResponse
 )
 from app.schemas.chat_session import (
     ChatSessionCreate, ChatSessionUpdate,
@@ -17,8 +17,8 @@ __all__ = [
     # Role
     "RoleCreate", "RoleUpdate", "RoleResponse",
     # User
-    "UserCreate", "UserUpdate", "UserResponse",
-    "UserLogin", "UserLoginResponse",
+    "PasswordChange", "UserCreate", "UserRegister", "UserUpdate", "UserResponse",
+    "UserLoginResponse",
     # ChatSession
     "ChatSessionCreate", "ChatSessionUpdate",
     "ChatSessionResponse", "ChatSessionClose",

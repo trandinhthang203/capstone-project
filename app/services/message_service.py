@@ -5,6 +5,7 @@ from uuid import UUID
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
 
 from app.agents.base.graph import create_workflow
 from app.agents.base.state import AgentState, StreamEvent
@@ -33,24 +34,28 @@ class MessageService(object):
             }
         }
 
+    def ensure_session_access(self, session_id: UUID) -> ChatSession:
+        session = self.db.query(ChatSession).filter(
+            ChatSession.id == session_id,
+            ChatSession.user_id == self.user_id,
+        ).first()
+        if not session:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Không tìm thấy cuộc trò chuyện")
+        return session
+
     def _save_message(self, session_id, content, isfromuser, msgtype="text", metadata=None):
-        msg = ChatMessage(
-            idchatsession=session_id,
-            msgcontent=content,
-            isfromuser=isfromuser,
-            msgtype=msgtype,
-            meta_data=metadata,
-        )
+        msg = ChatMessage(session_id=session_id, content=content,
+                          role="user" if isfromuser else "assistant",
+                          metadata_=({"message_type": msgtype, **(metadata or {})}))
         self.db.add(msg)
         self.db.commit()
         self.db.refresh(msg)
         return msg
 
     def _set_session_status(self, session_id, status: str):
-        session = self.db.query(ChatSession).filter(ChatSession.idchatsession == session_id).first()
-        if session:
-            session.status = status
-            self.db.commit()
+        # The current session schema has no workflow-status column.
+        return None
 
     def _extract_interrupt_payload(self, result: dict):
         interrupts = result.get("__interrupt__") or []
@@ -63,10 +68,10 @@ class MessageService(object):
         return (
             self.db.query(ChatMessage)
             .filter(
-                ChatMessage.idchatsession == session_id,
-                ChatMessage.msgtype == "dynamic_form",
+                ChatMessage.session_id == session_id,
+                ChatMessage.metadata_["message_type"].astext == "dynamic_form",
             )
-            .order_by(ChatMessage.idchatmessage.desc())
+            .order_by(ChatMessage.created_at.desc())
             .first()
         )
 
@@ -144,7 +149,7 @@ class MessageService(object):
 
     async def submit_dynamic_form_stream(self, data: DynamicFormSubmitRequest):
         latest_form_message = self._get_latest_dynamic_form_message(data.idchatsession)
-        latest_meta = latest_form_message.meta_data if latest_form_message else None
+        latest_meta = latest_form_message.metadata_ if latest_form_message else None
 
         if latest_meta and latest_meta.get("request_id") and latest_meta.get("request_id") != data.request_id:
             yield f"data: {json.dumps({'type': 'error', 'message': 'Biểu mẫu đã hết hiệu lực, vui lòng gửi lại yêu cầu mới.'}, ensure_ascii=False)}\n\n"

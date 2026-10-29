@@ -4,19 +4,9 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services.message_service import MessageService
 from app.schemas.chat_message import ChatMessageCreate, ChatMessageResponse, DynamicFormSubmitRequest
-from app.helpers.utils.dependencies import get_current_user
+from app.core.deps import get_current_user
 
 router = APIRouter()
-
-@router.post("/", response_model=ChatMessageResponse)
-async def create_message(
-    request: Request,
-    data: ChatMessageCreate,
-    db: Session = Depends(get_db)
-):
-    service = MessageService(db)
-    await service.initialize()  
-    return await service.create_message(data)
 
 @router.post("/stream")
 async def create_message_stream(
@@ -25,7 +15,8 @@ async def create_message_stream(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    service = MessageService(db, current_user.iduser)
+    service = MessageService(db, current_user.id)
+    service.ensure_session_access(data.idchatsession)
     service.app = request.app.state.workflow
 
     return StreamingResponse(
@@ -44,7 +35,8 @@ async def submit_dynamic_form_stream(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    service = MessageService(db, current_user.iduser)
+    service = MessageService(db, current_user.id)
+    service.ensure_session_access(data.idchatsession)
     service.app = request.app.state.workflow
 
     return StreamingResponse(
