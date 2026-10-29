@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = os.getenv('PROJECT_NAME', 'DVC Agents - Hỗ trợ dịch vụ công')
     SECRET_KEY: str = os.getenv('SECRET_KEY', '')
     API_PREFIX: str = ''
-    BACKEND_CORS_ORIGINS: list[str] = ['*']
+    BACKEND_CORS_ORIGINS: list[str] = ['http://localhost:3000', 'http://localhost:5173']
     DATABASE_URL: str = os.getenv('SQL_DATABASE_URL', '')
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7
     SECURITY_ALGORITHM: str = 'HS256'
@@ -22,6 +22,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# if not settings.SECRET_KEY or len(settings.SECRET_KEY) < 32:
+#     raise RuntimeError("SECRET_KEY must be configured with at least 32 characters")
 
 # with open(BASE_DIR / 'system_prompts.yaml', 'r', encoding='utf-8') as file:
 #     system_prompt = yaml.safe_load(file)

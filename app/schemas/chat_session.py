@@ -1,27 +1,26 @@
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict
+
 
 class ChatSessionCreate(BaseModel):
-    iduser: int
+    user_id: UUID
+    title: str | None = None
 
 
 class ChatSessionUpdate(BaseModel):
-    status:    Optional[str] = None
-    endeddate: Optional[datetime] = None
+    title: str | None = None
 
 
 class ChatSessionResponse(BaseModel):
-    idchatsession: UUID
-    iduser:        int
-    status:        str
-    createddate:   Optional[datetime] = None
-    endeddate:     Optional[datetime] = None
-
-    model_config = {"from_attributes": True}
+    id: UUID
+    user_id: UUID
+    title: str | None
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatSessionClose(BaseModel):
-    idchatsession: UUID
+    id: UUID
