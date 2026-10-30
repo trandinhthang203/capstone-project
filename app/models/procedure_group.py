@@ -17,7 +17,9 @@ class ProcedureGroup(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     code = Column(String, nullable=False, unique=True, index=True)
     name = Column(String, nullable=False)
-    administrative_level = Column(String)
+    issuing_agency = Column(String)
+    implementing_agency = Column(String)
+    domain = Column(String)
     status = Column(
         Enum(
             ProcedureGroupStatus,
@@ -27,7 +29,8 @@ class ProcedureGroup(Base):
         nullable=False,
         default=ProcedureGroupStatus.DRAFT,
     )
-    source_url = Column(String)
+    page_url = Column(String)      
+    document_url = Column(String)  
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     user = relationship("User", back_populates="procedures")
