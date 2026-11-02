@@ -98,6 +98,37 @@ def read_procedures_excel(
     return rows
 
 
+def find_new_procedures(
+    file_path: str | Path,
+    db: Session | None = None,
+    sheet_name: str | int = 0,
+) -> list[dict[str, str | None]]:
+    """Trả về các thủ tục trong file Excel có ``code`` chưa tồn tại trong CSDL.
+
+    Hàm chỉ đọc dữ liệu, không thêm mới, cập nhật hay commit vào bảng
+    ``procedures``. Nếu ``db`` không được truyền, hàm tự tạo và đóng database
+    session.
+    """
+    rows = read_procedures_excel(file_path, sheet_name)
+    if not rows:
+        return []
+
+    owns_session = db is None
+    session = db or SessionLocal()
+    try:
+        codes = [row["code"] for row in rows]
+        existing_codes = {
+            code
+            for (code,) in session.query(ProcedureGroup.code)
+            .filter(ProcedureGroup.code.in_(codes))
+            .all()
+        }
+        return [row for row in rows if row["code"] not in existing_codes]
+    finally:
+        if owns_session:
+            session.close()
+
+
 def import_procedures_excel(
     file_path: str | Path,
     user_id: str | uuid.UUID,
@@ -168,4 +199,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # raise SystemExit(main())
+    new_procedures = find_new_procedures("D:\capstone-project\scripts\danh-sach-tthc-2026-10-31-04-02.xlsx")
+    print(len(new_procedures))

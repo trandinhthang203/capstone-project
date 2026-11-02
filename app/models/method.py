@@ -8,7 +8,8 @@ class Method(Base):
     __tablename__ = "method"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     procedure_id = Column(UUID(as_uuid=True), ForeignKey("procedure.id", ondelete="CASCADE"), nullable=False)
-    order_index = Column(Integer, nullable=False)
-    title = Column(String, nullable=False)
-    content = Column(Text)
+    method_type = Column(String)
+    processing_time = Column(String)     # "Không quy định"
+    fee = Column(String)                 # "Không có thông tin"
+    description = Column(Text)
     procedure = relationship("Procedure", back_populates="methods")
