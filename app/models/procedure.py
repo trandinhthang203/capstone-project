@@ -25,6 +25,7 @@ class Procedure(Base):
     requirements = Column(Text)                      # Yêu cầu, điều kiện thực hiện
     description = Column(Text)                       # Mô tả
     keywords = Column(ARRAY(String))                 # Từ khóa
+    results = Column(Text)                           # Kết quả xử lý
     page_url = Column(String)      
     document_url = Column(String)  
     form_urls = Column(JSONB, nullable=False, server_default="[]")

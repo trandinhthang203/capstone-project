@@ -1,0 +1,17 @@
+# Request đáng chú ý (id số đã lược thành {id} để thấy pattern)
+
+## 3.000056 -> https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-00f6-700a-86bc-657210103554
+  POST  201 application/json                 https://dichvucong.gov.vn/api/v1/configuring/system-parameter/list
+  POST  201 application/json                 https://dichvucong.gov.vn/api/v1/submitting/formality/list-all-public-formality-by-citizen
+  GET   200 application/octet-stream         https://dichvucong.gov.vn/site.webmanifest
+  GET   200 application/octet-stream         https://dichvucong.gov.vn/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf
+
+## 1.005444 -> https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d
+  POST  201 application/json                 https://dichvucong.gov.vn/api/v1/submitting/formality-top-search/list-by-citizen
+  POST  201 application/json                 https://dichvucong.gov.vn/api/v1/configuring/formality/get-formality-by-citizen
+  POST  201 application/json                 https://dichvucong.gov.vn/api/v1/configuring/province-vn/list-by-citizen
+  POST  201 application/pdf                  https://dichvucong.gov.vn/api/v1/configuring/formality/export-pdf-formality-detail-by-citizen
+  POST  201 application/vnd.openxmlformats-o https://dichvucong.gov.vn/api/v1/submitting/preview-attachment
+  ?     200 application/octet-stream         
+
+## 1.002181 -> https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-5730-745b-8f0b-7d02a8ce43cd

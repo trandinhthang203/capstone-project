@@ -79,6 +79,7 @@ def _ensure_collection(client: Any, dense_size: int) -> None:
 def upsert_procedures(
     db: Session | None = None,
     batch_size: int = 64,
+    procedure_ids: Sequence[Any] | None = None,
 ) -> dict[str, int | str]:
     """Upsert các ProcedureGroup archived rồi chuyển chúng sang published.
 
@@ -92,12 +93,15 @@ def upsert_procedures(
     owns_session = db is None
     session = db or SessionLocal()
     try:
-        procedures = (
-            session.query(ProcedureGroup)
-            .filter(ProcedureGroup.status == ProcedureGroupStatus.DRAFT)
-            .order_by(ProcedureGroup.code)
-            .all()
+        query = session.query(ProcedureGroup).filter(
+            ProcedureGroup.status == ProcedureGroupStatus.ARCHIVED
         )
+        if procedure_ids is not None:
+            ids = list(procedure_ids)
+            if not ids:
+                return {"collection": COLLECTION_NAME, "upserted": 0}
+            query = query.filter(ProcedureGroup.id.in_(ids))
+        procedures = query.order_by(ProcedureGroup.code).all()
         if not procedures:
             return {"collection": COLLECTION_NAME, "upserted": 0}
 

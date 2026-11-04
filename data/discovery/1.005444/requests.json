@@ -1,0 +1,2413 @@
+{
+  "code": "1.005444",
+  "pageUrl": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+  "requests": [
+    {
+      "requestId": "23092.85",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-a18\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.84",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-2b0b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.87",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-17da\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.88",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-fcb\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.89",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-9406c\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.83",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-48f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.86",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "278",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-116\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.90",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-29e82\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.91",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-1085\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.92",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-757\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.93",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-42b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.94",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-820\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.95"
+    },
+    {
+      "requestId": "23092.96",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-1bf2\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.97",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-859\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.98",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-9d1\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "225A00A75646B3698075A06215B2A5D7",
+      "url": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": null,
+      "resourceType": "Document",
+      "status": 200,
+      "mimeType": "text/html",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "content-encoding": "gzip",
+        "content-type": "text/html",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-1466\"",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "vary": "Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "requestId": "23092.104",
+      "status": 200,
+      "mimeType": "application/octet-stream",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "private",
+        "content-length": "263",
+        "content-type": "application/octet-stream",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b4-107\"",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "requestId": "23092.106",
+      "url": "https://dichvucong.gov.vn/assets/index-CL_qLtUz.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:01 GMT",
+        "etag": "W/\"6adde1b5-22a0a0\"",
+        "expires": "Thu, 04 Nov 2027 08:19:01 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.107",
+      "url": "https://dichvucong.gov.vn/assets/index-D8elPw7c.css",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Stylesheet",
+      "status": 200,
+      "mimeType": "text/css",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "text/css",
+        "date": "Wed, 04 Nov 2026 08:19:01 GMT",
+        "etag": "W/\"6adde1b5-2fc9f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:01 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.103"
+    },
+    {
+      "requestId": "23092.110",
+      "url": "https://dichvucong.gov.vn/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/assets/index-D8elPw7c.css"
+      },
+      "postData": null,
+      "resourceType": "Font",
+      "status": 200,
+      "mimeType": "application/octet-stream",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "569372",
+        "content-type": "application/octet-stream",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-8b01c\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.102"
+    },
+    {
+      "requestId": "23092.114",
+      "url": "https://dichvucong.gov.vn/imgs/dvc-logo.png",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Image",
+      "status": 200,
+      "mimeType": "image/png",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "67151",
+        "content-type": "image/png",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-1064f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.115",
+      "url": "https://dichvucong.gov.vn/assets/DashboardSearchResult-BhuMb4of.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-123e\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.116",
+      "url": "https://dichvucong.gov.vn/assets/FooterInfo-DvqolRzM.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "589",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-24d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.117",
+      "url": "https://dichvucong.gov.vn/assets/FormInput-DJjKmxD-.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "953",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-3b9\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.118",
+      "url": "https://dichvucong.gov.vn/assets/index.esm-iL3sODk8.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-7097\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.119",
+      "url": "https://dichvucong.gov.vn/assets/Input-CvSxiR6c.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-ba3\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.120",
+      "url": "https://dichvucong.gov.vn/assets/index-CYg-721k.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-1722\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.121",
+      "url": "https://dichvucong.gov.vn/assets/FloatingLabel-DyQfcIHC.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-4a5\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.122",
+      "url": "https://dichvucong.gov.vn/assets/useSearchInput-30hiA8Sh.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "365",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-16d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.123",
+      "url": "https://dichvucong.gov.vn/assets/Pagination-kFsQxB6w.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-8b7\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.124",
+      "url": "https://dichvucong.gov.vn/assets/Select-GXZ5UcBr.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-1c92\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.125",
+      "url": "https://dichvucong.gov.vn/assets/index-D7YYj_Sc.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "95",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-5f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.126",
+      "url": "https://dichvucong.gov.vn/assets/configuring-BH4p_yyC.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-7c7\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.127",
+      "url": "https://dichvucong.gov.vn/assets/formality-CdCfhpjg.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "857",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-359\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.128",
+      "url": "https://dichvucong.gov.vn/assets/list-all-formality-by-citizen-EIAI1dAE.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "929",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b5-3a1\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.129",
+      "url": "https://dichvucong.gov.vn/assets/urlCommon-6SBy9HI_.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "W/\"6adde1b5-4fe\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.130",
+      "url": "https://dichvucong.gov.vn/assets/payment.constants-CBJQNKcv.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "W/\"6adde1b5-d8d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.131",
+      "url": "https://dichvucong.gov.vn/assets/index-CyRH5bcN.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "598",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b5-256\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.132",
+      "url": "https://dichvucong.gov.vn/imgs/loading.png",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Image",
+      "status": 200,
+      "mimeType": "image/png",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "146404",
+        "content-type": "image/png",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-23be4\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.135",
+      "url": "https://dichvucong.gov.vn/site.webmanifest",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": null,
+      "resourceType": "Manifest",
+      "status": 200,
+      "mimeType": "application/octet-stream",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "private",
+        "content-length": "263",
+        "content-type": "application/octet-stream",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b4-107\"",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "requestId": "23092.136",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/system-parameter/list",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"search\":\"ENABLE_CITIZEN_REPORT_766\",\"limit\":10,\"lastId\":\"\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "339",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f15f-7120-8881-a72f866d2634",
+        "date": "Wed, 04 Nov 2026 08:19:07 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f15f-7120-8881-a72f866d2634",
+        "server-timing": "intid;desc=0f4214b5678e4e9b",
+        "x-request-id": "01a1a5a3-f15f-7120-8881-a72f866d2634"
+      }
+    },
+    {
+      "requestId": "23092.137",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/system-parameter/list",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"search\":\"CHAT_BOT_UI\",\"limit\":10,\"lastId\":\"\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "342",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f1b0-70bc-bfa5-741a1dc295b1",
+        "date": "Wed, 04 Nov 2026 08:19:07 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f1b0-70bc-bfa5-741a1dc295b1",
+        "server-timing": "intid;desc=fb82f1e870e1a719",
+        "x-request-id": "01a1a5a3-f1b0-70bc-bfa5-741a1dc295b1"
+      }
+    },
+    {
+      "requestId": "23092.139",
+      "url": "https://dichvucong.gov.vn/imgs/trongdong.png",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444"
+      },
+      "postData": null,
+      "resourceType": "Image",
+      "status": 200,
+      "mimeType": "image/png",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "32539",
+        "content-type": "image/png",
+        "date": "Wed, 04 Nov 2026 08:19:04 GMT",
+        "etag": "\"6adde1b4-7f1b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:04 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.150",
+      "url": "https://dichvucong.gov.vn/api/v1/submitting/formality/list-all-public-formality-by-citizen",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/dvc-ket-qua-thu-tuc?keyword=1.005444",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"limit\":10,\"lastId\":\"\",\"q\":\"1.005444\",\"categoryId\":\"\",\"departmentCode\":\"\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "622",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f242-7179-aeac-d0ab4124d874",
+        "date": "Wed, 04 Nov 2026 08:19:07 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f242-7179-aeac-d0ab4124d874",
+        "server-timing": "intid;desc=cc3a3b777bd5f2d7",
+        "x-request-id": "01a1a5a3-f242-7179-aeac-d0ab4124d874"
+      }
+    },
+    {
+      "requestId": "5D049465AB7A2C47C4C7784B03A0AC3B",
+      "url": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": null,
+      "resourceType": "Document",
+      "status": 200,
+      "mimeType": "text/html",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "content-encoding": "gzip",
+        "content-type": "text/html",
+        "date": "Wed, 04 Nov 2026 08:19:07 GMT",
+        "etag": "W/\"6adde1b5-1466\"",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "vary": "Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "requestId": "23092.152",
+      "url": "https://dichvucong.gov.vn/assets/index-CL_qLtUz.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:01 GMT",
+        "etag": "W/\"6adde1b5-22a0a0\"",
+        "expires": "Thu, 04 Nov 2027 08:19:01 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.153",
+      "url": "https://dichvucong.gov.vn/assets/index-D8elPw7c.css",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Stylesheet",
+      "status": 200,
+      "mimeType": "text/css",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "text/css",
+        "date": "Wed, 04 Nov 2026 08:19:01 GMT",
+        "etag": "W/\"6adde1b5-2fc9f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:01 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.156",
+      "url": "https://dichvucong.gov.vn/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/assets/index-D8elPw7c.css"
+      },
+      "postData": null,
+      "resourceType": "Font",
+      "status": 200,
+      "mimeType": "application/octet-stream",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "569372",
+        "content-type": "application/octet-stream",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-8b01c\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.160",
+      "url": "https://dichvucong.gov.vn/imgs/dvc-logo.png",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Image",
+      "status": 200,
+      "mimeType": "image/png",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "67151",
+        "content-type": "image/png",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-1064f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.161",
+      "url": "https://dichvucong.gov.vn/assets/FormalityDetailPage-nYf2xDlQ.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-a71\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.162",
+      "url": "https://dichvucong.gov.vn/assets/Divider-BoCP6i-F.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "845",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-34d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.163",
+      "url": "https://dichvucong.gov.vn/assets/MainSidebarLayout-C8YMTtp1.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-614\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.164",
+      "url": "https://dichvucong.gov.vn/assets/index-B1u5voLl.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-e04\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.165",
+      "url": "https://dichvucong.gov.vn/assets/configuring-BH4p_yyC.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-7c7\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.166",
+      "url": "https://dichvucong.gov.vn/assets/formality-CdCfhpjg.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "857",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-359\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.167",
+      "url": "https://dichvucong.gov.vn/assets/list-all-formality-by-citizen-EIAI1dAE.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "929",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b5-3a1\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.168",
+      "url": "https://dichvucong.gov.vn/assets/urlCommon-6SBy9HI_.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "W/\"6adde1b5-4fe\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.169",
+      "url": "https://dichvucong.gov.vn/assets/payment.constants-CBJQNKcv.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "W/\"6adde1b5-d8d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.170",
+      "url": "https://dichvucong.gov.vn/assets/ListByFormalitySidebar-D2bwdtvY.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-261b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.171",
+      "url": "https://dichvucong.gov.vn/assets/SidebarList-C0jHgImD.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-546\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.172",
+      "url": "https://dichvucong.gov.vn/assets/formality-BMFX3Zis.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-702\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.173",
+      "url": "https://dichvucong.gov.vn/assets/index.esm-iL3sODk8.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-7097\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.174",
+      "url": "https://dichvucong.gov.vn/assets/FormInput-DJjKmxD-.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "953",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-3b9\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.175",
+      "url": "https://dichvucong.gov.vn/assets/Input-CvSxiR6c.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-ba3\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.176",
+      "url": "https://dichvucong.gov.vn/assets/index-CYg-721k.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-1722\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.177",
+      "url": "https://dichvucong.gov.vn/assets/FloatingLabel-DyQfcIHC.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-4a5\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.178",
+      "url": "https://dichvucong.gov.vn/assets/useSearchInput-30hiA8Sh.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "365",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-16d\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.179",
+      "url": "https://dichvucong.gov.vn/assets/RadioInput-DpEmG55H.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-6c9\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.180",
+      "url": "https://dichvucong.gov.vn/assets/FormSelect-DCh_ScWp.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "602",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-25a\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.181",
+      "url": "https://dichvucong.gov.vn/assets/Select-GXZ5UcBr.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "W/\"6adde1b5-1c92\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.182",
+      "url": "https://dichvucong.gov.vn/assets/index-D7YYj_Sc.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "95",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b5-5f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:02 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.183",
+      "url": "https://dichvucong.gov.vn/assets/useAdress-D8c_Ksn7.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-496\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.184",
+      "url": "https://dichvucong.gov.vn/assets/get-address-CtJ66DFL.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "389",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-185\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.185",
+      "url": "https://dichvucong.gov.vn/assets/department-with-location-DlFSbFRv.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "278",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-116\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.186",
+      "url": "https://dichvucong.gov.vn/assets/useIntersectionObserver-eNHUX0E4.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "314",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-13a\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.187",
+      "url": "https://dichvucong.gov.vn/assets/useListDepartmentWithLocation-C7fbbr7u.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "652",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-28c\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.188",
+      "url": "https://dichvucong.gov.vn/assets/useInfiniteQuery-oZ_YHAXp.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-48f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.189",
+      "url": "https://dichvucong.gov.vn/assets/useDebounce-CdADCOip.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "192",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-c0\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.190",
+      "url": "https://dichvucong.gov.vn/assets/FormalityPopularList-M8cHt0Cx.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "445",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-1bd\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.191",
+      "url": "https://dichvucong.gov.vn/assets/FormalityHeader-DKRD7MRr.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-ae7\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.192",
+      "url": "https://dichvucong.gov.vn/assets/DownloadFileIcon-WIDAuw0M.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-48f\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.193",
+      "url": "https://dichvucong.gov.vn/assets/FormalityViewDetailButton-CTXSELK0.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-2b0b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.194",
+      "url": "https://dichvucong.gov.vn/assets/Modal-DBt4vyna.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-a18\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.195",
+      "url": "https://dichvucong.gov.vn/assets/useModal-CdvNkfhE.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "278",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "\"6adde1b5-116\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT"
+      }
+    },
+    {
+      "requestId": "23092.196",
+      "url": "https://dichvucong.gov.vn/assets/dossier.constants-CUR98Dbw.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-17da\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.197",
+      "url": "https://dichvucong.gov.vn/assets/formality.constants-BHo5Djs4.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-fcb\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.198",
+      "url": "https://dichvucong.gov.vn/assets/ProfileDossierAttachment-DPIYuoWr.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-9406c\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.199",
+      "url": "https://dichvucong.gov.vn/assets/dossier-B7F2K5Z6.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-29e82\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.200",
+      "url": "https://dichvucong.gov.vn/assets/ProfileDossierPreviewFile-DkaG3L6-.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-1085\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.201",
+      "url": "https://dichvucong.gov.vn/assets/Tooltip-DzMaOXtj.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-757\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.202",
+      "url": "https://dichvucong.gov.vn/assets/CustomRowGrid-CFUxDqdT.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-42b\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.203",
+      "url": "https://dichvucong.gov.vn/assets/time-pavUVcfV.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-820\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.204",
+      "url": "https://dichvucong.gov.vn/assets/dayjs-Cu6XPPL8.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-24b7\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.205",
+      "url": "https://dichvucong.gov.vn/assets/dayjs.min-Bu5tV3iO.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-1bf2\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.206",
+      "url": "https://dichvucong.gov.vn/assets/ResponsiveTable-DICgntCl.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-859\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.207",
+      "url": "https://dichvucong.gov.vn/assets/table-n1iL4cDA.js",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Origin": "https://dichvucong.gov.vn",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Script",
+      "status": 200,
+      "mimeType": "application/javascript",
+      "respHeaders": {
+        "Transfer-Encoding": "chunked",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript",
+        "date": "Wed, 04 Nov 2026 08:19:06 GMT",
+        "etag": "W/\"6adde1b5-9d1\"",
+        "expires": "Thu, 04 Nov 2027 08:19:06 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:13 GMT",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "requestId": "23092.208",
+      "url": "https://dichvucong.gov.vn/imgs/loading.png",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d"
+      },
+      "postData": null,
+      "resourceType": "Image",
+      "status": 200,
+      "mimeType": "image/png",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "max-age=31536000, public, max-age=31536000, immutable",
+        "content-length": "146404",
+        "content-type": "image/png",
+        "date": "Wed, 04 Nov 2026 08:19:03 GMT",
+        "etag": "\"6adde1b4-23be4\"",
+        "expires": "Thu, 04 Nov 2027 08:19:03 GMT",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT"
+      }
+    },
+    {
+      "requestId": "23092.211",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/system-parameter/list",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"search\":\"ENABLE_CITIZEN_REPORT_766\",\"limit\":10,\"lastId\":\"\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "339",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f4fb-7079-a629-4ce467f2877f",
+        "date": "Wed, 04 Nov 2026 08:19:08 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f4fb-7079-a629-4ce467f2877f",
+        "server-timing": "intid;desc=933cb1c0216ab842",
+        "x-request-id": "01a1a5a3-f4fb-7079-a629-4ce467f2877f"
+      }
+    },
+    {
+      "requestId": "23092.212",
+      "url": "https://dichvucong.gov.vn/site.webmanifest",
+      "httpMethod": "GET",
+      "reqHeaders": {
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": null,
+      "resourceType": "Manifest",
+      "status": 200,
+      "mimeType": "application/octet-stream",
+      "respHeaders": {
+        "accept-ranges": "bytes",
+        "cache-control": "private",
+        "content-length": "263",
+        "content-type": "application/octet-stream",
+        "date": "Wed, 04 Nov 2026 08:19:02 GMT",
+        "etag": "\"6adde1b4-107\"",
+        "last-modified": "Sun, 25 Oct 2026 11:02:12 GMT",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      }
+    },
+    {
+      "requestId": "23092.216",
+      "url": "https://dichvucong.gov.vn/api/v1/submitting/formality-top-search/list-by-citizen",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "4107",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f5b5-722d-9c72-d80f8c598176",
+        "date": "Wed, 04 Nov 2026 08:19:09 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f5b5-722d-9c72-d80f8c598176",
+        "server-timing": "intid;desc=1b8ff811e3744e29",
+        "x-request-id": "01a1a5a3-f5b5-722d-9c72-d80f8c598176"
+      }
+    },
+    {
+      "requestId": "23092.217",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/formality/get-formality-by-citizen",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"id\":\"019d2bf9-261d-7159-97f3-da46eeda613d\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "18825",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f5b7-7676-8117-458c83b1408a",
+        "date": "Wed, 04 Nov 2026 08:19:08 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f5b7-7676-8117-458c83b1408a",
+        "server-timing": "intid;desc=79b90d0e1f48a240",
+        "x-request-id": "01a1a5a3-f5b7-7676-8117-458c83b1408a"
+      }
+    },
+    {
+      "requestId": "23092.218",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/province-vn/list-by-citizen",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"limit\":100,\"lastId\":\"\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/json",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-length": "3603",
+        "content-type": "application/json; charset=utf-8",
+        "correlation-id": "01a1a5a3-f932-71ef-8d70-e1bebd4120b5",
+        "date": "Wed, 04 Nov 2026 08:19:09 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f932-71ef-8d70-e1bebd4120b5",
+        "server-timing": "intid;desc=be26f68fe2d17868",
+        "x-request-id": "01a1a5a3-f932-71ef-8d70-e1bebd4120b5"
+      }
+    },
+    {
+      "requestId": "23092.219",
+      "url": "https://dichvucong.gov.vn/api/v1/configuring/formality/export-pdf-formality-detail-by-citizen",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"formalityId\":\"019d2bf9-261d-7159-97f3-da46eeda613d\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/pdf",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-disposition": "attachment; filename=\"chi-tiet-thu-tuc-1.005444-1793780349407.pdf\"",
+        "content-length": "84170",
+        "content-type": "application/pdf",
+        "correlation-id": "01a1a5a3-f934-73b1-af7d-0ac71908fc9a",
+        "date": "Wed, 04 Nov 2026 08:19:09 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a3-f934-73b1-af7d-0ac71908fc9a",
+        "server-timing": "intid;desc=8611c6c367fee073",
+        "x-request-id": "01a1a5a3-f934-73b1-af7d-0ac71908fc9a"
+      }
+    },
+    {
+      "requestId": "23092.222",
+      "url": "https://dichvucong.gov.vn/api/v1/submitting/preview-attachment",
+      "httpMethod": "POST",
+      "reqHeaders": {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Referer": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bf9-261d-7159-97f3-da46eeda613d",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\", \"Google Chrome\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "postData": "{\"fileId\":\"019e4f09-02ad-7740-a921-26170ee9e15e\"}",
+      "resourceType": "XHR",
+      "status": 201,
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "respHeaders": {
+        "access-control-allow-origin": "*",
+        "content-disposition": "inline; filename=\"preview.docx\"",
+        "content-length": "17085",
+        "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "correlation-id": "01a1a5a4-026e-75ed-b50e-25428e0df286",
+        "date": "Wed, 04 Nov 2026 08:19:11 GMT",
+        "keep-alive": "timeout=72",
+        "request-id": "01a1a5a4-026e-75ed-b50e-25428e0df286",
+        "server-timing": "intid;desc=d93c789a074f9a36",
+        "x-request-id": "01a1a5a4-026e-75ed-b50e-25428e0df286"
+      }
+    }
+  ]
+}
