@@ -4,8 +4,8 @@ Luồng được tách làm hai pha để phù hợp với thao tác của edito
 
 1. ``check_and_import`` đọc Excel, đối chiếu theo mã và tạo các bản ghi DRAFT mới.
 2. ``process_drafts`` upload tài liệu của các bản ghi DRAFT, parse từ URL đã
-   upload, lưu dữ liệu có cấu trúc, chuyển sang ARCHIVED, sau đó index
-   thành công và chuyển sang PUBLISHED.
+   upload, lưu dữ liệu có cấu trúc và chuyển sang ARCHIVED.
+3. ``publish_archived`` index các bản ghi ARCHIVED và chuyển sang PUBLISHED.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ def _uuid(value: str | uuid.UUID, field: str = "user_id") -> uuid.UUID:
 
 
 def _require_editor(db: Session, user_id: str | uuid.UUID) -> User:
-    """Trả về user đang hoạt động và có role editor, nếu không thì từ chối."""
+    """Trả về admin/editor đang hoạt động, nếu không thì từ chối."""
     editor = (
         db.query(User)
         .options(joinedload(User.role))
@@ -66,65 +66,79 @@ def _require_editor(db: Session, user_id: str | uuid.UUID) -> User:
     )
     if editor is None:
         raise PermissionError("Không tìm thấy editor đang hoạt động")
-    if editor.role is None or editor.role.code.casefold() != "editor":
-        raise PermissionError("Chỉ người dùng có role editor được chạy ingestion")
+    if editor.role is None or editor.role.code.casefold() not in {"admin", "editor"}:
+        raise PermissionError("Chỉ admin hoặc editor được chạy ingestion")
     return editor
 
 
-# def preview_new_procedures(
-#     excel_file: str | Path,
-#     user_id: str | uuid.UUID,
-#     db: Session | None = None,
-#     sheet_name: str | int = 0,
-# ) -> list[dict[str, str | None]]:
-#     """Đối chiếu Excel với bảng procedures mà không thay đổi database."""
-#     owns_session = db is None
-#     session = db or SessionLocal()
-#     try:
-#         _require_editor(session, user_id)
-#         return find_new_procedures(excel_file, db=session, sheet_name=sheet_name)
-#     finally:
-#         if owns_session:
-#             session.close()
+def _apply_group_filters(query: Any, filters: Mapping[str, str] | None) -> Any:
+    """Áp dụng các bộ lọc thủ tục được API hỗ trợ."""
+    if not filters:
+        return query
+    allowed = {"issuing_agency", "domain", "implementing_agency"}
+    invalid = set(filters) - allowed
+    if invalid:
+        raise ValueError(f"Trường filter không hợp lệ: {', '.join(sorted(invalid))}")
+    for field, value in filters.items():
+        if value:
+            query = query.filter(getattr(ProcedureGroup, field) == value)
+    return query
 
 
-# def check_and_import(
-#     excel_file: str | Path,
-#     user_id: str | uuid.UUID,
-#     db: Session | None = None,
-#     sheet_name: str | int = 0,
-# ) -> dict[str, Any]:
-#     """Chỉ thêm các thủ tục mới từ Excel dưới trạng thái DRAFT."""
-#     owns_session = db is None
-#     session = db or SessionLocal()
-#     try:
-#         editor = _require_editor(session, user_id)
-#         rows = find_new_procedures(excel_file, db=session, sheet_name=sheet_name)
-#         created = [
-#             ProcedureGroup(
-#                 user_id=editor.id,
-#                 **row,
-#                 status=ProcedureGroupStatus.DRAFT,
-#                 page_url=None,
-#                 document_url=None,
-#             )
-#             for row in rows
-#         ]
-#         session.add_all(created)
-#         session.commit()
-#         return {
-#             "new_count": len(created),
-#             "procedures": [
-#                 {"id": str(item.id), "code": item.code, "name": item.name}
-#                 for item in created
-#             ],
-#         }
-#     except Exception:
-#         session.rollback()
-#         raise
-#     finally:
-#         if owns_session:
-#             session.close()
+def preview_new_procedures(
+    excel_file: str | Path,
+    user_id: str | uuid.UUID,
+    db: Session | None = None,
+    sheet_name: str | int = 0,
+) -> list[dict[str, str | None]]:
+    """Đối chiếu Excel với bảng procedures mà không thay đổi database."""
+    owns_session = db is None
+    session = db or SessionLocal()
+    try:
+        _require_editor(session, user_id)
+        return find_new_procedures(excel_file, db=session, sheet_name=sheet_name)
+    finally:
+        if owns_session:
+            session.close()
+
+
+def check_and_import(
+    excel_file: str | Path,
+    user_id: str | uuid.UUID,
+    db: Session | None = None,
+    sheet_name: str | int = 0,
+) -> dict[str, Any]:
+    """Chỉ thêm các thủ tục mới từ Excel dưới trạng thái DRAFT."""
+    owns_session = db is None
+    session = db or SessionLocal()
+    try:
+        editor = _require_editor(session, user_id)
+        rows = find_new_procedures(excel_file, db=session, sheet_name=sheet_name)
+        created = [
+            ProcedureGroup(
+                user_id=editor.id,
+                **row,
+                status=ProcedureGroupStatus.DRAFT,
+                page_url=None,
+                document_url=None,
+            )
+            for row in rows
+        ]
+        session.add_all(created)
+        session.commit()
+        return {
+            "new_count": len(created),
+            "procedures": [
+                {"id": str(item.id), "code": item.code, "name": item.name}
+                for item in created
+            ],
+        }
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        if owns_session:
+            session.close()
 
 
 def _replace_structured_version(group: ProcedureGroup, parsed: Mapping[str, Any]) -> None:
@@ -177,14 +191,13 @@ def process_drafts(
     user_id: str | uuid.UUID,
     sources: Mapping[str, str | Path | bytes] | None = None,
     procedure_ids: Sequence[str | uuid.UUID] | None = None,
+    filters: Mapping[str, str] | None = None,
     db: Session | None = None,
-    batch_size: int = 64,
-    run_indexing: bool = True,
-    headless: bool = True,
+    headless: bool = False,
     driver_path: str | None = DEFAULT_DRIVER_PATH,
     timeout: int = 25,
 ) -> dict[str, Any]:
-    """Crawl, upload, parse, lưu và index các DRAFT thuộc editor.
+    """Crawl, upload, parse và chuyển các DRAFT được chọn sang ARCHIVED.
 
     Mặc định, PDF chi tiết và mẫu đơn được crawl bằng pipeline trong
     ``seed_database.py``. ``sources`` là đầu vào PDF thay thế tùy chọn; parser
@@ -193,21 +206,20 @@ def process_drafts(
     owns_session = db is None
     session = db or SessionLocal()
     try:
-        editor = _require_editor(session, user_id)
+        _require_editor(session, user_id)
         query = session.query(ProcedureGroup).filter(
-            ProcedureGroup.user_id == editor.id,
             ProcedureGroup.status == ProcedureGroupStatus.DRAFT,
         )
         if procedure_ids is not None:
             ids = [_uuid(item, "procedure_id") for item in procedure_ids]
             if not ids:
-                return {"processed": 0, "indexed": 0, "codes": []}
+                return {"processed": 0, "codes": []}
             query = query.filter(ProcedureGroup.id.in_(ids))
+        query = _apply_group_filters(query, filters)
         groups = query.order_by(ProcedureGroup.created_at).all()
 
         processed_ids: list[uuid.UUID] = []
         codes: list[str] = []
-        indexed = 0
         if groups:
             s3, bucket, region = make_s3_client()
         driver = None
@@ -276,22 +288,57 @@ def process_drafts(
                     )
                     _replace_structured_version(group, parsed)
 
-                    # Mỗi thủ tục phải được lưu ở trạng thái ARCHIVED trước khi upsert.
+                    # Kết thúc pha xử lý ở ARCHIVED; publish/indexing là bước riêng.
                     session.commit()
                     processed_ids.append(group.id)
                     codes.append(group.code)
-                    if run_indexing:
-                        index_result = upsert_procedures(
-                            db=session, batch_size=batch_size, procedure_ids=[group.id]
-                        )
-                        indexed += int(index_result["upserted"])
             finally:
                 if driver is not None:
                     driver.quit()
         return {
             "processed": len(processed_ids),
-            "indexed": indexed,
             "codes": codes,
+        }
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        if owns_session:
+            session.close()
+
+
+def publish_archived(
+    user_id: str | uuid.UUID,
+    procedure_ids: Sequence[str | uuid.UUID] | None = None,
+    filters: Mapping[str, str] | None = None,
+    db: Session | None = None,
+    batch_size: int = 64,
+) -> dict[str, Any]:
+    """Index các thủ tục đã xử lý được chọn và chuyển sang PUBLISHED."""
+    owns_session = db is None
+    session = db or SessionLocal()
+    try:
+        _require_editor(session, user_id)
+        query = session.query(ProcedureGroup).filter(
+            ProcedureGroup.status == ProcedureGroupStatus.ARCHIVED
+        )
+        if procedure_ids is not None:
+            ids = [_uuid(item, "procedure_id") for item in procedure_ids]
+            if not ids:
+                return {"published": 0, "codes": []}
+            query = query.filter(ProcedureGroup.id.in_(ids))
+        query = _apply_group_filters(query, filters)
+        groups = query.order_by(ProcedureGroup.code).all()
+        if not groups:
+            return {"published": 0, "codes": []}
+        result = upsert_procedures(
+            db=session,
+            batch_size=batch_size,
+            procedure_ids=[group.id for group in groups],
+        )
+        return {
+            "published": int(result["upserted"]),
+            "codes": [group.code for group in groups],
         }
     except Exception:
         session.rollback()
@@ -319,12 +366,10 @@ def main() -> int:
     check.add_argument("--user-id", required=True)
     check.add_argument("--sheet", default=0)
 
-    process = subparsers.add_parser("process", help="Parse DRAFT rồi lưu và indexing")
+    process = subparsers.add_parser("process", help="Parse DRAFT rồi lưu thành ARCHIVED")
     process.add_argument("--user-id", required=True)
     process.add_argument("--procedure-id", action="append", dest="procedure_ids")
     process.add_argument("--sources", type=Path, help="File JSON tùy chọn ánh xạ code sang PDF")
-    process.add_argument("--batch-size", type=int, default=64)
-    process.add_argument("--no-index", action="store_true")
     process.add_argument("--timeout", type=int, default=25)
     process.add_argument("--driver-path", default=DEFAULT_DRIVER_PATH)
     process.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True)
@@ -338,8 +383,6 @@ def main() -> int:
             args.user_id,
             sources=_load_sources(args.sources),
             procedure_ids=args.procedure_ids,
-            batch_size=args.batch_size,
-            run_indexing=not args.no_index,
             timeout=args.timeout,
             driver_path=args.driver_path,
             headless=args.headless,
