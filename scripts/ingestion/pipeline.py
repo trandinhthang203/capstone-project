@@ -4,8 +4,8 @@ Luồng được tách làm hai pha để phù hợp với thao tác của edito
 
 1. ``check_and_import`` đọc Excel, đối chiếu theo mã và tạo các bản ghi DRAFT mới.
 2. ``process_drafts`` upload tài liệu của các bản ghi DRAFT, parse từ URL đã
-   upload, lưu dữ liệu có cấu trúc và chuyển sang ARCHIVED.
-3. ``publish_archived`` index các bản ghi ARCHIVED và chuyển sang PUBLISHED.
+   upload, lưu dữ liệu có cấu trúc, chuyển sang ARCHIVED và index.
+3. ``publish_archived`` chuyển cả bản ghi database và point Qdrant sang PUBLISHED.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ from app.models.method import Method
 from app.models.procedure import Procedure
 from app.models.procedure_group import ProcedureGroup, ProcedureGroupStatus
 from app.models.user import User
-from scripts.ingestion.indexing import upsert_procedures
+from scripts.ingestion.indexing import update_procedure_status, upsert_procedures
 from scripts.ingestion.parsing import parse_pdf
 from scripts.ingestion.preprocesing import find_new_procedures
 from scripts.ingestion.seed_database import (
@@ -197,7 +197,7 @@ def process_drafts(
     driver_path: str | None = DEFAULT_DRIVER_PATH,
     timeout: int = 25,
 ) -> dict[str, Any]:
-    """Crawl, upload, parse và chuyển các DRAFT được chọn sang ARCHIVED.
+    """Crawl, parse, chuyển DRAFT sang ARCHIVED và index các point Qdrant.
 
     Mặc định, PDF chi tiết và mẫu đơn được crawl bằng pipeline trong
     ``seed_database.py``. ``sources`` là đầu vào PDF thay thế tùy chọn; parser
@@ -213,13 +213,14 @@ def process_drafts(
         if procedure_ids is not None:
             ids = [_uuid(item, "procedure_id") for item in procedure_ids]
             if not ids:
-                return {"processed": 0, "codes": []}
+                return {"processed": 0, "indexed": 0, "codes": []}
             query = query.filter(ProcedureGroup.id.in_(ids))
         query = _apply_group_filters(query, filters)
         groups = query.order_by(ProcedureGroup.created_at).all()
 
         processed_ids: list[uuid.UUID] = []
         codes: list[str] = []
+        indexed = 0
         if groups:
             s3, bucket, region = make_s3_client()
         driver = None
@@ -288,7 +289,13 @@ def process_drafts(
                     )
                     _replace_structured_version(group, parsed)
 
-                    # Kết thúc pha xử lý ở ARCHIVED; publish/indexing là bước riêng.
+                    # Autoflush giúp upsert_procedures nhìn thấy trạng thái ARCHIVED
+                    # trong cùng session trước khi transaction được commit.
+                    result = upsert_procedures(
+                        db=session,
+                        procedure_ids=[group.id],
+                    )
+                    indexed += int(result["upserted"])
                     session.commit()
                     processed_ids.append(group.id)
                     codes.append(group.code)
@@ -297,6 +304,7 @@ def process_drafts(
                     driver.quit()
         return {
             "processed": len(processed_ids),
+            "indexed": indexed,
             "codes": codes,
         }
     except Exception:
@@ -314,7 +322,7 @@ def publish_archived(
     db: Session | None = None,
     batch_size: int = 64,
 ) -> dict[str, Any]:
-    """Index các thủ tục đã xử lý được chọn và chuyển sang PUBLISHED."""
+    """Chuyển các thủ tục ARCHIVED trong database và Qdrant sang PUBLISHED."""
     owns_session = db is None
     session = db or SessionLocal()
     try:
@@ -331,13 +339,16 @@ def publish_archived(
         groups = query.order_by(ProcedureGroup.code).all()
         if not groups:
             return {"published": 0, "codes": []}
-        result = upsert_procedures(
-            db=session,
+        update_procedure_status(
+            [group.id for group in groups],
+            ProcedureGroupStatus.PUBLISHED,
             batch_size=batch_size,
-            procedure_ids=[group.id for group in groups],
         )
+        for group in groups:
+            group.status = ProcedureGroupStatus.PUBLISHED
+        session.commit()
         return {
-            "published": int(result["upserted"]),
+            "published": len(groups),
             "codes": [group.code for group in groups],
         }
     except Exception:

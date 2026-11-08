@@ -1,81 +1,50 @@
-from typing import TypedDict, Annotated, Optional, Any, Literal
 from dataclasses import dataclass
-from datetime import datetime
+from typing import Annotated, Any, Literal, TypedDict
 
+from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+Intent = Literal["chitchat", "out_of_scope", "procedure", "legal", "both"]
 
-@dataclass
-class QAOutput(TypedDict):
-    answer_text: str
-    form_id: Optional[str]
-    office_id: Optional[str]
-    requirements: list[str]
-    confidence: float
+def merge_dicts(left: dict, right: dict) -> dict:
+    return {**left, **right}
 
-
-class FormsOutput(TypedDict):
-    form_data: dict
-    filled_fields: list[str]
-    missing_fields: list[str]
-    pdf_url: Optional[str]
-
-
-class LocationOutput(TypedDict):
-    office_name: str
-    address: str
-    maps_url: str
-    working_hours: str
-
-
-class ProcedureMatch(TypedDict):
-    ma_thu_tuc: str
-    ten_thu_tuc: str
-    score: float
-
-
-@dataclass
-class SupervisorOutput:
-    procedures: list[str]
-    fields: list[str]
-
-
-class StreamEvent(BaseModel):
-    type: Literal["progress", "result", "error"]
-    node: str = ""
-    message: str
-    data: Any = None
-    timestamp: datetime = datetime.now()
-
+class QueryUnderstanding(BaseModel):
+    intent: Intent
+    rewritten_query: str
+    entities: dict[str, Any] = Field(default_factory=dict)
+    needs_clarification: bool = False
+    clarification_question: str | None = None
 
 class AgentState(TypedDict, total=False):
-    # input/runtime
-    user_input: str
-    resolved_user_input: str
-    messages: Annotated[list, add_messages]
+    # init state in mesage service
+    messages: Annotated[list[AnyMessage], add_messages]
     user_id: str
+    session_id: str
+    user_input: str
+    user_role: str
 
-    # conversation memory
-    conversation_summary: str
-    summarized_upto: int
+    history_summary: str
+    long_term_memory: str
+    summarized_message_count: int
 
-    # previous turn context
-    last_answer: str
-    procedure_names: list[str]
+    rewritten_query: str
+    intent: Intent
+    entities: dict[str, Any]
+    needs_clarification: bool
+    clarification_question: str
+    clarification_count: int
+    procedure_results: list[dict[str, Any]]
+    legal_results: list[dict[str, Any]]
+    context_sufficient: bool
+    missing_information: str
+    final_answer: str
+    node_timings_ms: Annotated[dict[str, float], merge_dicts]
 
-    # routing / supervisor -> qa
-    intent: str
-    procedures: list[str]
-    pipeline: list[str]
-    fields: list[str]
-
-    # shared data between qa -> forms
-    pdf_urls: list
-
-    # final outputs
-    final_response: Optional[str]
-    filled_pdf_url: Optional[str]
-
-    # optional: nếu bạn muốn typing sạch với supervisor/qa hiện tại
-    domain: Optional[str]
+@dataclass(slots=True)
+class StreamEvent:
+    type: Literal["progress", "result", "error"]
+    node: str = ""
+    message: str = ""
+    data: Any = None

@@ -53,6 +53,7 @@ def process_procedure_drafts(
     db: Session = Depends(get_db),
     current_user: User = Depends(ingestion_user),
 ):
+    """Parse DRAFT, lưu thành ARCHIVED và index ngay lên Qdrant."""
     try:
         return process_drafts(
             current_user.id,
@@ -70,6 +71,7 @@ def publish_procedures(
     db: Session = Depends(get_db),
     current_user: User = Depends(ingestion_user),
 ):
+    """Chuyển các bản ghi và point Qdrant từ ARCHIVED sang PUBLISHED."""
     try:
         return publish_archived(
             current_user.id,
