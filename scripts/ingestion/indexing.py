@@ -264,7 +264,7 @@ def backfill_status_payloads(
             session.close()
 
 
-def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
+def _build_filter(filters: dict[str, str | list[str]] | None) -> qm.Filter | None:
     if not filters:
         return None
     invalid = set(filters) - set(PAYLOAD_INDEX_FIELDS)
@@ -272,7 +272,14 @@ def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
         raise ValueError(f"Trường filter không hợp lệ: {', '.join(sorted(invalid))}")
     return qm.Filter(
         must=[
-            qm.FieldCondition(key=field, match=qm.MatchValue(value=value))
+            qm.FieldCondition(
+                key=field,
+                match=(
+                    qm.MatchAny(any=value)
+                    if isinstance(value, list)
+                    else qm.MatchValue(value=value)
+                ),
+            )
             for field, value in filters.items()
         ]
     )
@@ -280,8 +287,8 @@ def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
 
 def search_procedures(
     query: str,
-    top_k: int = 8,
-    filters: dict[str, str] | None = None,
+    top_k: int = 5,
+    filters: dict[str, str | list[str]] | None = None,
 ) -> list[dict[str, Any]]:
     """Hybrid search dense + BM25, hợp nhất thứ hạng bằng RRF."""
     query = query.strip()
