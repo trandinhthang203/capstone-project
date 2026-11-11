@@ -1,5 +1,12 @@
 from fastapi import APIRouter
-from app.api import api_auth, api_healthcheck, api_user, api_session, api_message
+from app.api import (
+    api_auth,
+    api_healthcheck,
+    api_message,
+    api_procedure_ingestion,
+    api_session,
+    api_user,
+)
 
 router = APIRouter()
 
@@ -8,3 +15,8 @@ router.include_router(api_auth.router, prefix="/auth", tags=["auth"])
 router.include_router(api_user.router, tags=["user"], prefix="/user")
 router.include_router(api_session.router, tags=["chat"], prefix="/chat")
 router.include_router(api_message.router, tags=["message"], prefix="/message")
+router.include_router(
+    api_procedure_ingestion.router,
+    tags=["procedure-ingestion"],
+    prefix="/procedures",
+)

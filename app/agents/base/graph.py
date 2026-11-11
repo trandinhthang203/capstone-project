@@ -1,34 +1,60 @@
-from langgraph.graph import StateGraph, END
+import os
+from typing import Any
 
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Send
+
+from app.agents.base.nodes import (ask_clarify, context_builder, direct_reply,
+    history_summary, legal_retrieval, procedure, procedure_retrieval, understand_query)
 from app.agents.base.state import AgentState
-from app.agents.forms.graph import build_forms_subgraph
-from app.agents.location.location_agent import location_node
-from app.agents.memory.checkpointer import get_checkpointer
-from app.agents.memory.store import get_store
-from app.agents.qa.qa_node import qa_node
-from app.agents.supervisor.supervisor_node import context_node, intent_router_node
 
+def route_query(state: AgentState) -> str | list[Send]:
+    if state.get("needs_clarification") and state.get("clarification_count", 0) < 2:
+        return "ask_clarify"
+    intent = state.get("intent")
+    if intent in {"chitchat", "out_of_scope"}:
+        return "direct_reply"
+    if intent == "both":
+        return [Send("procedure_retrieval", state), Send("legal_retrieval", state)]
+    return "legal_retrieval" if intent == "legal" else "procedure"
 
-async def create_workflow():
-    checkpointer = await get_checkpointer()
-    store = await get_store()
+def route_after_clarify(state: AgentState) -> str:
+    """Skip re-classification when HITL has selected an authoritative code."""
+    if state.get("intent") == "procedure" and state.get("selected_procedure_code"):
+        return "procedure"
+    return "understand_query"
 
-    workflow = StateGraph(AgentState)
+# async def _checkpointer() -> Any:
+#     url = os.getenv("LANGGRAPH_CHECKPOINT_DATABASE_URL")
+#     if not url:
+#         return MemorySaver()
+    
+#     saver = AsyncPostgresSaver.from_conn_string(url)
+#     if hasattr(saver, "__aenter__"):
+#         saver = await saver.__aenter__()
+#     await saver.setup()
+#     return saver
 
-    forms_subgraph = build_forms_subgraph()
-
-    # Core pipeline
-    workflow.add_node("context", context_node)
-    workflow.add_node("intent_router", intent_router_node)
-    workflow.add_node("qa", qa_node)
-
-    # Optional branches
-    workflow.add_node("forms", forms_subgraph)
-    workflow.add_node("location", location_node)
-
-    workflow.set_entry_point("context")
-
-    # forms subgraph return dict -> cần edge tĩnh ra END
-    workflow.add_edge("forms", END)
-
-    return workflow.compile(checkpointer=checkpointer, store=store)
+async def create_workflow(checkpointer: Any | None = None):
+    graph = StateGraph(AgentState)
+    for name, node in (("history_summary", history_summary), ("understand_query", understand_query),
+                       ("direct_reply", direct_reply), ("ask_clarify", ask_clarify),
+                       ("procedure", procedure),
+                       ("procedure_retrieval", procedure_retrieval), ("legal_retrieval", legal_retrieval),
+                       ("context_builder", context_builder)):
+        graph.add_node(name, node)
+    graph.add_edge(START, "history_summary")
+    graph.add_edge("history_summary", "understand_query")
+    graph.add_conditional_edges("understand_query", route_query,
+        ["direct_reply", "ask_clarify", "procedure", "procedure_retrieval", "legal_retrieval"])
+    graph.add_conditional_edges(
+        "ask_clarify", route_after_clarify, ["understand_query", "procedure"]
+    )
+    graph.add_edge("direct_reply", END)
+    graph.add_edge("procedure", END)
+    graph.add_edge("procedure_retrieval", "context_builder")
+    graph.add_edge("legal_retrieval", "context_builder")
+    graph.add_edge("context_builder", END)
+    return graph.compile(checkpointer=checkpointer)

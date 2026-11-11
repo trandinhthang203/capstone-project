@@ -8,24 +8,25 @@ from box import ConfigBox
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AnyMessage, SystemMessage
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
 LLM_MAX_CONTEXT_MESSAGES = int(os.getenv("LLM_MAX_CONTEXT_MESSAGES", "8"))
 
 
 @lru_cache(maxsize=1)
-def _create_llm():
+def _create_llm() -> ChatGroq:
     """Singleton LLM instance — không tạo mới mỗi request."""
-    return ChatGoogleGenerativeAI(
-        model=os.getenv("LLM_MODEL", "gemini-2.5-flash"),
-        google_api_key=GEMINI_API_KEY,
+    return ChatGroq(
+        model="openai/gpt-oss-120b",
+        groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=float(os.getenv("LLM_TEMPERATURE", "0")),
         max_tokens=None,
         timeout=LLM_TIMEOUT_SECONDS,
-        max_retries=int(os.getenv("LLM_MAX_RETRIES", "3")),     # ↓ từ 5 → 3
+        max_retries=int(os.getenv("LLM_MAX_RETRIES", "3")),
     )
 
 
@@ -90,13 +91,10 @@ def safe_json_loads(raw, fallback=None):
     text = _normalize_llm_text(raw)
     text = text.replace("```json", "").replace("```", "").strip()
     try:
-        return json.loads_safe(text)  # Will fallback if fail
-    except Exception:
-        try:
-            import json
-            return json.loads(text)
-        except Exception:
-            return fallback
+        import json
+        return json.loads(text)
+    except (TypeError, ValueError):
+        return fallback
 
 
 def read_yaml():

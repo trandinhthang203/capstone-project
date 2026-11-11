@@ -22,6 +22,7 @@
 </p>
 
 ## 📝 Table of Contents
+Có **6 881** thủ tục hành chính được lưu trong cơ sở dữ liệu.
 
 - [About](#about)
 - [Demo / Working](#demo)

@@ -1,5 +1,7 @@
 import asyncio
 import json
+from dataclasses import asdict
+from typing import Any, AsyncIterator
 from uuid import UUID
 
 from langchain_core.messages import HumanMessage
@@ -7,9 +9,8 @@ from langgraph.types import Command
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.agents.base.graph import create_workflow
 from app.agents.base.state import AgentState, StreamEvent
-from app.agents.base.utils import set_queue
+from app.agents.base.utils import reset_queue, set_queue
 from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
 from app.schemas.chat_message import ChatMessageCreate, DynamicFormSubmitRequest
@@ -20,19 +21,19 @@ class MessageService(object):
         self.db = db
         self.app = None
         self.user_id = user_id
-        self.full_response = ""
-        self.config = {}
-
-    async def initialize(self):
-        self.app = await create_workflow()
 
     def _build_config(self, session_id: UUID):
-        self.config = {
+        return {
             "configurable": {
                 "thread_id": str(session_id),
                 "user_id": self.user_id,
             }
         }
+
+    def _get_user_role(self) -> str:
+        from app.models.user import User
+        user = self.db.query(User).filter(User.id == self.user_id).first()
+        return user.role.code.upper() if user and user.role else "USER"
 
     def ensure_session_access(self, session_id: UUID) -> ChatSession:
         session = self.db.query(ChatSession).filter(
@@ -53,10 +54,6 @@ class MessageService(object):
         self.db.refresh(msg)
         return msg
 
-    def _set_session_status(self, session_id, status: str):
-        # The current session schema has no workflow-status column.
-        return None
-
     def _extract_interrupt_payload(self, result: dict):
         interrupts = result.get("__interrupt__") or []
         if not interrupts:
@@ -64,31 +61,117 @@ class MessageService(object):
         first = interrupts[0]
         return first.value if hasattr(first, "value") else first
 
-    def _get_latest_dynamic_form_message(self, session_id):
-        return (
-            self.db.query(ChatMessage)
-            .filter(
-                ChatMessage.session_id == session_id,
-                ChatMessage.metadata_["message_type"].astext == "dynamic_form",
+    @staticmethod
+    def _sse(event: str, data: Any) -> str:
+        """Serialize one Server-Sent Event block."""
+        payload = json.dumps(data, ensure_ascii=False, default=str)
+        return f"event: {event}\ndata: {payload}\n\n"
+
+    @staticmethod
+    def _snapshot_interrupt_payload(snapshot: Any) -> dict[str, Any] | None:
+        """Read the pending interrupt from a LangGraph StateSnapshot."""
+        for task in getattr(snapshot, "tasks", ()):
+            for item in getattr(task, "interrupts", ()):
+                value = item.value if hasattr(item, "value") else item
+                if isinstance(value, dict):
+                    return value
+        return None
+
+    async def validate_resume(self, data: DynamicFormSubmitRequest) -> None:
+        """Fail before StreamingResponse starts if this form cannot be resumed."""
+        if self.app is None:
+            raise RuntimeError("Workflow chưa được gán cho MessageService")
+
+        snapshot = await self.app.aget_state(self._build_config(data.idchatsession))
+        if not snapshot.values:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy trạng thái hội thoại để tiếp tục",
             )
-            .order_by(ChatMessage.created_at.desc())
-            .first()
-        )
+        if not snapshot.next:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Luồng xử lý này đã hoàn thành hoặc không chờ phản hồi",
+            )
 
-    async def _stream_queue_events(self, queue, graph_task):
-        while not graph_task.done() or not queue.empty():
+        payload = self._snapshot_interrupt_payload(snapshot)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Luồng xử lý hiện tại không có interrupt đang chờ",
+            )
+        if payload.get("request_id") != data.request_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="request_id không khớp với form đang chờ",
+            )
+
+    async def _run_graph_stream(
+        self,
+        graph_input: AgentState | Command,
+        session_id: UUID,
+    ) -> AsyncIterator[str]:
+        """Run LangGraph while forwarding node events as SSE."""
+        if self.app is None:
+            yield self._sse("error", {"message": "Workflow chưa được khởi tạo"})
+            return
+
+        queue: asyncio.Queue[StreamEvent | None] = asyncio.Queue()
+        config = self._build_config(session_id)
+
+        async def invoke() -> dict[str, Any]:
+            token = set_queue(queue)
             try:
-                event: StreamEvent = await asyncio.wait_for(queue.get(), timeout=0.05)
-            except asyncio.TimeoutError:
-                continue
+                return await self.app.ainvoke(graph_input, config=config)
+            finally:
+                reset_queue(token)
+                await queue.put(None)
 
-            if event.type == "progress":
-                yield f"data: {json.dumps({'type': 'progress', 'node': event.node, 'message': event.message}, ensure_ascii=False)}\n\n"
-            elif event.type == "result":
-                yield f"data: {json.dumps({'type': 'result', 'node': event.node, 'message': event.message, 'data': event.data}, ensure_ascii=False)}\n\n"
-            elif event.type == "error":
-                yield f"data: {json.dumps({'type': 'error', 'message': event.message}, ensure_ascii=False)}\n\n"
+        task = asyncio.create_task(invoke())
+        try:
+            while True:
+                event = await queue.get()
+                if event is None:
+                    break
+                event_data = asdict(event)
+                yield self._sse(event.type, event_data)
+
+            result = await task
+            interrupt_payload = self._extract_interrupt_payload(result)
+            if interrupt_payload is not None:
+                self._save_message(
+                    session_id=session_id,
+                    content=str(
+                        interrupt_payload.get("description")
+                        or interrupt_payload.get("title")
+                        or "Cần thêm thông tin"
+                    ),
+                    isfromuser=False,
+                    msgtype="dynamic_form",
+                    metadata={"form": interrupt_payload},
+                )
+                yield self._sse("interrupt", interrupt_payload)
                 return
+
+            answer = str(result.get("final_answer") or "")
+            if answer:
+                self._save_message(
+                    session_id=session_id,
+                    content=answer,
+                    isfromuser=False,
+                    msgtype="text",
+                )
+            yield self._sse(
+                "done",
+                {"message": answer, "status": "completed"},
+            )
+        except asyncio.CancelledError:
+            task.cancel()
+            raise
+        except Exception as exc:
+            if not task.done():
+                task.cancel()
+            yield self._sse("error", {"message": str(exc)})
 
     async def create_message_stream(self, data: ChatMessageCreate):
         self._save_message(
@@ -97,104 +180,30 @@ class MessageService(object):
             isfromuser=True,
             msgtype="text",
         )
-        self._set_session_status(data.idchatsession, "RUNNING")
-        self._build_config(data.idchatsession)
-
-        queue = asyncio.Queue()
-        set_queue(queue)
-
         state: AgentState = {
             "messages": [HumanMessage(content=data.msgcontent)],
             "user_input": data.msgcontent,
             "user_id": self.user_id,
+            "session_id": str(data.idchatsession),
+            "user_role": self._get_user_role(),
         }
 
-        graph_task = asyncio.create_task(self.app.ainvoke(state, self.config))
+        async for event in self._run_graph_stream(state, data.idchatsession):
+            yield event
 
-        try:
-            async for chunk in self._stream_queue_events(queue, graph_task):
-                yield chunk
+    async def resume_message_stream(self, data: DynamicFormSubmitRequest):
+        """Persist the submitted form and resume the pending interrupt."""
+        self._save_message(
+            session_id=data.idchatsession,
+            content=json.dumps(data.values, ensure_ascii=False, default=str),
+            isfromuser=True,
+            msgtype="dynamic_form_response",
+            metadata={
+                "request_id": data.request_id,
+                "values": data.values,
+            },
+        )
 
-            result = await graph_task
-            interrupt_payload = self._extract_interrupt_payload(result)
-            if interrupt_payload:
-                self._save_message(
-                    session_id=data.idchatsession,
-                    content="Cần thêm dữ liệu để tiếp tục.",
-                    isfromuser=False,
-                    msgtype="dynamic_form",
-                    metadata=interrupt_payload,
-                )
-                self._set_session_status(data.idchatsession, "WAITING_FORM_INPUT")
-                yield f"data: {json.dumps({'type': 'progress', 'data': interrupt_payload}, ensure_ascii=False)}\n\n"
-                return
-
-            filled_pdf_url = result.get("filled_pdf_url")
-            full_response = result.get("final_response", "") or "Hoàn tất xử lý biểu mẫu."
-            self._save_message(
-                session_id=data.idchatsession,
-                content=full_response,
-                isfromuser=False,
-                msgtype="text",
-                metadata={"filled_pdf_url": filled_pdf_url} if filled_pdf_url else None,
-            )
-            self._set_session_status(data.idchatsession, "DONE")
-
-            yield f"data: {json.dumps({'type': 'result', 'message': full_response, 'data': {'filled_pdf_url': filled_pdf_url} if filled_pdf_url else None}, ensure_ascii=False)}\n\n"
-        except Exception as exc:
-            self._set_session_status(data.idchatsession, "FAILED")
-            if not graph_task.done():
-                graph_task.cancel()
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)}, ensure_ascii=False)}\n\n"
-
-    async def submit_dynamic_form_stream(self, data: DynamicFormSubmitRequest):
-        latest_form_message = self._get_latest_dynamic_form_message(data.idchatsession)
-        latest_meta = latest_form_message.metadata_ if latest_form_message else None
-
-        if latest_meta and latest_meta.get("request_id") and latest_meta.get("request_id") != data.request_id:
-            yield f"data: {json.dumps({'type': 'error', 'message': 'Biểu mẫu đã hết hiệu lực, vui lòng gửi lại yêu cầu mới.'}, ensure_ascii=False)}\n\n"
-            return
-
-        self._set_session_status(data.idchatsession, "RUNNING")
-        self._build_config(data.idchatsession)
-
-        queue = asyncio.Queue()
-        set_queue(queue)
-
-        graph_task = asyncio.create_task(self.app.ainvoke(Command(resume=data.values), self.config))
-
-        try:
-            async for chunk in self._stream_queue_events(queue, graph_task):
-                yield chunk
-
-            result = await graph_task
-            interrupt_payload = self._extract_interrupt_payload(result)
-            if interrupt_payload:
-                self._save_message(
-                    session_id=data.idchatsession,
-                    content="Cần thêm dữ liệu để tiếp tục.",
-                    isfromuser=False,
-                    msgtype="dynamic_form",
-                    metadata=interrupt_payload,
-                )
-                self._set_session_status(data.idchatsession, "WAITING_FORM_INPUT")
-                yield f"data: {json.dumps({'type': 'progress', 'data': interrupt_payload}, ensure_ascii=False)}\n\n"
-                return
-
-            filled_pdf_url = result.get("filled_pdf_url")
-            full_response = result.get("final_response", "") or "Hoàn tất xử lý biểu mẫu."
-            self._save_message(
-                session_id=data.idchatsession,
-                content=full_response,
-                isfromuser=False,
-                msgtype="text",
-                metadata={"filled_pdf_url": filled_pdf_url} if filled_pdf_url else None,
-            )
-            self._set_session_status(data.idchatsession, "DONE")
-
-            yield f"data: {json.dumps({'type': 'result', 'node': 'forms', 'message': full_response, 'data': {'filled_pdf_url': filled_pdf_url} if filled_pdf_url else None}, ensure_ascii=False)}\n\n"
-        except Exception as exc:
-            self._set_session_status(data.idchatsession, "FAILED")
-            if not graph_task.done():
-                graph_task.cancel()
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)}, ensure_ascii=False)}\n\n"
+        command = Command(resume=data.values)
+        async for event in self._run_graph_stream(command, data.idchatsession):
+            yield event

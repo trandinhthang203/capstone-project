@@ -26,6 +26,7 @@ PAYLOAD_INDEX_FIELDS = (
     "issuing_agency",
     "implementing_agency",
     "domain",
+    "status",
 )
 
 
@@ -47,6 +48,7 @@ def _payload(procedure: ProcedureGroup) -> dict[str, str | None]:
         "issuing_agency": procedure.issuing_agency,
         "implementing_agency": procedure.implementing_agency,
         "domain": procedure.domain,
+        "status": procedure.status.value,
     }
 
 
@@ -81,11 +83,10 @@ def upsert_procedures(
     batch_size: int = 64,
     procedure_ids: Sequence[Any] | None = None,
 ) -> dict[str, int | str]:
-    """Upsert các ProcedureGroup archived rồi chuyển chúng sang published.
+    """Upsert các ProcedureGroup archived và giữ nguyên trạng thái.
 
-    Chỉ cập nhật trạng thái sau khi mọi batch đã được Qdrant xác nhận. Nếu có
-    lỗi, transaction database được rollback; các point đã ghi dở vẫn an toàn
-    vì point ID ổn định và sẽ được upsert lại ở lần chạy tiếp theo.
+    Việc chuyển ARCHIVED sang PUBLISHED thuộc pha publish riêng. Point ID ổn
+    định nên có thể upsert lại an toàn.
     """
     if batch_size < 1:
         raise ValueError("batch_size phải lớn hơn 0")
@@ -144,9 +145,6 @@ def upsert_procedures(
             )
             upserted += len(points)
 
-        for procedure in procedures:
-            procedure.status = ProcedureGroupStatus.PUBLISHED
-        session.commit()
         return {"collection": COLLECTION_NAME, "upserted": upserted}
     except Exception:
         session.rollback()
@@ -156,7 +154,117 @@ def upsert_procedures(
             session.close()
 
 
-def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
+def update_procedure_status(
+    procedure_ids: Sequence[Any],
+    status: ProcedureGroupStatus,
+    batch_size: int = 64,
+    skip_missing: bool = False,
+) -> int:
+    """Cập nhật status trong payload Qdrant mà không tính lại vector.
+
+    ``skip_missing`` dùng cho backfill dữ liệu cũ, nơi database có thể chứa
+    bản ghi chưa từng được index lên Qdrant.
+    """
+    if batch_size < 1:
+        raise ValueError("batch_size phải lớn hơn 0")
+    ids = [str(item) for item in procedure_ids]
+    if not ids:
+        return 0
+
+    client = _get_client()
+    updated = 0
+    for batch in _chunks(ids, batch_size):
+        point_ids = list(batch)
+        if skip_missing:
+            existing = client.retrieve(
+                collection_name=COLLECTION_NAME,
+                ids=point_ids,
+                with_payload=False,
+                with_vectors=False,
+            )
+            existing_ids = {str(point.id) for point in existing}
+            point_ids = [point_id for point_id in point_ids if point_id in existing_ids]
+            if not point_ids:
+                continue
+        client.set_payload(
+            collection_name=COLLECTION_NAME,
+            payload={"status": status.value},
+            points=point_ids,
+            wait=True,
+        )
+        updated += len(point_ids)
+    return updated
+
+
+def backfill_status_payloads(
+    db: Session | None = None,
+    batch_size: int = 64,
+    procedure_ids: Sequence[Any] | None = None,
+) -> dict[str, int | str]:
+    """Backfill payload ``status`` cho các point Qdrant đã tồn tại.
+
+    Trạng thái trong PostgreSQL là nguồn dữ liệu chuẩn. DRAFT không được
+    backfill vì chúng chưa thuộc vector index.
+    """
+    if batch_size < 1:
+        raise ValueError("batch_size phải lớn hơn 0")
+
+    owns_session = db is None
+    session = db or SessionLocal()
+    try:
+        query = session.query(ProcedureGroup).filter(
+            ProcedureGroup.status.in_(
+                [ProcedureGroupStatus.ARCHIVED, ProcedureGroupStatus.PUBLISHED]
+            )
+        )
+        if procedure_ids is not None:
+            ids = list(procedure_ids)
+            if not ids:
+                return {
+                    "collection": COLLECTION_NAME,
+                    "updated": 0,
+                    "skipped_missing": 0,
+                }
+            query = query.filter(ProcedureGroup.id.in_(ids))
+
+        procedures = query.order_by(ProcedureGroup.code).all()
+        if not procedures:
+            return {
+                "collection": COLLECTION_NAME,
+                "updated": 0,
+                "skipped_missing": 0,
+            }
+
+        client = _get_client()
+        if not client.collection_exists(COLLECTION_NAME):
+            raise RuntimeError(f"Qdrant collection chưa tồn tại: {COLLECTION_NAME}")
+        client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="status",
+            field_schema=qm.PayloadSchemaType.KEYWORD,
+            wait=True,
+        )
+
+        updated = 0
+        for status in (ProcedureGroupStatus.ARCHIVED, ProcedureGroupStatus.PUBLISHED):
+            status_ids = [item.id for item in procedures if item.status == status]
+            updated += update_procedure_status(
+                status_ids,
+                status,
+                batch_size=batch_size,
+                skip_missing=True,
+            )
+        return {
+            "collection": COLLECTION_NAME,
+            "updated": updated,
+            "skipped_missing": len(procedures) - updated,
+        }
+    finally:
+        if owns_session:
+            session.close()
+
+
+def _build_filter(filters: dict[str, str | list[str]] | None) -> qm.Filter | None:
     if not filters:
         return None
     invalid = set(filters) - set(PAYLOAD_INDEX_FIELDS)
@@ -164,7 +272,14 @@ def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
         raise ValueError(f"Trường filter không hợp lệ: {', '.join(sorted(invalid))}")
     return qm.Filter(
         must=[
-            qm.FieldCondition(key=field, match=qm.MatchValue(value=value))
+            qm.FieldCondition(
+                key=field,
+                match=(
+                    qm.MatchAny(any=value)
+                    if isinstance(value, list)
+                    else qm.MatchValue(value=value)
+                ),
+            )
             for field, value in filters.items()
         ]
     )
@@ -172,8 +287,8 @@ def _build_filter(filters: dict[str, str] | None) -> qm.Filter | None:
 
 def search_procedures(
     query: str,
-    top_k: int = 8,
-    filters: dict[str, str] | None = None,
+    top_k: int = 5,
+    filters: dict[str, str | list[str]] | None = None,
 ) -> list[dict[str, Any]]:
     """Hybrid search dense + BM25, hợp nhất thứ hạng bằng RRF."""
     query = query.strip()
@@ -228,6 +343,11 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
     index_parser = subparsers.add_parser("index", help="Upsert dữ liệu lên Qdrant")
     index_parser.add_argument("--batch-size", type=int, default=64)
+    backfill_parser = subparsers.add_parser(
+        "backfill-status",
+        help="Cập nhật payload status cho các point Qdrant cũ",
+    )
+    backfill_parser.add_argument("--batch-size", type=int, default=64)
     search_parser = subparsers.add_parser("search", help="Thử hybrid search")
     search_parser.add_argument("query")
     search_parser.add_argument("--top-k", type=int, default=8)
@@ -235,6 +355,8 @@ def main() -> int:
 
     if args.command == "index":
         print(upsert_procedures(batch_size=args.batch_size))
+    elif args.command == "backfill-status":
+        print(backfill_status_payloads(batch_size=args.batch_size))
     else:
         print(search_procedures(args.query, top_k=args.top_k))
     return 0

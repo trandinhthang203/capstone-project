@@ -10,13 +10,26 @@ from app.core.config import settings
 from app.helpers.utils.exception import CustomException
 from app.helpers.utils.init_embedding import _get_client, _get_models
 from app.agents.base.graph import create_workflow
+import os
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # _get_client()
-    # _get_models()
-    # app.state.workflow = await create_workflow()
-    yield
+    _get_client()
+    _get_models()
+
+    checkpoint_url = os.getenv("LANGGRAPH_CHECKPOINT_DATABASE_URL")
+
+    if not checkpoint_url:
+        app.state.workflow = await create_workflow(MemorySaver())
+        yield
+        return
+
+    async with AsyncPostgresSaver.from_conn_string(checkpoint_url) as checkpointer:
+        await checkpointer.setup()
+        app.state.workflow = await create_workflow(checkpointer)
+        yield
 
 
 # logging.config.fileConfig(settings.LOGGING_CONFIG_FILE, disable_existing_loggers=False)
