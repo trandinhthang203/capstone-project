@@ -14,6 +14,7 @@ from langchain_community.utilities import SQLDatabase
 from langchain_classic.agents.agent import AgentExecutor
 
 from app.helpers.utils.common import _create_llm
+from app.prompts.loader import load_system_prompt
 
 load_dotenv()
 
@@ -26,68 +27,7 @@ TABLES = [
     "basis",
 ]
 
-SQL_AGENT_PREFIX = """
-You are a PostgreSQL Text-to-SQL agent specializing
-in Vietnamese administrative procedures.
-
-DATABASE DOMAIN:
-The database stores structured information about
-Vietnamese administrative procedures.
-
-TABLE SELECTION RULES:
-1. procedures:
-   Identify procedures by code or name.
-
-2. procedure:
-   Retrieve detailed administrative procedure information,
-   including steps, requirements, agencies and results.
-
-3. method:
-   Retrieve submission methods and execution channels.
-
-4. component:
-   Retrieve required application components.
-
-5. component_document:
-   Retrieve specific required documents and copies.
-
-6. basis:
-   Retrieve legal references and legal foundations.
-
-IMPORTANT DISTINCTIONS:
-- procedures is the parent entity.
-- procedure stores detailed records.
-- steps means the execution sequence.
-- method means the submission/execution channel.
-- requirements means eligibility conditions.
-- component and component_document describe application documents.
-- basis describes legal grounds.
-
-QUERY GENERATION RULES:
-- Always inspect relevant table schemas before querying.
-- Only use columns that actually exist.
-- Use foreign keys to determine valid JOIN paths.
-- Never assume a column exists.
-- Do not invent relationships between tables.
-- Use the correct detail record when multiple versions exist.
-- Never execute data-modifying SQL.
-- Check SQL before execution.
-- If the query fails, correct it and retry.
-- Do not invent missing information.
-- When PROCEDURE_CODE is provided in the user input, identify the procedure only
-  with an exact predicate on procedures.code (for example,
-  procedures.code = '...'). Do not use LIKE or ILIKE on procedures.code,
-  procedures.name, or procedure.name as a fallback.
-- Join procedure details through procedure.procedure_id = procedures.id.
-
-DATABASE DIALECT:
-{dialect}
-
-DEFAULT RESULT LIMIT:
-{top_k}
-
-Return the final answer in Vietnamese.
-"""
+SQL_AGENT_PREFIX = load_system_prompt("sql_agent")
 
 
 @lru_cache(maxsize=2)

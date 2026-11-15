@@ -7,7 +7,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
 from app.agents.base.nodes import (ask_clarify, context_builder, direct_reply,
-    history_summary, legal_retrieval, procedure, procedure_retrieval, understand_query)
+    history_summary, legal_retrieval, procedure, understand_query)
 from app.agents.base.state import AgentState
 
 def route_query(state: AgentState) -> str | list[Send]:
@@ -17,11 +17,13 @@ def route_query(state: AgentState) -> str | list[Send]:
     if intent in {"chitchat", "out_of_scope"}:
         return "direct_reply"
     if intent == "both":
-        return [Send("procedure_retrieval", state), Send("legal_retrieval", state)]
+        return [Send("procedure", state), Send("legal_retrieval", state)]
     return "legal_retrieval" if intent == "legal" else "procedure"
 
-def route_after_clarify(state: AgentState) -> str:
+def route_after_clarify(state: AgentState) -> str | list[Send]:
     """Skip re-classification when HITL has selected an authoritative code."""
+    if state.get("intent") == "both" and state.get("selected_procedure_code"):
+        return [Send("procedure", state), Send("legal_retrieval", state)]
     if state.get("intent") == "procedure" and state.get("selected_procedure_code"):
         return "procedure"
     return "understand_query"
@@ -42,19 +44,19 @@ async def create_workflow(checkpointer: Any | None = None):
     for name, node in (("history_summary", history_summary), ("understand_query", understand_query),
                        ("direct_reply", direct_reply), ("ask_clarify", ask_clarify),
                        ("procedure", procedure),
-                       ("procedure_retrieval", procedure_retrieval), ("legal_retrieval", legal_retrieval),
+                       ("legal_retrieval", legal_retrieval),
                        ("context_builder", context_builder)):
         graph.add_node(name, node)
     graph.add_edge(START, "history_summary")
     graph.add_edge("history_summary", "understand_query")
     graph.add_conditional_edges("understand_query", route_query,
-        ["direct_reply", "ask_clarify", "procedure", "procedure_retrieval", "legal_retrieval"])
+        ["direct_reply", "ask_clarify", "procedure", "legal_retrieval"])
     graph.add_conditional_edges(
-        "ask_clarify", route_after_clarify, ["understand_query", "procedure"]
+        "ask_clarify", route_after_clarify,
+        ["understand_query", "procedure", "legal_retrieval"]
     )
     graph.add_edge("direct_reply", END)
     graph.add_edge("procedure", END)
-    graph.add_edge("procedure_retrieval", "context_builder")
     graph.add_edge("legal_retrieval", "context_builder")
     graph.add_edge("context_builder", END)
     return graph.compile(checkpointer=checkpointer)

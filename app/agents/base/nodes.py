@@ -4,19 +4,22 @@ import os
 import time
 import hashlib
 import asyncio
+import logging
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.types import interrupt
 
-# Memory tạm thời bị vô hiệu hóa. Bỏ comment khi cần bật lại Mem0.
 # from app.agents.base.memory import recall, remember
-from app.agents.base.retrieval import retrieve_legal, retrieve_procedures
+from app.agents.base.retrieval import retrieve_legal
 from app.agents.base.state import AgentState, QueryUnderstanding, StreamEvent
 from app.agents.base.utils import emit, _text, _normalize_procedure_text, _timed
 from app.agents.SQLAgent import aquery_database
 from app.helpers.utils.common import _create_llm, build_llm_messages, invoke_llm_text
+from app.prompts.loader import load_system_prompt
 from scripts.ingestion.indexing import PAYLOAD_INDEX_FIELDS, search_procedures
+
+logger = logging.getLogger(__name__)
 
 async def history_summary(state: AgentState) -> dict[str, Any]:
     started = time.perf_counter()
@@ -36,7 +39,6 @@ async def history_summary(state: AgentState) -> dict[str, Any]:
             HumanMessage(content=f"Tóm tắt cũ: {state.get('history_summary', '')}\n{source}")])
         update["summarized_message_count"] = max(0, len(messages) - recent)
         
-    # TODO(memory): Bật lại các dòng dưới khi tiếp tục sử dụng Mem0.
     # query = state.get("user_input") or (messages and _text(messages[-1])) or ""
     # user_id = str(config.get("configurable", {}).get("user_id") or state.get("user_id", ""))
     # update["long_term_memory"] = await recall(user_id, query)
@@ -47,24 +49,7 @@ async def history_summary(state: AgentState) -> dict[str, Any]:
 async def understand_query(state: AgentState) -> dict[str, Any]:
     started = time.perf_counter()
     query = state.get("user_input") or _text(state.get("messages", [""])[-1])
-    prompt = """Bạn là bộ định tuyến truy vấn cho chatbot về thủ tục hành chính Việt Nam và Luật Hôn nhân & Gia đình.
-
-Nhiệm vụ:
-1. Phân loại chính xác một trong: chitchat, out_of_scope, procedure, legal, both.
-2. Viết lại câu hỏi độc lập, giữ nguyên ý định và dữ kiện từ hội thoại.
-   - Luôn đọc các tin nhắn gần nhất để hiểu câu hỏi nối tiếp, rút gọn hoặc
-     thiếu chủ ngữ, ví dụ: "hồ sơ thì sao", "còn lệ phí?", "thời hạn bao lâu".
-   - Nếu câu hiện tại hỏi tiếp về đối tượng, thủ tục hoặc vấn đề pháp luật ở
-     lượt trước, phải kế thừa ngữ cảnh và intent tương ứng. Không phân loại là
-     chitchat hoặc out_of_scope chỉ vì câu hiện tại ngắn.
-   - rewritten_query phải bổ sung đối tượng từ ngữ cảnh. Ví dụ, sau câu hỏi về
-     trình tự đăng ký kết hôn, "hồ sơ thì sao" phải được viết lại thành "Hồ sơ
-     thực hiện thủ tục đăng ký kết hôn gồm những gì?".
-3. Nếu intent là procedure và thuộc dạng câu hỏi cần xác định trước thủ tục, bắt buộc trích procedure_name: chỉ là tên/cụm từ nhận diện thủ tục để hybrid search, bỏ các phần hỏi như hồ sơ, lệ phí, thời hạn, cách làm. Không tự bịa tên.
-    Ví dụ: "Đăng ký kết hôn cần giấy tờ gì?" => intent=procedure, procedure_name="Đăng ký kết hôn".
-4. Nếu intent là procedure nhưng thuộc dạng câu hỏi không cần xác định thủ tục, hoặc dạng câu hỏi truy vấn tổng hợp, thống kê,...thì để procedure_name là null.
-    Ví dụ: "Lĩnh vực đất đai của xã tôi có bao nhiêu thủ tục?" => intent=procedure, procedure_name=null.
-"""
+    prompt = load_system_prompt("understand_query")
     llm = _create_llm().with_structured_output(QueryUnderstanding)
     context = state.get("history_summary", "")
     # Memory tạm thời để trống; đổi lại thành state.get(...) khi bật Mem0.
@@ -85,7 +70,7 @@ Nhiệm vụ:
         **result.model_dump(),
         "node_timings_ms": _timed("understand_query", started, state)
     }
-    if result.intent == "procedure":
+    if result.intent in {"procedure", "both"}:
         procedure_name = (result.procedure_name or "").strip()
         active_code = state.get("selected_procedure_code", "").strip()
         active_name = state.get("selected_procedure_name", "").strip()
@@ -143,13 +128,45 @@ Nhiệm vụ:
             candidates = await asyncio.to_thread(
                 search_procedures, procedure_name, top_k, filters or None
             )
-            update["procedure_candidates"] = candidates
-            if candidates:
+            logger.info(
+                "search_procedures results: %s",
+                [
+                    {
+                        "code": candidate.get("code"),
+                        "name": candidate.get("name"),
+                        "score": candidate.get("score"),
+                    }
+                    for candidate in candidates
+                ],
+            )
+            score_threshold = float(
+                os.getenv("PROCEDURE_AUTO_SELECT_SCORE_THRESHOLD", "0.5")
+            )
+            best_candidate = candidates[0] if candidates else None
+            best_code = str((best_candidate or {}).get("code") or "").strip()
+            best_score = (best_candidate or {}).get("score")
+            auto_select = bool(
+                best_code
+                and isinstance(best_score, (int, float))
+                and best_score >= score_threshold
+            )
+
+            if auto_select:
+                update.update({
+                    "selected_procedure_code": best_code,
+                    "selected_procedure_name": str(best_candidate.get("name") or ""),
+                    "procedure_candidates": [],
+                    "needs_clarification": False,
+                    "clarification_question": "",
+                })
+            elif candidates:
+                update["procedure_candidates"] = candidates
                 update["needs_clarification"] = True
                 update["clarification_question"] = (
                     "Vui lòng xác nhận thủ tục hành chính bạn muốn hỏi."
                 )
             else:
+                update["procedure_candidates"] = []
                 update["needs_clarification"] = True
                 update["clarification_question"] = (
                     f"Tôi chưa tìm thấy thủ tục phù hợp với “{procedure_name}”. "
@@ -185,7 +202,7 @@ async def ask_clarify(state: AgentState) -> dict[str, Any]:
         f"{state.get('session_id', '')}:{state.get('rewritten_query', state.get('user_input', ''))}".encode()
     ).hexdigest()[:20]
     candidates = state.get("procedure_candidates", [])
-    if state.get("intent") == "procedure" and candidates:
+    if state.get("intent") in {"procedure", "both"} and candidates:
         field = {
             "field_id": "procedure_code", "label": "Thủ tục hành chính",
             "type": "select", "required": True,
@@ -220,7 +237,7 @@ async def ask_clarify(state: AgentState) -> dict[str, Any]:
         "clarification_count": state.get("clarification_count", 0) + 1,
         "node_timings_ms": _timed("ask_clarify", started, state)
     }
-    if state.get("intent") == "procedure" and candidates:
+    if state.get("intent") in {"procedure", "both"} and candidates:
         selected_code = str(answer.get("procedure_code", "")) if isinstance(answer, dict) else text
         selected = next((item for item in candidates
                          if str(item.get("code")) == selected_code), None)
@@ -235,6 +252,11 @@ async def procedure(state: AgentState) -> dict[str, Any]:
     await emit(StreamEvent("progress", "procedure", "Đang truy vấn dữ liệu thủ tục hành chính"))
     code = state.get("selected_procedure_code", "").strip()
     if not code:
+        if state.get("intent") == "both":
+            return {
+                "procedure_results": [],
+                "node_timings_ms": _timed("procedure", started, state),
+            }
         answer = (
             "Tôi chưa xác định được chính xác thủ tục hành chính bạn muốn hỏi. "
             "Bạn vui lòng gửi lại tên hoặc mã thủ tục cụ thể."
@@ -249,14 +271,18 @@ async def procedure(state: AgentState) -> dict[str, Any]:
     await emit(StreamEvent("result", "procedure", answer,
                            {"procedure_code": code,
                             "procedure_name": state.get("selected_procedure_name", "")}))
+    if state.get("intent") == "both":
+        return {
+            "procedure_results": [{
+                "title": state.get("selected_procedure_name") or "Thủ tục hành chính",
+                "passage": answer,
+                "procedure_code": code,
+                "source_type": "procedure",
+            }],
+            "node_timings_ms": _timed("procedure", started, state),
+        }
     return {"final_answer": answer, "messages": [AIMessage(content=answer)],
             "node_timings_ms": _timed("procedure", started, state)}
-
-async def procedure_retrieval(state: AgentState) -> dict[str, Any]:
-    started = time.perf_counter()
-    await emit(StreamEvent("progress", "procedure_retrieval", "Đang tra cứu thủ tục hành chính"))
-    results = await retrieve_procedures(state["rewritten_query"], state.get("user_role", "USER"))
-    return {"procedure_results": results, "node_timings_ms": _timed("procedure_retrieval", started, state)}
 
 async def legal_retrieval(state: AgentState) -> dict[str, Any]:
     started = time.perf_counter()

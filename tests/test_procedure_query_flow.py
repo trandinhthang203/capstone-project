@@ -44,7 +44,7 @@ async def test_understand_query_searches_name_with_safe_role_filter(monkeypatch)
 
     def fake_search(query, top_k, filters):
         captured.update(query=query, top_k=top_k, filters=filters)
-        return [{"code": "1.001", "name": "Đăng ký kết hôn", "score": 1.0}]
+        return [{"code": "1.001", "name": "Đăng ký kết hôn", "score": 0.89}]
 
     monkeypatch.setattr(nodes, "_create_llm", lambda: _LLM())
     monkeypatch.setattr(nodes, "search_procedures", fake_search)
@@ -62,6 +62,29 @@ async def test_understand_query_searches_name_with_safe_role_filter(monkeypatch)
                         "filters": {"domain": "Hộ tịch", "status": "published"}}
     assert result["procedure_candidates"][0]["code"] == "1.001"
     assert result["needs_clarification"] is True
+
+
+@pytest.mark.asyncio
+async def test_understand_query_auto_selects_high_confidence_procedure(monkeypatch):
+    def fake_search(_query, _top_k, _filters):
+        return [
+            {"code": "1.001", "name": "Đăng ký kết hôn", "score": 0.9},
+            {"code": "1.002", "name": "Đăng ký kết hôn có yếu tố nước ngoài", "score": 0.7},
+        ]
+
+    monkeypatch.setattr(nodes, "_create_llm", lambda: _LLM())
+    monkeypatch.setattr(nodes, "search_procedures", fake_search)
+
+    result = await nodes.understand_query({
+        "user_input": "Kết hôn cần giấy tờ gì?",
+        "user_role": "USER",
+    })
+
+    assert result["selected_procedure_code"] == "1.001"
+    assert result["selected_procedure_name"] == "Đăng ký kết hôn"
+    assert result["procedure_candidates"] == []
+    assert result["needs_clarification"] is False
+    assert route_query(result) == "procedure"
 
 
 @pytest.mark.asyncio
@@ -160,7 +183,7 @@ async def test_understand_query_searches_again_when_procedure_changes(monkeypatc
 
     def fake_search(query, top_k, filters):
         captured.update(query=query, top_k=top_k, filters=filters)
-        return [{"code": "2.002", "name": query, "score": 1.0}]
+        return [{"code": "2.002", "name": query, "score": 0.89}]
 
     monkeypatch.setattr(nodes, "_create_llm", lambda: ChangedProcedureLLM())
     monkeypatch.setattr(nodes, "search_procedures", fake_search)
@@ -183,6 +206,21 @@ def test_confirmed_procedure_routes_to_sql_node():
                                 "selected_procedure_code": "1.001"}) == "procedure"
 
 
+def test_both_intent_routes_procedure_and_legal_in_parallel():
+    routes = route_query({"intent": "both", "needs_clarification": False})
+
+    assert {route.node for route in routes} == {"procedure", "legal_retrieval"}
+
+
+def test_confirmed_both_intent_skips_reclassification_and_runs_in_parallel():
+    routes = route_after_clarify({
+        "intent": "both",
+        "selected_procedure_code": "1.001",
+    })
+
+    assert {route.node for route in routes} == {"procedure", "legal_retrieval"}
+
+
 @pytest.mark.asyncio
 async def test_procedure_uses_confirmed_code(monkeypatch):
     captured = {}
@@ -200,6 +238,32 @@ async def test_procedure_uses_confirmed_code(monkeypatch):
 
     assert captured["procedure_code"] == "1.001"
     assert result["final_answer"] == "Kết quả SQL"
+
+
+@pytest.mark.asyncio
+async def test_procedure_returns_evidence_for_both_intent(monkeypatch):
+    async def fake_query(_question, _role, procedure_code=None):
+        assert procedure_code == "1.001"
+        return "Kết quả SQL"
+
+    monkeypatch.setattr(nodes, "aquery_database", fake_query)
+    monkeypatch.setattr(nodes, "emit", lambda _event: _noop())
+
+    result = await nodes.procedure({
+        "intent": "both",
+        "rewritten_query": "Thủ tục và quy định liên quan?",
+        "user_role": "USER",
+        "selected_procedure_code": "1.001",
+        "selected_procedure_name": "Đăng ký kết hôn",
+    })
+
+    assert result["procedure_results"] == [{
+        "title": "Đăng ký kết hôn",
+        "passage": "Kết quả SQL",
+        "procedure_code": "1.001",
+        "source_type": "procedure",
+    }]
+    assert "final_answer" not in result
 
 
 async def _noop():

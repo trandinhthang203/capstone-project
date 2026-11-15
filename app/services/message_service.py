@@ -11,6 +11,7 @@ from fastapi import HTTPException, status
 
 from app.agents.base.state import AgentState, StreamEvent
 from app.agents.base.utils import reset_queue, set_queue
+from app.core.observability import trace_graph_call
 from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
 from app.schemas.chat_message import ChatMessageCreate, DynamicFormSubmitRequest
@@ -23,11 +24,20 @@ class MessageService(object):
         self.user_id = user_id
 
     def _build_config(self, session_id: UUID):
+        session_id_value = str(session_id)
         return {
             "configurable": {
-                "thread_id": str(session_id),
+                "thread_id": session_id_value,
                 "user_id": self.user_id,
-            }
+            },
+            "run_name": "handle-chat-message",
+            "metadata": {
+                "langfuse_user_id": (
+                    str(self.user_id) if self.user_id is not None else None
+                ),
+                "langfuse_session_id": session_id_value,
+                "langfuse_tags": ["langgraph", "chat"],
+            },
         }
 
     def _get_user_role(self) -> str:
@@ -122,7 +132,13 @@ class MessageService(object):
         async def invoke() -> dict[str, Any]:
             token = set_queue(queue)
             try:
-                return await self.app.ainvoke(graph_input, config=config)
+                with trace_graph_call(
+                    user_id=self.user_id,
+                    session_id=str(session_id),
+                ) as callbacks:
+                    if callbacks:
+                        config["callbacks"] = callbacks
+                    return await self.app.ainvoke(graph_input, config=config)
             finally:
                 reset_queue(token)
                 await queue.put(None)
